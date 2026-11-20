@@ -1,0 +1,2746 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extreme Gym - QR Membership &amp; Revenue System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f7fee7',
+                            100: '#ecfccb',
+                            300: '#bef264',
+                            400: '#a3e635',
+                            500: '#84cc16',
+                            600: '#65a30d',
+                            900: '#1a2e05',
+                        },
+                        darkbg: '#09090b',
+                        darkcard: '#121215',
+                        darkborder: '#27272a',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #09090b;
+            color: #f4f4f5;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #121215;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+        .glow-lime {
+            box-shadow: 0 0 20px rgba(163, 230, 53, 0.15);
+        }
+        .scanner-laser {
+            position: absolute;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, #a3e635, transparent);
+            animation: scan 2s infinite ease-in-out;
+        }
+        @keyframes scan {
+            0% { top: 5%; }
+            50% { top: 90%; }
+            100% { top: 5%; }
+        }
+        #qrCameraReader video {
+            border-radius: 0.75rem;
+            object-fit: cover;
+            width: 100% !important;
+        }
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+            header, nav, main, #toastContainer, .modal-overlay {
+                display: none !important;
+            }
+            #printPassSheet {
+                display: flex !important;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                padding: 24px;
+                background: #ffffff !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-darkbg text-zinc-100 selection:bg-brand-400 selection:text-black">
+
+    <header class="bg-zinc-950 border-b border-zinc-800 text-xs py-2 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-2 text-zinc-400">
+                <i class="fa-solid fa-location-dot text-brand-400"></i>
+                <span><strong>EXTREME GYM:</strong> 3rd Floor, A&amp;E Building, Fortunato F. Halili Avenue, Bagbaguin, Santa Maria, Bulacan</span>
+            </div>
+            <div class="flex items-center gap-4 text-zinc-400">
+                <span><i class="fa-solid fa-clock text-zinc-500 mr-1"></i> Mon-Sat: 6:00 AM - 10:00 PM</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-darkcard border-b border-darkborder sticky top-0 z-30 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-black font-extrabold text-xl shadow-lg shadow-brand-500/20">
+                        <i class="fa-solid fa-dumbbell"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg tracking-wider text-white flex items-center gap-1.5">
+                            EXTREME <span class="text-brand-400">GYM</span>
+                        </span>
+                        <p class="text-[10px] text-zinc-400 font-medium">QR Membership &amp; Revenue System</p>
+                    </div>
+                </div>
+
+                <div id="navTabsContainer" class="hidden md:flex items-center gap-1"></div>
+
+                <div class="flex items-center gap-3">
+                    <div id="userInfoHeader" class="hidden text-right">
+                        <div id="userNameDisplay" class="text-sm font-bold text-zinc-200">User</div>
+                        <div id="userRoleBadge" class="text-[11px] text-brand-400 font-medium">Role</div>
+                    </div>
+
+                    <button id="logoutBtn" onclick="app.logout()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-zinc-700">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobileNavTabs" class="md:hidden border-t border-zinc-800 px-4 py-2 flex overflow-x-auto gap-2 custom-scrollbar"></div>
+    </nav>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <div id="authView" class="max-w-md mx-auto my-8">
+            <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="text-center mb-6">
+                    <div class="inline-flex w-14 h-14 rounded-2xl bg-zinc-900 border border-brand-500/30 items-center justify-center text-brand-400 text-2xl mb-3 shadow-inner">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-white">Extreme Gym Portal</h2>
+                    <p class="text-xs text-zinc-400 mt-1">Access member card, QR check-in &amp; management</p>
+                </div>
+
+                <div class="flex rounded-xl bg-zinc-900/90 p-1 mb-6 border border-zinc-800">
+                    <button id="authTabLoginBtn" onclick="app.switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-xs font-bold transition bg-brand-400 text-black shadow">
+                        Sign In
+                    </button>
+                    <button id="authTabRegisterBtn" onclick="app.switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-xs font-bold text-zinc-400 transition hover:text-white">
+                        Customer Sign Up
+                    </button>
+                </div>
+
+                <form id="loginForm" onsubmit="app.handleLogin(event)" class="space-y-4">
+                    <div id="lockoutNotice" class="hidden bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs p-3 rounded-xl flex items-start gap-2.5">
+                        <i class="fa-solid fa-circle-exclamation text-base mt-0.5"></i>
+                        <div>
+                            <strong class="block font-bold">Account Security Lockout</strong>
+                            <span id="lockoutTimerText">Too many failed attempts. Try again in 60s.</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Username or Email</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-3.5 top-3 text-zinc-500 text-xs"></i>
+                            <input type="text" id="loginUsername" required autocomplete="username" placeholder="Enter username or email" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Password</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-3.5 top-3 text-zinc-500 text-xs"></i>
+                            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Enter password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-10 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition">
+                            <button type="button" onclick="app.togglePasswordVisibility('loginPassword', 'loginPassIcon')" class="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300 text-xs p-1">
+                                <i id="loginPassIcon" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs pt-1">
+                        <label class="flex items-center gap-2 text-zinc-400 cursor-pointer">
+                            <input type="checkbox" class="rounded bg-zinc-900 border-zinc-700 text-brand-400 focus:ring-0"> Remember me
+                        </label>
+                    </div>
+
+                    <button type="submit" id="loginSubmitBtn" class="w-full bg-brand-400 hover:bg-brand-500 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2 mt-2">
+                        <span>Sign In To Portal</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <form id="registerForm" onsubmit="app.handleCustomerSelfRegister(event)" class="hidden space-y-3.5">
+                    <div class="bg-brand-500/10 border border-brand-500/20 p-2.5 rounded-xl text-[11px] text-brand-300 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-brand-400"></i>
+                        <span>Creating a new member account will automatically generate your scannable QR pass.</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name <span class="text-rose-400">*</span></label>
+                            <input type="text" id="regFirstName" required placeholder="e.g. Juan" oninput="app.validateNameInput(this, 'regFnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                            <span id="regFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters &amp; hyphens only</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name <span class="text-rose-400">*</span></label>
+                            <input type="text" id="regLastName" required placeholder="e.g. Dela Cruz" oninput="app.validateNameInput(this, 'regLnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                            <span id="regLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters &amp; hyphens only</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Username <span class="text-rose-400">*</span></label>
+                        <input type="text" id="regUsername" required placeholder="Choose a unique username" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Email Address <span class="text-rose-400">*</span></label>
+                        <input type="email" id="regEmail" required placeholder="juan@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
+                        <input type="tel" id="regPhone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Initial Membership Plan</label>
+                        <select id="regPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Password <span class="text-rose-400">*</span></label>
+                        <div class="relative">
+                            <input type="password" id="regPassword" required minlength="6" placeholder="At least 6 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                            <button type="button" onclick="app.togglePasswordVisibility('regPassword', 'regPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
+                                <i id="regPassIcon" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 mt-2">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Complete Registration</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="memberPortalView" class="hidden space-y-6">
+            <div class="bg-darkcard border border-darkborder rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div id="memberAvatar" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 text-black text-2xl font-black flex items-center justify-center shadow-lg">
+                        JD
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 id="memberNameTitle" class="text-2xl font-extrabold text-white">Juan Dela Cruz</h2>
+                            <span id="memberStatusBadge" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-xs font-bold">Active Member</span>
+                        </div>
+                        <p id="memberIdSub" class="text-xs text-zinc-400 font-mono mt-0.5">Member ID: EG-2026-0001</p>
+                        <p id="memberPlanSub" class="text-xs text-brand-400 font-medium mt-1">Plan: Monthly Basic Pass</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="app.showRenewalModal()" class="bg-brand-400 hover:bg-brand-500 text-black px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Request Renewal / Pay</span>
+                    </button>
+                    <button onclick="app.printCurrentMemberPass()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-zinc-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Print QR Pass</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1">
+                    <div class="bg-gradient-to-b from-zinc-900 to-black border-2 border-brand-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden glow-lime">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="text-brand-400 font-extrabold text-sm tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-dumbbell"></i> EXTREME GYM
+                                </div>
+                                <div class="text-[10px] text-zinc-500">OFFICIAL MEMBER PASS</div>
+                            </div>
+                            <span id="cardStatusChip" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">VALID</span>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-xl flex justify-center items-center my-4 shadow-inner">
+                            <div id="memberQrContainer"></div>
+                        </div>
+
+                        <div class="text-center space-y-1">
+                            <p id="cardMemberName" class="text-lg font-bold text-white">Juan Dela Cruz</p>
+                            <p id="cardMemberId" class="text-xs text-brand-400 font-mono">EG-2026-0001</p>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-zinc-800 text-[11px] space-y-1.5 text-zinc-400">
+                            <div class="flex justify-between">
+                                <span>Current Plan:</span>
+                                <strong id="cardPlanName" class="text-white">Monthly Basic</strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Expiration Date:</span>
+                                <strong id="cardExpiryDate" class="text-brand-400 font-mono">2026-12-15</strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Gym Location:</span>
+                                <span class="text-zinc-400 text-right">Santa Maria, Bulacan</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-[9px] text-center text-zinc-600 uppercase tracking-widest">
+                            Present QR code at desk scanner for check-in
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
+                            <div class="text-xs text-zinc-400 mb-1">Total Check-ins</div>
+                            <div id="memberTotalCheckins" class="text-2xl font-black text-white">0</div>
+                            <div class="text-[10px] text-emerald-400 mt-1"><i class="fa-solid fa-circle-check"></i> Verified entries</div>
+                        </div>
+                        <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
+                            <div class="text-xs text-zinc-400 mb-1">Days Remaining</div>
+                            <div id="memberDaysLeft" class="text-2xl font-black text-brand-400">0 Days</div>
+                            <div class="text-[10px] text-zinc-500 mt-1">Until plan renewal</div>
+                        </div>
+                        <div class="bg-darkcard border border-darkborder p-4 rounded-xl col-span-2 sm:col-span-1">
+                            <div class="text-xs text-zinc-400 mb-1">Total Contributions</div>
+                            <div id="memberTotalPaid" class="text-2xl font-black text-white">₱0.00</div>
+                            <div class="text-[10px] text-zinc-500 mt-1">Payments recorded</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-5">
+                        <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-brand-400"></i>
+                            <span>My Recent Check-in Logs</span>
+                        </h3>
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-zinc-800 text-zinc-400">
+                                        <th class="pb-2">Date &amp; Time</th>
+                                        <th class="pb-2">Plan Validated</th>
+                                        <th class="pb-2">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="memberAttendanceTableBody" class="divide-y divide-zinc-800/50 text-zinc-300"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminDashboardView" class="hidden space-y-6">
+
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-darkborder pb-4">
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.switchAdminSubTab('scanner')" id="subTabScanner" class="admin-subtab bg-brand-400 text-black font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>QR Attendance Terminal</span>
+                    </button>
+                    <button onclick="app.switchAdminSubTab('members')" id="subTabMembers" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Members</span>
+                    </button>
+                    <button onclick="app.switchAdminSubTab('payments')" id="subTabPayments" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-receipt"></i>
+                        <span>Payments &amp; Revenue</span>
+                    </button>
+                    <button onclick="app.switchAdminSubTab('attendance')" id="subTabAttendance" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Attendance Log</span>
+                    </button>
+                    <button onclick="app.switchAdminSubTab('plans')" id="subTabPlans" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Membership Plans</span>
+                    </button>
+                    <button onclick="app.switchAdminSubTab('accounts')" id="subTabAccounts" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span>Staff Accounts</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
+                        <span>Total Registered Members</span>
+                        <i class="fa-solid fa-users text-brand-400"></i>
+                    </div>
+                    <div id="statTotalMembers" class="text-2xl font-black text-white">0</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Extreme Gym Database</div>
+                </div>
+                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
+                        <span>Active Subscriptions</span>
+                        <i class="fa-solid fa-user-check text-emerald-400"></i>
+                    </div>
+                    <div id="statActiveMembers" class="text-2xl font-black text-emerald-400">0</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Valid passes</div>
+                </div>
+                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
+                        <span>Today's Check-ins</span>
+                        <i class="fa-solid fa-door-open text-blue-400"></i>
+                    </div>
+                    <div id="statTodayCheckins" class="text-2xl font-black text-white">0</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Attended today</div>
+                </div>
+                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
+                        <span>Total Revenue</span>
+                        <i class="fa-solid fa-peso-sign text-brand-400"></i>
+                    </div>
+                    <div id="statTotalRevenue" class="text-2xl font-black text-brand-400">₱0.00</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Cumulative recorded</div>
+                </div>
+            </div>
+
+            <div id="adminScannerSubTab" class="space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-6 relative overflow-hidden">
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-camera text-brand-400"></i>
+                                <span>QR Attendance Verification Terminal</span>
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <input type="file" id="qrImageFileInput" accept="image/*" class="hidden" onchange="app.scanQrFromImageFile(event)">
+                                <button type="button" onclick="document.getElementById('qrImageFileInput').click()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5" title="Upload a QR image to scan">
+                                    <i class="fa-solid fa-image text-brand-400"></i>
+                                    <span>Scan Image</span>
+                                </button>
+                                <button type="button" id="toggleCameraBtn" onclick="app.toggleCameraScanner()" class="bg-brand-400 hover:bg-brand-500 text-black text-xs px-3.5 py-1.5 rounded-lg font-extrabold transition flex items-center gap-1.5 shadow">
+                                    <i class="fa-solid fa-video"></i>
+                                    <span>Start Camera</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="cameraSelectWrapper" class="hidden mb-3">
+                            <div class="flex items-center gap-2">
+                                <label class="text-[11px] text-zinc-400 whitespace-nowrap">Camera Device:</label>
+                                <select id="cameraDeviceSelect" onchange="app.switchCameraDevice()" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-400"></select>
+                            </div>
+                        </div>
+
+                        <div id="scannerPlaceholder" class="relative bg-black rounded-xl border-2 border-dashed border-zinc-800 p-6 text-center flex flex-col items-center justify-center min-h-[250px] overflow-hidden">
+                            <div class="scanner-laser"></div>
+
+                            <div class="w-16 h-16 rounded-2xl border-2 border-brand-400/50 flex items-center justify-center text-brand-400 text-3xl mb-3 bg-brand-500/5 shadow-inner">
+                                <i class="fa-solid fa-qrcode animate-pulse"></i>
+                            </div>
+                            <p class="text-xs font-bold text-zinc-200 mb-2">Webcam &amp; Phone Camera QR Scanner Ready</p>
+                            <button type="button" onclick="app.toggleCameraScanner()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-5 py-2.5 rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-brand-500/20 mb-2">
+                                <i class="fa-solid fa-camera"></i>
+                                <span>Start Camera Scanner</span>
+                            </button>
+                            <p class="text-[11px] text-zinc-500 max-w-xs">Point a member's QR pass at your camera, or use a USB 2D scanner / dropdown below</p>
+                        </div>
+
+                        <div id="qrCameraReader" class="hidden bg-black rounded-xl border border-brand-500/40 overflow-hidden min-h-[250px]"></div>
+
+                        <div class="mt-6 space-y-3">
+                            <label class="block text-xs font-bold text-zinc-300">Select Member Pass:</label>
+                            <div class="flex flex-wrap sm:flex-nowrap gap-2">
+                                <select id="scannerMemberSelect" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></select>
+                                <button onclick="app.simScanFromSelect()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                                    <i class="fa-solid fa-bolt"></i>
+                                    <span>Scan</span>
+                                </button>
+                                <button onclick="app.printSelectedMemberPass()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold px-3.5 py-2 rounded-xl text-xs transition border border-zinc-700 flex items-center gap-1.5" title="Print QR Code Pass for Selected Member">
+                                    <i class="fa-solid fa-print text-brand-400"></i>
+                                    <span>Print QR</span>
+                                </button>
+                            </div>
+
+                            <div class="relative pt-2">
+                                <label class="block text-xs font-semibold text-zinc-400 mb-1">Optical Scanner / Manual Member ID Input:</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="manualScanInput" onkeydown="if(event.key==='Enter'){event.preventDefault();app.simScanFromInput();}" placeholder="Scan QR or enter ID (e.g. EG-2026-0001)" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-brand-400">
+                                    <button onclick="app.simScanFromInput()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold px-4 py-2 rounded-xl text-xs transition border border-zinc-700">
+                                        Verify ID
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-id-card text-brand-400"></i>
+                                <span>Verification Result Display</span>
+                            </h3>
+
+                            <div id="scanResultCard" class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center space-y-4">
+                                <div class="w-16 h-16 mx-auto rounded-full bg-zinc-800 text-zinc-600 text-2xl flex items-center justify-center">
+                                    <i class="fa-solid fa-user-check"></i>
+                                </div>
+                                <div class="text-zinc-500 text-xs font-medium">
+                                    Scan a member QR code to verify identity &amp; active plan status
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-zinc-800 text-[11px] text-zinc-500 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-brand-400"></i>
+                            <span>15-second duplicate check-in cooldown active per member.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminMembersSubTab" class="hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        <div class="relative flex-1 sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-zinc-500 text-xs"></i>
+                            <input type="text" id="memberSearchInput" onkeyup="app.renderMembersTable()" placeholder="Search name, ID, email..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                        </div>
+                        <select id="memberStatusFilter" onchange="app.renderMembersTable()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                            <option value="ALL">All Statuses</option>
+                            <option value="Active">Active Only</option>
+                            <option value="Expired">Expired Only</option>
+                        </select>
+                    </div>
+
+                    <button onclick="app.openAddMemberModal()" class="w-full sm:w-auto bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Register New Member</span>
+                    </button>
+                </div>
+
+                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-900 border-b border-darkborder text-zinc-400 font-bold">
+                                <tr>
+                                    <th class="p-3.5">Member Name &amp; ID</th>
+                                    <th class="p-3.5">Contact &amp; Email</th>
+                                    <th class="p-3.5">Plan Name</th>
+                                    <th class="p-3.5">Expiration Date</th>
+                                    <th class="p-3.5">Status</th>
+                                    <th class="p-3.5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="membersTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminPaymentsSubTab" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-darkcard border border-darkborder p-4 rounded-2xl">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div>
+                            <label class="block text-[10px] text-zinc-400 mb-1">Filter Method</label>
+                            <select id="paymentMethodFilter" onchange="app.renderPaymentsModule()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white">
+                                <option value="ALL">All Methods</option>
+                                <option value="Cash">Cash</option>
+                                <option value="GCash">GCash</option>
+                                <option value="Card">Card</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="app.exportRevenueCSV()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-csv text-emerald-400"></i>
+                            <span>Export Revenue CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-darkcard border border-darkborder rounded-2xl p-5">
+                        <h3 class="text-xs font-bold text-white mb-4 flex items-center justify-between">
+                            <span>Revenue Trend Analytics</span>
+                            <span class="text-zinc-500 font-normal">Extreme Gym Financial Summary</span>
+                        </h3>
+                        <div class="h-64 relative">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-5 space-y-3">
+                        <h3 class="text-xs font-extrabold text-white flex items-center gap-2 border-b border-zinc-800 pb-2">
+                            <i class="fa-solid fa-cash-register text-brand-400"></i>
+                            <span>Record Direct Payment / Renewal</span>
+                        </h3>
+
+                        <form onsubmit="app.handleManualPaymentSubmit(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-[11px] text-zinc-300 mb-1">Select Member</label>
+                                <select id="payMemberSelect" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] text-zinc-300 mb-1">Membership Plan</label>
+                                <select id="payPlanSelect" onchange="app.onPayPlanSelectChange()" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] text-zinc-300 mb-1">Amount (₱)</label>
+                                    <input type="number" id="payAmount" required min="1" max="50000" step="1" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                                    <span class="text-[9px] text-zinc-500">Cap: ₱50,000</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-zinc-300 mb-1">Payment Method</label>
+                                    <select id="payMethod" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                                        <option value="Cash">Cash</option>
+                                        <option value="GCash">GCash</option>
+                                        <option value="Card">Card</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] text-zinc-300 mb-1">Reference / Receipt No.</label>
+                                <input type="text" id="payRefNo" placeholder="Optional ref #" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+
+                            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>Record Payment &amp; Renew</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-zinc-800 font-bold text-xs text-white">Recent Transactions History</div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-900 text-zinc-400">
+                                <tr>
+                                    <th class="p-3">Txn ID</th>
+                                    <th class="p-3">Member Name</th>
+                                    <th class="p-3">Plan Paid</th>
+                                    <th class="p-3">Amount</th>
+                                    <th class="p-3">Method</th>
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3">Recorded By</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminAttendanceSubTab" class="hidden space-y-4">
+                <div class="flex justify-between items-center bg-darkcard border border-darkborder p-4 rounded-2xl">
+                    <h3 class="text-xs font-bold text-white">Master Check-in Log</h3>
+                    <button onclick="app.exportAttendanceCSV()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-download text-brand-400"></i>
+                        <span>Export Attendance CSV</span>
+                    </button>
+                </div>
+
+                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-900 text-zinc-400 font-bold">
+                                <tr>
+                                    <th class="p-3.5">Timestamp</th>
+                                    <th class="p-3.5">Member Name</th>
+                                    <th class="p-3.5">Member ID</th>
+                                    <th class="p-3.5">Plan Validated</th>
+                                    <th class="p-3.5">Validation Result</th>
+                                    <th class="p-3.5">Operator</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAttendanceTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminPlansSubTab" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-white">Extreme Gym Membership Plans Configuration</h3>
+                    <button onclick="app.openAddPlanModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add New Plan</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="plansContainer"></div>
+            </div>
+
+            <div id="adminAccountsSubTab" class="hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-darkcard border border-darkborder p-4 rounded-2xl">
+                    <div>
+                        <h3 class="text-xs font-extrabold text-white">Staff &amp; Admin Accounts Management</h3>
+                        <p class="text-[10px] text-zinc-400">Only the Administrator account can create accounts or change Admin/Staff passwords</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="app.exportDatabaseBackup()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5" title="Download full local backup file">
+                            <i class="fa-solid fa-download text-emerald-400"></i>
+                            <span>Backup Data</span>
+                        </button>
+                        <input type="file" id="restoreBackupInput" accept=".json" class="hidden" onchange="app.importDatabaseBackup(event)">
+                        <button onclick="document.getElementById('restoreBackupInput').click()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5" title="Restore data from backup file">
+                            <i class="fa-solid fa-upload text-brand-400"></i>
+                            <span>Restore Data</span>
+                        </button>
+                        <button onclick="app.openAddAccountModal()" class="bg-purple-500 hover:bg-purple-600 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span>Create Staff / Admin Account</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-900 text-zinc-400 font-bold">
+                                <tr>
+                                    <th class="p-3.5">Full Name</th>
+                                    <th class="p-3.5">Username</th>
+                                    <th class="p-3.5">Role</th>
+                                    <th class="p-3.5">Created Date</th>
+                                    <th class="p-3.5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="printPassSheet" class="hidden">
+        <div class="border-2 border-black rounded-2xl p-6 w-80 text-center bg-white text-black space-y-4">
+            <div class="border-b-2 border-black pb-3">
+                <div class="font-black text-xl tracking-wider">EXTREME GYM</div>
+                <div class="text-[11px] font-semibold tracking-widest uppercase">Official Attendance QR Pass</div>
+            </div>
+            <div id="printQrTarget" class="flex justify-center items-center py-2"></div>
+            <div class="space-y-1">
+                <div id="printMemberName" class="text-lg font-extrabold">Member Name</div>
+                <div id="printMemberId" class="text-sm font-mono font-bold">EG-2026-0001</div>
+            </div>
+            <div class="border-t border-black pt-3 text-xs space-y-1 text-left">
+                <div class="flex justify-between"><span>Plan:</span><strong id="printPlanName">Monthly Basic</strong></div>
+                <div class="flex justify-between"><span>Valid Until:</span><strong id="printExpiryDate" class="font-mono">2026-12-15</strong></div>
+            </div>
+            <div class="text-[10px] pt-2 text-zinc-700">
+                Scan this QR code at the Extreme Gym front desk to log attendance.
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <div id="memberModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 id="memberModalTitle" class="text-sm font-extrabold text-white">Register New Gym Member</h3>
+                <button onclick="app.closeModal('memberModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="memberModalForm" onsubmit="app.handleSaveMember(event)" class="space-y-3">
+                <input type="hidden" id="editMemberId">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name <span class="text-rose-400">*</span></label>
+                        <input type="text" id="mFirstName" required placeholder="e.g. Kian" oninput="app.validateNameInput(this, 'mFnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="mFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">No numbers or special symbols</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name <span class="text-rose-400">*</span></label>
+                        <input type="text" id="mLastName" required placeholder="e.g. Puente" oninput="app.validateNameInput(this, 'mLnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="mLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">No numbers or special symbols</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Email Address</label>
+                        <input type="email" id="mEmail" placeholder="member@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
+                        <input type="tel" id="mPhone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Select Plan</label>
+                    <select id="mPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('memberModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Member Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="accountModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-white">Create Staff / Admin Account</h3>
+                <button onclick="app.closeModal('accountModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="app.handleSaveStaffAccount(event)" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name</label>
+                        <input type="text" id="accFn" required oninput="app.validateNameInput(this, 'accFnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="accFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters only</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name</label>
+                        <input type="text" id="accLn" required oninput="app.validateNameInput(this, 'accLnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="accLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters only</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Username</label>
+                    <input type="text" id="accUsername" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Role Type</label>
+                    <select id="accRole" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="staff">Gym Staff / Cashier</option>
+                        <option value="admin">Administrator / Manager</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Password</label>
+                    <input type="password" id="accPassword" required minlength="6" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('accountModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
+                    <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="changePasswordModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-white">Change Account Password</h3>
+                <button onclick="app.closeModal('changePasswordModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="app.handleChangeAccountPassword(event)" class="space-y-3">
+                <input type="hidden" id="cpUserId">
+
+                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs space-y-0.5">
+                    <div class="text-zinc-400">Target Account:</div>
+                    <div id="cpTargetDisplay" class="font-bold text-white">Name (username)</div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">New Password <span class="text-rose-400">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="cpNewPassword" required minlength="6" placeholder="At least 6 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <button type="button" onclick="app.togglePasswordVisibility('cpNewPassword', 'cpNewPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
+                            <i id="cpNewPassIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Confirm New Password <span class="text-rose-400">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="cpConfirmPassword" required minlength="6" placeholder="Re-enter new password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <button type="button" onclick="app.togglePasswordVisibility('cpConfirmPassword', 'cpConfirmPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
+                            <i id="cpConfirmPassIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('changePasswordModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="planModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-white">Add / Edit Membership Plan</h3>
+                <button onclick="app.closeModal('planModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="app.handleSavePlan(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Plan Name</label>
+                    <input type="text" id="pName" required placeholder="e.g. Student Monthly Special" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Price (₱)</label>
+                        <input type="number" id="pPrice" required min="1" max="50000" step="1" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span class="text-[9px] text-zinc-500">Max capped at ₱50,000</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Duration (Days)</label>
+                        <input type="number" id="pDays" required min="1" max="365" step="1" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span class="text-[9px] text-zinc-500">Max 365 days</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Category</label>
+                    <select id="pCategory" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="Walk-in">Walk-in Daily</option>
+                        <option value="Membership">Regular Membership</option>
+                        <option value="VIP">VIP / Promo</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('planModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="viewQrModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
+            <button onclick="app.closeModal('viewQrModal')" class="absolute right-4 top-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-sm font-extrabold text-white">Member Digital Pass</h3>
+            <div id="modalQrContainer" class="bg-white p-4 rounded-xl flex justify-center items-center shadow-inner"></div>
+            <div>
+                <p id="modalQrName" class="text-base font-bold text-white">Member Name</p>
+                <p id="modalQrId" class="text-xs text-brand-400 font-mono">EG-2026-0000</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="app.printModalMemberPass()" class="flex-1 bg-brand-400 hover:bg-brand-500 text-black py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 shadow">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Print QR Pass</span>
+                </button>
+                <button onclick="app.closeModal('viewQrModal')" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2 rounded-xl text-xs font-bold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="renewalModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-white">Renew Membership / Pay</h3>
+                <button onclick="app.closeModal('renewalModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="app.handleMemberRenewalSubmit(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Select Membership Plan</label>
+                    <select id="renewPlanSelect" onchange="app.onRenewPlanChange()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Amount Due (₱)</label>
+                        <input type="text" id="renewAmountDisplay" readonly class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-brand-400 font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Payment Method</label>
+                        <select id="renewMethod" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                            <option value="GCash">GCash</option>
+                            <option value="Cash">Cash at Front Desk</option>
+                            <option value="Card">Card</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">GCash / Payment Reference No.</label>
+                    <input type="text" id="renewRefNo" placeholder="Optional reference number" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('renewalModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Confirm Renewal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function clamp(num, min, max) {
+            const val = parseFloat(num) || min;
+            return Math.min(Math.max(val, min), max);
+        }
+
+        function getLocalISODate(offsetDays = 0) {
+            const d = new Date();
+            d.setDate(d.getDate() + offsetDays);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        const INITIAL_PLANS = [
+            { id: 'plan_1', name: 'Daily Walk-in Pass', price: 60, durationDays: 1, category: 'Walk-in' },
+            { id: 'plan_2', name: 'Monthly Basic Membership', price: 800, durationDays: 30, category: 'Membership' },
+            { id: 'plan_3', name: 'Quarterly Pro Membership', price: 2100, durationDays: 90, category: 'Membership' },
+            { id: 'plan_4', name: 'Annual VIP Membership', price: 7500, durationDays: 365, category: 'VIP' },
+        ];
+
+        const INITIAL_USERS = [
+            { id: 'usr_1', username: 'admin', password: 'Admin123!', role: 'admin', firstName: 'Kian Edward', lastName: 'Puente', createdAt: '2026-01-01' },
+            { id: 'usr_2', username: 'staff1', password: 'Staff123!', role: 'staff', firstName: 'Staff', lastName: 'Member', createdAt: '2026-01-05' },
+            { id: 'usr_3', username: 'juan', password: 'Member123!', role: 'member', memberId: 'EG-2026-0001', firstName: 'Juan', lastName: 'Dela Cruz', createdAt: '2026-02-01' },
+            { id: 'usr_4', username: 'maria', password: 'Member123!', role: 'member', memberId: 'EG-2026-0002', firstName: 'Maria', lastName: 'Santos', createdAt: '2026-02-10' },
+        ];
+
+        const INITIAL_MEMBERS = [
+            {
+                id: 'EG-2026-0001',
+                userId: 'usr_3',
+                firstName: 'Juan',
+                lastName: 'Dela Cruz',
+                email: 'juan@example.com',
+                phone: '09171234567',
+                planId: 'plan_2',
+                planName: 'Monthly Basic Membership',
+                status: 'Active',
+                startDate: '2026-11-15',
+                expiryDate: '2026-12-15',
+                totalPaid: 800
+            },
+            {
+                id: 'EG-2026-0002',
+                userId: 'usr_4',
+                firstName: 'Maria',
+                lastName: 'Santos',
+                email: 'maria@example.com',
+                phone: '09189876543',
+                planId: 'plan_1',
+                planName: 'Daily Walk-in Pass',
+                status: 'Expired',
+                startDate: '2026-11-01',
+                expiryDate: '2026-11-01',
+                totalPaid: 60
+            },
+            {
+                id: 'EG-2026-0003',
+                userId: '',
+                firstName: 'Kian',
+                lastName: 'Puente',
+                email: 'kian@extreme.gym',
+                phone: '09191112222',
+                planId: 'plan_3',
+                planName: 'Quarterly Pro Membership',
+                status: 'Active',
+                startDate: '2026-10-01',
+                expiryDate: '2026-12-30',
+                totalPaid: 2100
+            },
+            {
+                id: 'EG-2026-0004',
+                userId: '',
+                firstName: 'Jan Mark',
+                lastName: 'Nolasco',
+                email: 'janmark@extreme.gym',
+                phone: '09203334444',
+                planId: 'plan_4',
+                planName: 'Annual VIP Membership',
+                status: 'Active',
+                startDate: '2026-05-20',
+                expiryDate: '2027-05-20',
+                totalPaid: 7500
+            },
+            {
+                id: 'EG-2026-0005',
+                userId: '',
+                firstName: 'Jan Moises',
+                lastName: 'Gaca',
+                email: 'janmoises@extreme.gym',
+                phone: '09215556666',
+                planId: 'plan_2',
+                planName: 'Monthly Basic Membership',
+                status: 'Active',
+                startDate: '2026-11-05',
+                expiryDate: '2026-12-05',
+                totalPaid: 800
+            }
+        ];
+
+        const INITIAL_PAYMENTS = [
+            { id: 'TXN-1001', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash', date: '2026-11-15 10:30 AM', recordedBy: 'staff1' },
+            { id: 'TXN-1002', memberId: 'EG-2026-0002', memberName: 'Maria Santos', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-01 08:15 AM', recordedBy: 'admin' },
+            { id: 'TXN-1003', memberId: 'EG-2026-0003', memberName: 'Kian Puente', planName: 'Quarterly Pro Membership', amount: 2100, method: 'Card', date: '2026-10-01 02:00 PM', recordedBy: 'admin' },
+        ];
+
+        const INITIAL_ATTENDANCE = [
+            { id: 'ATT-901', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', operator: 'desk_scanner' },
+            { id: 'ATT-902', memberId: 'EG-2026-0003', memberName: 'Kian Puente', planName: 'Quarterly Pro Membership', status: 'Verified Active', timestamp: '2026-11-19 06:15 AM', operator: 'desk_scanner' },
+            { id: 'ATT-903', memberId: 'EG-2026-0002', memberName: 'Maria Santos', planName: 'Daily Walk-in Pass', status: 'Denied (Expired)', timestamp: '2026-11-19 09:30 AM', operator: 'desk_scanner' }
+        ];
+
+        class GymApp {
+            constructor() {
+                this.currentUser = null;
+                this.currentSubTab = 'scanner';
+                this.failedLoginCount = {};
+                this.lockoutTimer = null;
+                this.scanCooldowns = {};
+                this.activeModalMemberId = null;
+                this.html5QrScanner = null;
+                this.isCameraScanning = false;
+                this.lastCameraDecodeText = '';
+                this.lastCameraDecodeTime = 0;
+
+                this.loadData();
+                this.initUI();
+            }
+
+            loadData() {
+                if (!localStorage.getItem('eg_plans')) {
+                    localStorage.setItem('eg_plans', JSON.stringify(INITIAL_PLANS));
+                }
+                if (!localStorage.getItem('eg_users')) {
+                    localStorage.setItem('eg_users', JSON.stringify(INITIAL_USERS));
+                }
+                if (!localStorage.getItem('eg_members')) {
+                    localStorage.setItem('eg_members', JSON.stringify(INITIAL_MEMBERS));
+                }
+                if (!localStorage.getItem('eg_payments')) {
+                    localStorage.setItem('eg_payments', JSON.stringify(INITIAL_PAYMENTS));
+                }
+                if (!localStorage.getItem('eg_attendance')) {
+                    localStorage.setItem('eg_attendance', JSON.stringify(INITIAL_ATTENDANCE));
+                }
+
+                this.plans = JSON.parse(localStorage.getItem('eg_plans'));
+                this.users = JSON.parse(localStorage.getItem('eg_users'));
+                this.members = JSON.parse(localStorage.getItem('eg_members'));
+                this.payments = JSON.parse(localStorage.getItem('eg_payments'));
+                this.attendance = JSON.parse(localStorage.getItem('eg_attendance'));
+
+                const mainAdmin = this.users.find(u => u.id === 'usr_1' || u.username === 'admin');
+                if (mainAdmin && mainAdmin.firstName === 'Emmanuel') {
+                    mainAdmin.firstName = 'Kian Edward';
+                    mainAdmin.lastName = 'Puente';
+                    this.saveData('users');
+                }
+            }
+
+            saveData(key) {
+                if (key === 'plans') localStorage.setItem('eg_plans', JSON.stringify(this.plans));
+                if (key === 'users') localStorage.setItem('eg_users', JSON.stringify(this.users));
+                if (key === 'members') localStorage.setItem('eg_members', JSON.stringify(this.members));
+                if (key === 'payments') localStorage.setItem('eg_payments', JSON.stringify(this.payments));
+                if (key === 'attendance') localStorage.setItem('eg_attendance', JSON.stringify(this.attendance));
+            }
+
+            initUI() {
+                this.populatePlanSelects();
+                this.checkSession();
+            }
+
+            validateNameInput(inputElem, errorSpanId) {
+                const nameRegex = /^[A-Za-zÀ-ÿ\s'-]*$/;
+                const errorSpan = document.getElementById(errorSpanId);
+
+                if (!nameRegex.test(inputElem.value)) {
+                    inputElem.value = inputElem.value.replace(/[^A-Za-zÀ-ÿ\s'-]/g, '');
+                    if (errorSpan) errorSpan.classList.remove('hidden');
+                } else {
+                    if (errorSpan) errorSpan.classList.add('hidden');
+                }
+            }
+
+            togglePasswordVisibility(inputId, iconId) {
+                const input = document.getElementById(inputId);
+                const icon = document.getElementById(iconId);
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'fa-solid fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'fa-solid fa-eye';
+                }
+            }
+
+            populatePlanSelects() {
+                const selects = ['regPlanSelect', 'mPlanSelect', 'payPlanSelect', 'renewPlanSelect'];
+                selects.forEach(selectId => {
+                    const el = document.getElementById(selectId);
+                    if (!el) return;
+                    el.innerHTML = '';
+                    this.plans.forEach(plan => {
+                        const opt = document.createElement('option');
+                        opt.value = plan.id;
+                        opt.textContent = `${plan.name} - ₱${plan.price} (${plan.durationDays} Days)`;
+                        el.appendChild(opt);
+                    });
+                });
+                this.onPayPlanSelectChange();
+                this.onRenewPlanChange();
+            }
+
+            switchAuthTab(tab) {
+                const loginForm = document.getElementById('loginForm');
+                const regForm = document.getElementById('registerForm');
+                const loginBtn = document.getElementById('authTabLoginBtn');
+                const regBtn = document.getElementById('authTabRegisterBtn');
+
+                if (tab === 'login') {
+                    loginForm.classList.remove('hidden');
+                    regForm.classList.add('hidden');
+                    loginBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold transition bg-brand-400 text-black shadow';
+                    regBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold text-zinc-400 transition hover:text-white';
+                } else {
+                    loginForm.classList.add('hidden');
+                    regForm.classList.remove('hidden');
+                    regBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold transition bg-emerald-500 text-black shadow';
+                    loginBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold text-zinc-400 transition hover:text-white';
+                }
+            }
+
+            handleLogin(e) {
+                e.preventDefault();
+                const usernameInput = document.getElementById('loginUsername').value.trim();
+                const passwordInput = document.getElementById('loginPassword').value;
+
+                const failedCount = this.failedLoginCount[usernameInput] || 0;
+                if (failedCount >= 5) {
+                    this.startLockoutCountdown(usernameInput);
+                    return;
+                }
+
+                const user = this.users.find(u => (u.username.toLowerCase() === usernameInput.toLowerCase() || u.email?.toLowerCase() === usernameInput.toLowerCase()) && u.password === passwordInput);
+
+                if (user) {
+                    delete this.failedLoginCount[usernameInput];
+                    this.currentUser = user;
+                    sessionStorage.setItem('eg_session', JSON.stringify(user));
+                    this.showToast(`Welcome back, ${user.firstName}!`, 'success');
+                    this.renderAppView();
+                } else {
+                    this.failedLoginCount[usernameInput] = failedCount + 1;
+                    const remaining = 5 - this.failedLoginCount[usernameInput];
+
+                    if (remaining <= 0) {
+                        this.startLockoutCountdown(usernameInput);
+                    } else {
+                        this.showToast(`Invalid credentials! ${remaining} attempt(s) remaining before security lockout.`, 'error');
+                    }
+                }
+            }
+
+            startLockoutCountdown(username) {
+                const lockoutNotice = document.getElementById('lockoutNotice');
+                const timerText = document.getElementById('lockoutTimerText');
+                const submitBtn = document.getElementById('loginSubmitBtn');
+
+                lockoutNotice.classList.remove('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+                let secondsLeft = 60;
+                timerText.textContent = `Security lockout active due to 5 failed attempts. Please wait ${secondsLeft}s.`;
+
+                if (this.lockoutTimer) clearInterval(this.lockoutTimer);
+                this.lockoutTimer = setInterval(() => {
+                    secondsLeft--;
+                    if (secondsLeft <= 0) {
+                        clearInterval(this.lockoutTimer);
+                        delete this.failedLoginCount[username];
+                        lockoutNotice.classList.add('hidden');
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        this.showToast('Lockout expired. You may attempt login again.', 'info');
+                    } else {
+                        timerText.textContent = `Security lockout active due to 5 failed attempts. Please wait ${secondsLeft}s.`;
+                    }
+                }, 1000);
+            }
+
+            handleCustomerSelfRegister(e) {
+                e.preventDefault();
+                const fn = document.getElementById('regFirstName').value.trim();
+                const ln = document.getElementById('regLastName').value.trim();
+                const username = document.getElementById('regUsername').value.trim();
+                const email = document.getElementById('regEmail').value.trim();
+                const phone = document.getElementById('regPhone').value.trim();
+                const planId = document.getElementById('regPlanSelect').value;
+                const password = document.getElementById('regPassword').value;
+
+                const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,40}$/;
+                if (!nameRegex.test(fn) || !nameRegex.test(ln)) {
+                    this.showToast('Invalid name! First and Last name must contain letters only (no numbers/symbols).', 'error');
+                    return;
+                }
+
+                if (this.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                    this.showToast('Username is already taken. Please pick another.', 'error');
+                    return;
+                }
+
+                const memberId = `EG-2026-${String(this.members.length + 1).padStart(4, '0')}`;
+                const userId = `usr_${Date.now()}`;
+
+                const selectedPlan = this.plans.find(p => p.id === planId) || this.plans[0];
+                const startDate = getLocalISODate(0);
+                const expiryDate = getLocalISODate(selectedPlan.durationDays);
+
+                const newUser = {
+                    id: userId,
+                    username,
+                    password,
+                    role: 'member',
+                    memberId,
+                    firstName: fn,
+                    lastName: ln,
+                    email,
+                    createdAt: startDate
+                };
+
+                const newMember = {
+                    id: memberId,
+                    userId,
+                    firstName: fn,
+                    lastName: ln,
+                    email,
+                    phone,
+                    planId: selectedPlan.id,
+                    planName: selectedPlan.name,
+                    status: 'Active',
+                    startDate,
+                    expiryDate,
+                    totalPaid: selectedPlan.price
+                };
+
+                const newPayment = {
+                    id: `TXN-${Date.now().toString().slice(-4)}`,
+                    memberId,
+                    memberName: `${fn} ${ln}`,
+                    planName: selectedPlan.name,
+                    amount: selectedPlan.price,
+                    method: 'Cash (Self-Registration)',
+                    date: new Date().toLocaleString(),
+                    recordedBy: 'Self Registered'
+                };
+
+                this.users.push(newUser);
+                this.members.push(newMember);
+                this.payments.push(newPayment);
+
+                this.saveData('users');
+                this.saveData('members');
+                this.saveData('payments');
+
+                this.showToast('Registration successful! Logging you into your new member portal.', 'success');
+
+                this.currentUser = newUser;
+                sessionStorage.setItem('eg_session', JSON.stringify(newUser));
+                this.renderAppView();
+            }
+
+            async logout() {
+                await this.stopCameraScanner();
+                this.currentUser = null;
+                sessionStorage.removeItem('eg_session');
+                this.renderAppView();
+                this.showToast('Logged out successfully.', 'info');
+            }
+
+            checkSession() {
+                const sess = sessionStorage.getItem('eg_session');
+                if (sess) {
+                    const parsed = JSON.parse(sess);
+                    const freshUser = this.users.find(u => u.id === parsed.id);
+                    if (freshUser) {
+                        this.currentUser = freshUser;
+                        sessionStorage.setItem('eg_session', JSON.stringify(freshUser));
+                    } else {
+                        this.currentUser = parsed;
+                    }
+                }
+                this.renderAppView();
+            }
+
+            renderAppView() {
+                const authView = document.getElementById('authView');
+                const memberPortalView = document.getElementById('memberPortalView');
+                const adminDashboardView = document.getElementById('adminDashboardView');
+
+                const userInfoHeader = document.getElementById('userInfoHeader');
+                const userNameDisplay = document.getElementById('userNameDisplay');
+                const userRoleBadge = document.getElementById('userRoleBadge');
+                const logoutBtn = document.getElementById('logoutBtn');
+                const navTabsContainer = document.getElementById('navTabsContainer');
+                const mobileNavTabs = document.getElementById('mobileNavTabs');
+
+                if (!this.currentUser) {
+                    authView.classList.remove('hidden');
+                    memberPortalView.classList.add('hidden');
+                    adminDashboardView.classList.add('hidden');
+                    userInfoHeader.classList.add('hidden');
+                    logoutBtn.classList.add('hidden');
+                    navTabsContainer.innerHTML = '';
+                    mobileNavTabs.innerHTML = '';
+                    return;
+                }
+
+                authView.classList.add('hidden');
+                userInfoHeader.classList.remove('hidden');
+                logoutBtn.classList.remove('hidden');
+                userNameDisplay.textContent = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
+                userRoleBadge.textContent = this.currentUser.role.toUpperCase();
+
+                if (this.currentUser.role === 'member') {
+                    memberPortalView.classList.remove('hidden');
+                    adminDashboardView.classList.add('hidden');
+                    this.renderMemberPortal();
+                } else {
+                    memberPortalView.classList.add('hidden');
+                    adminDashboardView.classList.remove('hidden');
+
+                    const adminOnlyElems = document.querySelectorAll('.admin-only');
+                    adminOnlyElems.forEach(el => {
+                        if (this.currentUser.role === 'staff') {
+                            el.classList.add('hidden');
+                        } else {
+                            el.classList.remove('hidden');
+                        }
+                    });
+
+                    this.switchAdminSubTab('scanner');
+                    this.renderAdminDashboard();
+                }
+            }
+
+            getCurrentMemberRecord() {
+                return this.members.find(m => m.id === this.currentUser.memberId || m.userId === this.currentUser.id) || this.members[0];
+            }
+
+            renderMemberPortal() {
+                const member = this.getCurrentMemberRecord();
+
+                document.getElementById('memberNameTitle').textContent = `${member.firstName} ${member.lastName}`;
+                document.getElementById('memberIdSub').textContent = `Member ID: ${member.id}`;
+                document.getElementById('memberPlanSub').textContent = `Plan: ${member.planName}`;
+                document.getElementById('memberAvatar').textContent = `${member.firstName[0] || ''}${member.lastName[0] || ''}`.toUpperCase();
+
+                const isExpired = new Date(member.expiryDate + 'T23:59:59') < new Date();
+                const statusBadge = document.getElementById('memberStatusBadge');
+                const cardStatusChip = document.getElementById('cardStatusChip');
+
+                if (isExpired || member.status === 'Expired') {
+                    statusBadge.className = 'bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-0.5 rounded-full text-xs font-bold';
+                    statusBadge.textContent = 'Expired Member';
+                    cardStatusChip.className = 'bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider';
+                    cardStatusChip.textContent = 'EXPIRED';
+                } else {
+                    statusBadge.className = 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-xs font-bold';
+                    statusBadge.textContent = 'Active Member';
+                    cardStatusChip.className = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider';
+                    cardStatusChip.textContent = 'VALID';
+                }
+
+                document.getElementById('cardMemberName').textContent = `${member.firstName} ${member.lastName}`;
+                document.getElementById('cardMemberId').textContent = member.id;
+                document.getElementById('cardPlanName').textContent = member.planName;
+                document.getElementById('cardExpiryDate').textContent = member.expiryDate;
+
+                this.generateQRCode('memberQrContainer', member.id, 160);
+
+                const today = new Date(getLocalISODate(0) + 'T00:00:00');
+                const expDate = new Date(member.expiryDate + 'T00:00:00');
+                const diffTime = expDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                document.getElementById('memberDaysLeft').textContent = diffDays > 0 ? `${diffDays} Days` : '0 Days';
+
+                const myAttendance = this.attendance.filter(a => a.memberId === member.id);
+                document.getElementById('memberTotalCheckins').textContent = myAttendance.length;
+                document.getElementById('memberTotalPaid').textContent = `₱${(member.totalPaid || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                const attBody = document.getElementById('memberAttendanceTableBody');
+                attBody.innerHTML = '';
+                if (myAttendance.length === 0) {
+                    attBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-zinc-500">No attendance logs yet. Present your QR code at the gym desk!</td></tr>`;
+                } else {
+                    myAttendance.slice().reverse().forEach(att => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="py-2.5">${escapeHTML(att.timestamp)}</td>
+                            <td class="py-2.5 font-medium text-white">${escapeHTML(att.planName)}</td>
+                            <td class="py-2.5">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${att.status.includes('Verified') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                                    ${escapeHTML(att.status)}
+                                </span>
+                            </td>
+                        `;
+                        attBody.appendChild(tr);
+                    });
+                }
+            }
+
+            showRenewalModal() {
+                const member = this.getCurrentMemberRecord();
+                const sel = document.getElementById('renewPlanSelect');
+                if (sel && member.planId) {
+                    sel.value = member.planId;
+                }
+                this.onRenewPlanChange();
+                document.getElementById('renewRefNo').value = '';
+                this.openModal('renewalModal');
+            }
+
+            onRenewPlanChange() {
+                const sel = document.getElementById('renewPlanSelect');
+                const display = document.getElementById('renewAmountDisplay');
+                if (!sel || !display) return;
+                const plan = this.plans.find(p => p.id === sel.value) || this.plans[0];
+                if (plan) {
+                    display.value = `₱${plan.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+            }
+
+            handleMemberRenewalSubmit(e) {
+                e.preventDefault();
+                const member = this.getCurrentMemberRecord();
+                const planId = document.getElementById('renewPlanSelect').value;
+                const method = document.getElementById('renewMethod').value;
+                const refNo = document.getElementById('renewRefNo').value.trim();
+                const plan = this.plans.find(p => p.id === planId) || this.plans[0];
+
+                let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
+                const currentExp = new Date(member.expiryDate + 'T00:00:00');
+                if (currentExp > baseDate) {
+                    baseDate = currentExp;
+                }
+                baseDate.setDate(baseDate.getDate() + plan.durationDays);
+
+                const year = baseDate.getFullYear();
+                const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+                const day = String(baseDate.getDate()).padStart(2, '0');
+
+                member.planId = plan.id;
+                member.planName = plan.name;
+                member.expiryDate = `${year}-${month}-${day}`;
+                member.status = 'Active';
+                member.totalPaid = (member.totalPaid || 0) + plan.price;
+
+                this.payments.push({
+                    id: `TXN-${Date.now().toString().slice(-4)}`,
+                    memberId: member.id,
+                    memberName: `${member.firstName} ${member.lastName}`,
+                    planName: plan.name,
+                    amount: plan.price,
+                    method: method + (refNo ? ` (${refNo})` : ''),
+                    date: new Date().toLocaleString(),
+                    recordedBy: this.currentUser.username
+                });
+
+                this.saveData('members');
+                this.saveData('payments');
+                this.closeModal('renewalModal');
+                this.renderMemberPortal();
+                this.showToast(`Membership renewed (${plan.name})! Valid until ${member.expiryDate}.`, 'success');
+            }
+
+            generateQRCode(elementId, qrText, size = 160) {
+                const container = document.getElementById(elementId);
+                if (!container) return;
+                container.innerHTML = '';
+
+                if (window.QRCode) {
+                    const tempDiv = document.createElement('div');
+                    new QRCode(tempDiv, {
+                        text: qrText,
+                        width: size,
+                        height: size,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+
+                    const canvas = tempDiv.querySelector('canvas');
+                    if (canvas) {
+                        const img = document.createElement('img');
+                        img.src = canvas.toDataURL('image/png');
+                        img.alt = `QR Code for ${qrText}`;
+                        img.width = size;
+                        img.height = size;
+                        img.style.display = 'block';
+                        img.style.margin = '0 auto';
+                        container.appendChild(img);
+                        return;
+                    }
+                }
+
+                const fallbackImg = document.createElement('img');
+                fallbackImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(qrText)}`;
+                fallbackImg.alt = `QR Code for ${qrText}`;
+                fallbackImg.width = size;
+                fallbackImg.height = size;
+                fallbackImg.style.display = 'block';
+                fallbackImg.style.margin = '0 auto';
+                container.appendChild(fallbackImg);
+            }
+
+            printQRPass(memberId) {
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) {
+                    this.showToast('Select a valid member first.', 'error');
+                    return;
+                }
+
+                document.getElementById('printMemberName').textContent = `${member.firstName} ${member.lastName}`;
+                document.getElementById('printMemberId').textContent = member.id;
+                document.getElementById('printPlanName').textContent = member.planName;
+                document.getElementById('printExpiryDate').textContent = member.expiryDate;
+
+                this.generateQRCode('printQrTarget', member.id, 200);
+
+                setTimeout(() => {
+                    window.print();
+                }, 150);
+            }
+
+            printCurrentMemberPass() {
+                const member = this.getCurrentMemberRecord();
+                if (member) {
+                    this.printQRPass(member.id);
+                }
+            }
+
+            printModalMemberPass() {
+                if (this.activeModalMemberId) {
+                    this.printQRPass(this.activeModalMemberId);
+                }
+            }
+
+            printSelectedMemberPass() {
+                const memberId = document.getElementById('scannerMemberSelect')?.value;
+                if (!memberId) {
+                    this.showToast('Please select a member from the dropdown to print their QR pass.', 'error');
+                    return;
+                }
+                this.printQRPass(memberId);
+            }
+
+            async toggleCameraScanner() {
+                if (this.isCameraScanning) {
+                    await this.stopCameraScanner();
+                } else {
+                    await this.startCameraScanner();
+                }
+            }
+
+            async startCameraScanner(preferredDeviceId = null) {
+                if (window.location.protocol === 'file:') {
+                    this.showToast('Camera blocked on local file://. Deploy to Netlify Drop or GitHub Pages (HTTPS) to use live camera.', 'error');
+                    return;
+                }
+
+                if (!window.Html5Qrcode) {
+                    this.showToast('QR Camera library failed to load. Check your internet connection.', 'error');
+                    return;
+                }
+
+                const placeholder = document.getElementById('scannerPlaceholder');
+                const readerEl = document.getElementById('qrCameraReader');
+                const toggleBtn = document.getElementById('toggleCameraBtn');
+                const cameraSelectWrapper = document.getElementById('cameraSelectWrapper');
+                const cameraSelect = document.getElementById('cameraDeviceSelect');
+
+                placeholder.classList.add('hidden');
+                readerEl.classList.remove('hidden');
+
+                try {
+                    if (!this.html5QrScanner) {
+                        this.html5QrScanner = new Html5Qrcode('qrCameraReader');
+                    }
+
+                    let cameraConfig = preferredDeviceId;
+                    if (!cameraConfig) {
+                        try {
+                            const devices = await Html5Qrcode.getCameras();
+                            if (devices && devices.length > 0) {
+                                cameraSelect.innerHTML = '';
+                                devices.forEach((dev, idx) => {
+                                    const opt = document.createElement('option');
+                                    opt.value = dev.id;
+                                    opt.textContent = dev.label || `Camera ${idx + 1}`;
+                                    cameraSelect.appendChild(opt);
+                                });
+                                if (devices.length > 1) {
+                                    cameraSelectWrapper.classList.remove('hidden');
+                                }
+                                const backCam = devices.find(d => /back|rear|environment/i.test(d.label));
+                                const chosenCam = backCam || devices[0];
+                                cameraSelect.value = chosenCam.id;
+                                cameraConfig = chosenCam.id;
+                            }
+                        } catch (e) {}
+                    }
+
+                    const scanOpts = { fps: 10, qrbox: { width: 210, height: 210 } };
+                    const onDecode = (decodedText) => {
+                        const now = Date.now();
+                        if (this.lastCameraDecodeText === decodedText && (now - this.lastCameraDecodeTime < 3000)) {
+                            return;
+                        }
+                        this.lastCameraDecodeText = decodedText;
+                        this.lastCameraDecodeTime = now;
+                        this.processQRScan(decodedText.trim());
+                    };
+
+                    if (cameraConfig) {
+                        await this.html5QrScanner.start(cameraConfig, scanOpts, onDecode, () => {});
+                    } else {
+                        try {
+                            await this.html5QrScanner.start({ facingMode: 'environment' }, scanOpts, onDecode, () => {});
+                        } catch (envErr) {
+                            await this.html5QrScanner.start({ facingMode: 'user' }, scanOpts, onDecode, () => {});
+                        }
+                    }
+
+                    this.isCameraScanning = true;
+                    toggleBtn.innerHTML = '<i class="fa-solid fa-video-slash"></i><span>Stop Camera</span>';
+                    toggleBtn.className = 'bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 shadow';
+                    this.showToast('Camera started! Hold a member QR pass in front of the lens.', 'info');
+                } catch (err) {
+                    placeholder.classList.remove('hidden');
+                    readerEl.classList.add('hidden');
+                    cameraSelectWrapper.classList.add('hidden');
+                    this.isCameraScanning = false;
+                    this.showToast('Could not access camera. Allow camera permission in browser or use Scan Image / Manual ID.', 'error');
+                }
+            }
+
+            async switchCameraDevice() {
+                const cameraSelect = document.getElementById('cameraDeviceSelect');
+                if (!cameraSelect || !cameraSelect.value) return;
+                const selectedId = cameraSelect.value;
+                await this.stopCameraScanner();
+                await this.startCameraScanner(selectedId);
+            }
+
+            async stopCameraScanner() {
+                const placeholder = document.getElementById('scannerPlaceholder');
+                const readerEl = document.getElementById('qrCameraReader');
+                const toggleBtn = document.getElementById('toggleCameraBtn');
+                const cameraSelectWrapper = document.getElementById('cameraSelectWrapper');
+
+                if (this.html5QrScanner && this.isCameraScanning) {
+                    try {
+                        await this.html5QrScanner.stop();
+                    } catch (e) {}
+                }
+
+                this.isCameraScanning = false;
+                if (placeholder) placeholder.classList.remove('hidden');
+                if (readerEl) readerEl.classList.add('hidden');
+                if (cameraSelectWrapper) cameraSelectWrapper.classList.add('hidden');
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '<i class="fa-solid fa-video"></i><span>Start Camera</span>';
+                    toggleBtn.className = 'bg-brand-400 hover:bg-brand-500 text-black text-xs px-3.5 py-1.5 rounded-lg font-extrabold transition flex items-center gap-1.5 shadow';
+                }
+            }
+
+            async scanQrFromImageFile(event) {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                event.target.value = '';
+
+                if (!window.Html5Qrcode) {
+                    this.showToast('QR decoder library unavailable.', 'error');
+                    return;
+                }
+
+                if (this.isCameraScanning) {
+                    await this.stopCameraScanner();
+                }
+
+                try {
+                    const fileScanner = new Html5Qrcode('qrCameraReader');
+                    const decodedText = await fileScanner.scanFile(file, false);
+                    this.processQRScan(decodedText.trim());
+                } catch (err) {
+                    this.showToast('No readable QR code found in that image.', 'error');
+                }
+            }
+
+            renderAdminDashboard() {
+                this.renderStatsSummary();
+                this.populateScannerSelect();
+                this.renderMembersTable();
+                this.renderPaymentsModule();
+                this.renderAttendanceLogTable();
+                this.renderPlansList();
+                this.renderAccountsTable();
+            }
+
+            renderStatsSummary() {
+                const totalM = this.members.length;
+                const activeM = this.members.filter(m => m.status === 'Active' && new Date(m.expiryDate + 'T23:59:59') >= new Date()).length;
+
+                const todayStr = new Date().toLocaleDateString();
+                const todayAtt = this.attendance.filter(a => new Date(a.timestamp).toLocaleDateString() === todayStr).length;
+
+                const totalRev = this.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+
+                document.getElementById('statTotalMembers').textContent = totalM;
+                document.getElementById('statActiveMembers').textContent = activeM;
+                document.getElementById('statTodayCheckins').textContent = todayAtt;
+                document.getElementById('statTotalRevenue').textContent = `₱${totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+
+            async switchAdminSubTab(subTab) {
+                if (this.currentUser?.role === 'staff' && (subTab === 'plans' || subTab === 'accounts')) {
+                    this.showToast('Access restricted to Administrator accounts only.', 'error');
+                    return;
+                }
+
+                if (subTab !== 'scanner' && this.isCameraScanning) {
+                    await this.stopCameraScanner();
+                }
+
+                this.currentSubTab = subTab;
+                const subTabs = ['scanner', 'members', 'payments', 'attendance', 'plans', 'accounts'];
+
+                subTabs.forEach(tab => {
+                    const el = document.getElementById(`admin${tab.charAt(0).toUpperCase() + tab.slice(1)}SubTab`);
+                    const btn = document.getElementById(`subTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+                    if (el) el.classList.add('hidden');
+                    if (btn) btn.className = 'admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2';
+                });
+
+                const activeEl = document.getElementById(`admin${subTab.charAt(0).toUpperCase() + subTab.slice(1)}SubTab`);
+                const activeBtn = document.getElementById(`subTab${subTab.charAt(0).toUpperCase() + subTab.slice(1)}`);
+
+                if (activeEl) activeEl.classList.remove('hidden');
+                if (activeBtn) activeBtn.className = 'admin-subtab bg-brand-400 text-black font-extrabold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow';
+            }
+
+            populateScannerSelect() {
+                const sel = document.getElementById('scannerMemberSelect');
+                const paySel = document.getElementById('payMemberSelect');
+                if (!sel || !paySel) return;
+
+                sel.innerHTML = '<option value="">-- Select Member --</option>';
+                paySel.innerHTML = '<option value="">-- Select Member to Record Payment --</option>';
+
+                this.members.forEach(m => {
+                    const opt1 = document.createElement('option');
+                    opt1.value = m.id;
+                    opt1.textContent = `${m.firstName} ${m.lastName} (${m.id}) - ${m.status}`;
+                    sel.appendChild(opt1);
+
+                    const opt2 = document.createElement('option');
+                    opt2.value = m.id;
+                    opt2.textContent = `${m.firstName} ${m.lastName} (${m.id})`;
+                    paySel.appendChild(opt2);
+                });
+            }
+
+            simScanFromSelect() {
+                const memberId = document.getElementById('scannerMemberSelect').value;
+                if (!memberId) {
+                    this.showToast('Please select a member from the dropdown first.', 'error');
+                    return;
+                }
+                this.processQRScan(memberId);
+            }
+
+            simScanFromInput() {
+                const input = document.getElementById('manualScanInput');
+                const inputVal = input.value.trim();
+                if (!inputVal) {
+                    this.showToast('Please enter or scan a Member ID.', 'error');
+                    return;
+                }
+                this.processQRScan(inputVal);
+                input.value = '';
+                input.focus();
+            }
+
+            playAudioBeep(type) {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    if (type === 'success') {
+                        osc.frequency.setValueAtTime(880, ctx.currentTime);
+                        osc.frequency.setValueAtTime(1200, ctx.currentTime + 0.1);
+                        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.25);
+                    } else {
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(180, ctx.currentTime);
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.35);
+                    }
+                } catch (e) {}
+            }
+
+            processQRScan(scannedCode) {
+                const member = this.members.find(m => m.id.toUpperCase() === scannedCode.toUpperCase() || m.id === scannedCode);
+                const resultCard = document.getElementById('scanResultCard');
+
+                if (!member) {
+                    this.playAudioBeep('error');
+                    resultCard.className = 'bg-rose-950/60 border border-rose-600/50 rounded-xl p-6 text-center space-y-3';
+                    resultCard.innerHTML = `
+                        <div class="w-16 h-16 mx-auto rounded-full bg-rose-500/20 text-rose-400 text-3xl flex items-center justify-center border border-rose-500/40">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <h4 class="text-lg font-black text-white">INVALID QR CODE / UNKNOWN MEMBER</h4>
+                        <p class="text-xs text-rose-300">No member record found for ID: <span class="font-mono">${escapeHTML(scannedCode)}</span></p>
+                    `;
+                    this.showToast('Scan Rejected: Member ID not found!', 'error');
+                    return;
+                }
+
+                const lastScan = this.scanCooldowns[member.id];
+                const now = Date.now();
+                if (lastScan && (now - lastScan < 15000)) {
+                    const secsWait = Math.ceil((15000 - (now - lastScan)) / 1000);
+                    this.playAudioBeep('error');
+                    resultCard.className = 'bg-amber-950/60 border border-amber-600/50 rounded-xl p-6 text-center space-y-3';
+                    resultCard.innerHTML = `
+                        <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 text-amber-400 text-3xl flex items-center justify-center border border-amber-500/40">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <h4 class="text-lg font-black text-white">DUPLICATE CHECK-IN PREVENTED</h4>
+                        <p class="text-xs text-amber-300">Member <strong>${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)}</strong> was scanned moments ago. Wait ${secsWait}s before scanning again.</p>
+                    `;
+                    this.showToast(`Duplicate check-in blocked! Please wait ${secsWait} seconds.`, 'warning');
+                    return;
+                }
+
+                const isExpired = new Date(member.expiryDate + 'T23:59:59') < new Date() || member.status === 'Expired';
+
+                if (isExpired) {
+                    this.playAudioBeep('error');
+                    resultCard.className = 'bg-rose-950/60 border border-rose-600/50 rounded-xl p-6 text-center space-y-3';
+                    resultCard.innerHTML = `
+                        <div class="w-16 h-16 mx-auto rounded-full bg-rose-500/20 text-rose-400 text-3xl flex items-center justify-center border border-rose-500/40">
+                            <i class="fa-solid fa-user-xmark"></i>
+                        </div>
+                        <h4 class="text-lg font-black text-white">MEMBERSHIP EXPIRED - ENTRY DENIED</h4>
+                        <p class="text-sm font-bold text-white">${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)} <span class="text-xs text-zinc-400">(${member.id})</span></p>
+                        <p class="text-xs text-rose-300">Plan: ${escapeHTML(member.planName)} | Expired on ${member.expiryDate}</p>
+                        <button onclick="app.quickRenewMember('${member.id}')" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold px-4 py-2 rounded-xl mt-2">Renew Subscription Now</button>
+                    `;
+
+                    this.attendance.push({
+                        id: `ATT-${Date.now().toString().slice(-4)}`,
+                        memberId: member.id,
+                        memberName: `${member.firstName} ${member.lastName}`,
+                        planName: member.planName,
+                        status: 'Denied (Expired)',
+                        timestamp: new Date().toLocaleString(),
+                        operator: this.currentUser ? this.currentUser.username : 'desk_scanner'
+                    });
+                    this.saveData('attendance');
+                    this.renderStatsSummary();
+                    this.renderAttendanceLogTable();
+                    this.showToast('ENTRY DENIED: Member plan is expired.', 'error');
+                } else {
+                    this.scanCooldowns[member.id] = now;
+                    this.playAudioBeep('success');
+
+                    resultCard.className = 'bg-emerald-950/60 border border-emerald-500/60 rounded-xl p-6 text-center space-y-3 glow-lime';
+                    resultCard.innerHTML = `
+                        <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 text-3xl flex items-center justify-center border border-emerald-500/40">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <h4 class="text-xl font-black text-emerald-400">ACCESS GRANTED</h4>
+                        <p class="text-lg font-extrabold text-white">${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)}</p>
+                        <p class="text-xs text-zinc-300">ID: <span class="font-mono text-brand-400">${member.id}</span> | Plan: <span class="text-white">${escapeHTML(member.planName)}</span></p>
+                        <p class="text-xs text-emerald-300">Valid Until: ${member.expiryDate}</p>
+                    `;
+
+                    this.attendance.push({
+                        id: `ATT-${Date.now().toString().slice(-4)}`,
+                        memberId: member.id,
+                        memberName: `${member.firstName} ${member.lastName}`,
+                        planName: member.planName,
+                        status: 'Verified Active',
+                        timestamp: new Date().toLocaleString(),
+                        operator: this.currentUser ? this.currentUser.username : 'desk_scanner'
+                    });
+                    this.saveData('attendance');
+                    this.renderStatsSummary();
+                    this.renderAttendanceLogTable();
+                    this.showToast(`Check-in verified for ${member.firstName} ${member.lastName}!`, 'success');
+                }
+            }
+
+            renderMembersTable() {
+                const searchVal = (document.getElementById('memberSearchInput')?.value || '').toLowerCase();
+                const statusFilter = document.getElementById('memberStatusFilter')?.value || 'ALL';
+                const tbody = document.getElementById('membersTableBody');
+                if (!tbody) return;
+
+                tbody.innerHTML = '';
+
+                const filtered = this.members.filter(m => {
+                    const matchSearch = m.firstName.toLowerCase().includes(searchVal) ||
+                                        m.lastName.toLowerCase().includes(searchVal) ||
+                                        m.id.toLowerCase().includes(searchVal) ||
+                                        (m.email && m.email.toLowerCase().includes(searchVal));
+
+                    const isExp = new Date(m.expiryDate + 'T23:59:59') < new Date();
+                    const computedStatus = isExp ? 'Expired' : 'Active';
+
+                    const matchStatus = statusFilter === 'ALL' || computedStatus === statusFilter;
+                    return matchSearch && matchStatus;
+                });
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No member records match search filter.</td></tr>`;
+                    return;
+                }
+
+                filtered.forEach(m => {
+                    const isExp = new Date(m.expiryDate + 'T23:59:59') < new Date();
+                    const statusText = isExp ? 'Expired' : 'Active';
+                    const statusBadgeClass = isExp ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-zinc-900/50 transition';
+                    tr.innerHTML = `
+                        <td class="p-3.5">
+                            <div class="font-bold text-white">${escapeHTML(m.firstName)} ${escapeHTML(m.lastName)}</div>
+                            <div class="text-[10px] text-brand-400 font-mono">${m.id}</div>
+                        </td>
+                        <td class="p-3.5 text-zinc-400">
+                            <div>${escapeHTML(m.email || 'N/A')}</div>
+                            <div class="text-[10px] text-zinc-500">${escapeHTML(m.phone || 'No phone')}</div>
+                        </td>
+                        <td class="p-3.5 font-medium text-zinc-300">${escapeHTML(m.planName)}</td>
+                        <td class="p-3.5 font-mono text-zinc-300">${m.expiryDate}</td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass}">
+                                ${statusText}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-right space-x-1">
+                            <button onclick="app.showMemberPassModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="View & Print QR Pass">
+                                <i class="fa-solid fa-qrcode"></i>
+                            </button>
+                            <button onclick="app.openEditMemberModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="Edit Member">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="app.quickRenewMember('${m.id}')" class="bg-brand-400/20 hover:bg-brand-400/30 text-brand-300 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-brand-500/30" title="Renew Plan">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            openAddMemberModal() {
+                document.getElementById('memberModalTitle').textContent = 'Register New Gym Member';
+                document.getElementById('editMemberId').value = '';
+                document.getElementById('mFirstName').value = '';
+                document.getElementById('mLastName').value = '';
+                document.getElementById('mEmail').value = '';
+                document.getElementById('mPhone').value = '';
+                this.openModal('memberModal');
+            }
+
+            openEditMemberModal(memberId) {
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) return;
+
+                document.getElementById('memberModalTitle').textContent = 'Edit Member Profile';
+                document.getElementById('editMemberId').value = member.id;
+                document.getElementById('mFirstName').value = member.firstName;
+                document.getElementById('mLastName').value = member.lastName;
+                document.getElementById('mEmail').value = member.email || '';
+                document.getElementById('mPhone').value = member.phone || '';
+                document.getElementById('mPlanSelect').value = member.planId;
+
+                this.openModal('memberModal');
+            }
+
+            handleSaveMember(e) {
+                e.preventDefault();
+                const editId = document.getElementById('editMemberId').value;
+                const fn = document.getElementById('mFirstName').value.trim();
+                const ln = document.getElementById('mLastName').value.trim();
+                const email = document.getElementById('mEmail').value.trim();
+                const phone = document.getElementById('mPhone').value.trim();
+                const planId = document.getElementById('mPlanSelect').value;
+
+                const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,40}$/;
+                if (!nameRegex.test(fn) || !nameRegex.test(ln)) {
+                    this.showToast('Validation Error: Names must contain letters only (no numbers/symbols).', 'error');
+                    return;
+                }
+
+                const selectedPlan = this.plans.find(p => p.id === planId) || this.plans[0];
+
+                if (editId) {
+                    const m = this.members.find(m => m.id === editId);
+                    if (m) {
+                        m.firstName = fn;
+                        m.lastName = ln;
+                        m.email = email;
+                        m.phone = phone;
+                        if (m.planId !== planId) {
+                            m.planId = planId;
+                            m.planName = selectedPlan.name;
+                            m.expiryDate = getLocalISODate(selectedPlan.durationDays);
+                            m.status = 'Active';
+                        }
+                    }
+                    this.showToast('Member updated successfully.', 'success');
+                } else {
+                    const newId = `EG-2026-${String(this.members.length + 1).padStart(4, '0')}`;
+                    const startDate = getLocalISODate(0);
+                    const expiryDate = getLocalISODate(selectedPlan.durationDays);
+
+                    this.members.push({
+                        id: newId,
+                        userId: '',
+                        firstName: fn,
+                        lastName: ln,
+                        email,
+                        phone,
+                        planId: selectedPlan.id,
+                        planName: selectedPlan.name,
+                        status: 'Active',
+                        startDate,
+                        expiryDate,
+                        totalPaid: selectedPlan.price
+                    });
+
+                    this.payments.push({
+                        id: `TXN-${Date.now().toString().slice(-4)}`,
+                        memberId: newId,
+                        memberName: `${fn} ${ln}`,
+                        planName: selectedPlan.name,
+                        amount: selectedPlan.price,
+                        method: 'Cash',
+                        date: new Date().toLocaleString(),
+                        recordedBy: this.currentUser ? this.currentUser.username : 'admin'
+                    });
+
+                    this.showToast(`New member ${fn} ${ln} created successfully!`, 'success');
+                }
+
+                this.saveData('members');
+                this.saveData('payments');
+                this.closeModal('memberModal');
+                this.renderAdminDashboard();
+            }
+
+            quickRenewMember(memberId) {
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) return;
+
+                const selectedPlan = this.plans.find(p => p.id === member.planId) || this.plans[0];
+
+                let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
+                const currentExp = new Date(member.expiryDate + 'T00:00:00');
+                if (currentExp > baseDate) {
+                    baseDate = currentExp;
+                }
+                baseDate.setDate(baseDate.getDate() + selectedPlan.durationDays);
+
+                const year = baseDate.getFullYear();
+                const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+                const day = String(baseDate.getDate()).padStart(2, '0');
+
+                member.expiryDate = `${year}-${month}-${day}`;
+                member.status = 'Active';
+                member.totalPaid = (member.totalPaid || 0) + selectedPlan.price;
+
+                this.payments.push({
+                    id: `TXN-${Date.now().toString().slice(-4)}`,
+                    memberId: member.id,
+                    memberName: `${member.firstName} ${member.lastName}`,
+                    planName: selectedPlan.name,
+                    amount: selectedPlan.price,
+                    method: 'Cash',
+                    date: new Date().toLocaleString(),
+                    recordedBy: this.currentUser ? this.currentUser.username : 'staff'
+                });
+
+                this.saveData('members');
+                this.saveData('payments');
+                this.renderAdminDashboard();
+                this.showToast(`Plan renewed for ${member.firstName} ${member.lastName}! Expiry extended to ${member.expiryDate}`, 'success');
+            }
+
+            showMemberPassModal(memberId) {
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) return;
+                this.activeModalMemberId = member.id;
+                document.getElementById('modalQrName').textContent = `${member.firstName} ${member.lastName}`;
+                document.getElementById('modalQrId').textContent = member.id;
+                this.generateQRCode('modalQrContainer', member.id, 180);
+                this.openModal('viewQrModal');
+            }
+
+            renderPaymentsModule() {
+                const methodFilter = document.getElementById('paymentMethodFilter')?.value || 'ALL';
+                const tbody = document.getElementById('paymentsTableBody');
+                if (!tbody) return;
+
+                tbody.innerHTML = '';
+                const filtered = this.payments.filter(p => methodFilter === 'ALL' || p.method.startsWith(methodFilter));
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-zinc-500">No payment transactions recorded.</td></tr>`;
+                } else {
+                    filtered.slice().reverse().forEach(p => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="p-3 font-mono text-brand-400 font-bold">${p.id}</td>
+                            <td class="p-3 text-white font-medium">${escapeHTML(p.memberName)}</td>
+                            <td class="p-3 text-zinc-300">${escapeHTML(p.planName)}</td>
+                            <td class="p-3 font-bold text-white">₱${(parseFloat(p.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                            <td class="p-3"><span class="bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded text-[10px]">${escapeHTML(p.method)}</span></td>
+                            <td class="p-3 text-zinc-400">${escapeHTML(p.date)}</td>
+                            <td class="p-3 text-zinc-500">${escapeHTML(p.recordedBy)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                this.renderRevenueChart();
+            }
+
+            onPayPlanSelectChange() {
+                const planSelect = document.getElementById('payPlanSelect');
+                const payAmount = document.getElementById('payAmount');
+                if (!planSelect || !payAmount) return;
+                const plan = this.plans.find(p => p.id === planSelect.value);
+                if (plan) {
+                    payAmount.value = plan.price;
+                }
+            }
+
+            handleManualPaymentSubmit(e) {
+                e.preventDefault();
+                const memberId = document.getElementById('payMemberSelect').value;
+                const planId = document.getElementById('payPlanSelect').value;
+                const rawAmount = document.getElementById('payAmount').value;
+                const method = document.getElementById('payMethod').value;
+                const refNo = document.getElementById('payRefNo').value.trim();
+
+                if (!memberId) {
+                    this.showToast('Please select a member.', 'error');
+                    return;
+                }
+
+                const amount = clamp(rawAmount, 1, 50000);
+
+                const member = this.members.find(m => m.id === memberId);
+                const plan = this.plans.find(p => p.id === planId) || this.plans[0];
+
+                if (member) {
+                    let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
+                    const currentExp = new Date(member.expiryDate + 'T00:00:00');
+                    if (currentExp > baseDate) {
+                        baseDate = currentExp;
+                    }
+                    baseDate.setDate(baseDate.getDate() + plan.durationDays);
+
+                    const year = baseDate.getFullYear();
+                    const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(baseDate.getDate()).padStart(2, '0');
+
+                    member.planId = plan.id;
+                    member.planName = plan.name;
+                    member.expiryDate = `${year}-${month}-${day}`;
+                    member.status = 'Active';
+                    member.totalPaid = (member.totalPaid || 0) + amount;
+
+                    this.payments.push({
+                        id: `TXN-${Date.now().toString().slice(-4)}`,
+                        memberId: member.id,
+                        memberName: `${member.firstName} ${member.lastName}`,
+                        planName: plan.name,
+                        amount: amount,
+                        method: method + (refNo ? ` (${refNo})` : ''),
+                        date: new Date().toLocaleString(),
+                        recordedBy: this.currentUser ? this.currentUser.username : 'staff'
+                    });
+
+                    this.saveData('members');
+                    this.saveData('payments');
+                    this.renderAdminDashboard();
+                    this.showToast(`Payment of ₱${amount} recorded! Member status updated to Active.`, 'success');
+                }
+            }
+
+            renderRevenueChart() {
+                const ctx = document.getElementById('revenueChart')?.getContext('2d');
+                if (!ctx) return;
+
+                if (window.myRevenueChart) {
+                    window.myRevenueChart.destroy();
+                }
+
+                const planTotals = {};
+                this.plans.forEach(p => planTotals[p.name] = 0);
+                this.payments.forEach(p => {
+                    if (planTotals[p.planName] !== undefined) {
+                        planTotals[p.planName] += parseFloat(p.amount) || 0;
+                    } else {
+                        planTotals[p.planName] = parseFloat(p.amount) || 0;
+                    }
+                });
+
+                window.myRevenueChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(planTotals),
+                        datasets: [{
+                            label: 'Revenue (₱)',
+                            data: Object.values(planTotals),
+                            backgroundColor: ['#a3e635', '#10b981', '#3b82f6', '#a855f7'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ticks: { color: '#a1a1aa' },
+                                grid: { color: '#27272a' }
+                            },
+                            x: {
+                                ticks: { color: '#a1a1aa' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+
+            exportRevenueCSV() {
+                let csv = 'Transaction ID,Member ID,Member Name,Plan Name,Amount (PHP),Method,Date,Recorded By\n';
+                this.payments.forEach(p => {
+                    csv += `"${p.id}","${p.memberId}","${p.memberName.replace(/"/g, '""')}","${p.planName.replace(/"/g, '""')}",${p.amount},"${p.method.replace(/"/g, '""')}","${p.date}","${p.recordedBy}"\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('href', url);
+                a.setAttribute('download', `Extreme_Gym_Revenue_${getLocalISODate(0)}.csv`);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                this.showToast('Revenue CSV exported successfully.', 'success');
+            }
+
+            renderAttendanceLogTable() {
+                const tbody = document.getElementById('adminAttendanceTableBody');
+                if (!tbody) return;
+
+                tbody.innerHTML = '';
+                if (this.attendance.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No check-in logs recorded today.</td></tr>`;
+                    return;
+                }
+
+                this.attendance.slice().reverse().forEach(att => {
+                    const tr = document.createElement('tr');
+                    const isOk = att.status.includes('Verified');
+                    tr.innerHTML = `
+                        <td class="p-3.5 text-zinc-400 font-mono text-[11px]">${escapeHTML(att.timestamp)}</td>
+                        <td class="p-3.5 font-bold text-white">${escapeHTML(att.memberName)}</td>
+                        <td class="p-3.5 font-mono text-brand-400">${escapeHTML(att.memberId)}</td>
+                        <td class="p-3.5 text-zinc-300">${escapeHTML(att.planName)}</td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isOk ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'}">
+                                ${escapeHTML(att.status)}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-zinc-500">${escapeHTML(att.operator)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            exportAttendanceCSV() {
+                let csv = 'Log ID,Timestamp,Member ID,Member Name,Plan Validated,Status,Operator\n';
+                this.attendance.forEach(a => {
+                    csv += `"${a.id}","${a.timestamp}","${a.memberId}","${a.memberName.replace(/"/g, '""')}","${a.planName.replace(/"/g, '""')}","${a.status}","${a.operator}"\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('href', url);
+                a.setAttribute('download', `Extreme_Gym_Attendance_${getLocalISODate(0)}.csv`);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                this.showToast('Attendance CSV exported successfully.', 'success');
+            }
+
+            renderPlansList() {
+                const container = document.getElementById('plansContainer');
+                if (!container) return;
+                container.innerHTML = '';
+
+                this.plans.forEach(plan => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-darkcard border border-darkborder p-5 rounded-2xl flex flex-col justify-between space-y-3';
+                    card.innerHTML = `
+                        <div>
+                            <span class="bg-brand-500/10 text-brand-400 border border-brand-500/20 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">${escapeHTML(plan.category)}</span>
+                            <h4 class="text-base font-extrabold text-white mt-2">${escapeHTML(plan.name)}</h4>
+                            <div class="text-2xl font-black text-white mt-1">₱${plan.price.toLocaleString()} <span class="text-xs text-zinc-500 font-normal">/ ${plan.durationDays} Days</span></div>
+                        </div>
+                        <div class="pt-3 border-t border-zinc-800 text-[11px] text-zinc-400 flex justify-between items-center">
+                            <span>Duration: ${plan.durationDays} days</span>
+                            <span class="text-emerald-400"><i class="fa-solid fa-check"></i> Active</span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            openAddPlanModal() {
+                document.getElementById('pName').value = '';
+                document.getElementById('pPrice').value = '';
+                document.getElementById('pDays').value = '';
+                this.openModal('planModal');
+            }
+
+            handleSavePlan(e) {
+                e.preventDefault();
+                const name = document.getElementById('pName').value.trim();
+                const price = clamp(document.getElementById('pPrice').value, 1, 50000);
+                const days = clamp(document.getElementById('pDays').value, 1, 365);
+                const category = document.getElementById('pCategory').value;
+
+                this.plans.push({
+                    id: `plan_${Date.now()}`,
+                    name,
+                    price,
+                    durationDays: days,
+                    category
+                });
+
+                this.saveData('plans');
+                this.populatePlanSelects();
+                this.renderPlansList();
+                this.closeModal('planModal');
+                this.showToast('New membership plan saved.', 'success');
+            }
+
+            renderAccountsTable() {
+                const tbody = document.getElementById('accountsTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                const staffAndAdmins = this.users.filter(u => u.role === 'admin' || u.role === 'staff');
+
+                staffAndAdmins.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-zinc-900/50 transition';
+                    tr.innerHTML = `
+                        <td class="p-3.5 font-bold text-white">${escapeHTML(u.firstName)} ${escapeHTML(u.lastName)}</td>
+                        <td class="p-3.5 font-mono text-zinc-300">${escapeHTML(u.username)}</td>
+                        <td class="p-3.5">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'}">
+                                ${u.role.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-zinc-500 font-mono text-xs">${u.createdAt || '2026-01-01'}</td>
+                        <td class="p-3.5 text-right">
+                            <button onclick="app.openChangePasswordModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition" title="Change Password">
+                                <i class="fa-solid fa-key"></i>
+                                <span>Change Password</span>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            openAddAccountModal() {
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Only an Administrator can create staff/admin accounts.', 'error');
+                    return;
+                }
+                document.getElementById('accFn').value = '';
+                document.getElementById('accLn').value = '';
+                document.getElementById('accUsername').value = '';
+                document.getElementById('accPassword').value = '';
+                this.openModal('accountModal');
+            }
+
+            handleSaveStaffAccount(e) {
+                e.preventDefault();
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+                const fn = document.getElementById('accFn').value.trim();
+                const ln = document.getElementById('accLn').value.trim();
+                const username = document.getElementById('accUsername').value.trim();
+                const role = document.getElementById('accRole').value;
+                const password = document.getElementById('accPassword').value;
+
+                const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,40}$/;
+                if (!nameRegex.test(fn) || !nameRegex.test(ln)) {
+                    this.showToast('Name must contain letters only.', 'error');
+                    return;
+                }
+
+                if (this.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                    this.showToast('Username already exists.', 'error');
+                    return;
+                }
+
+                this.users.push({
+                    id: `usr_${Date.now()}`,
+                    username,
+                    password,
+                    role,
+                    firstName: fn,
+                    lastName: ln,
+                    createdAt: getLocalISODate(0)
+                });
+
+                this.saveData('users');
+                this.renderAccountsTable();
+                this.closeModal('accountModal');
+                this.showToast(`New ${role.toUpperCase()} account created for ${fn} ${ln}`, 'success');
+            }
+
+            openChangePasswordModal(userId) {
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Only an Administrator can change Admin/Staff passwords.', 'error');
+                    return;
+                }
+                const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
+                if (!targetUser) return;
+
+                document.getElementById('cpUserId').value = targetUser.id;
+                document.getElementById('cpTargetDisplay').textContent = `${targetUser.firstName} ${targetUser.lastName} (${targetUser.username} - ${targetUser.role.toUpperCase()})`;
+                document.getElementById('cpNewPassword').value = '';
+                document.getElementById('cpConfirmPassword').value = '';
+                this.openModal('changePasswordModal');
+            }
+
+            handleChangeAccountPassword(e) {
+                e.preventDefault();
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+
+                const userId = document.getElementById('cpUserId').value;
+                const newPass = document.getElementById('cpNewPassword').value;
+                const confirmPass = document.getElementById('cpConfirmPassword').value;
+
+                if (newPass.length < 6) {
+                    this.showToast('Password must be at least 6 characters.', 'error');
+                    return;
+                }
+
+                if (newPass !== confirmPass) {
+                    this.showToast('Passwords do not match. Please try again.', 'error');
+                    return;
+                }
+
+                const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
+                if (!targetUser) return;
+
+                targetUser.password = newPass;
+                this.saveData('users');
+
+                if (this.currentUser.id === targetUser.id) {
+                    this.currentUser.password = newPass;
+                    sessionStorage.setItem('eg_session', JSON.stringify(this.currentUser));
+                }
+
+                this.closeModal('changePasswordModal');
+                this.showToast(`Password updated for ${targetUser.username}.`, 'success');
+            }
+
+            exportDatabaseBackup() {
+                const payload = {
+                    exportedAt: new Date().toISOString(),
+                    plans: this.plans,
+                    users: this.users,
+                    members: this.members,
+                    payments: this.payments,
+                    attendance: this.attendance
+                };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Extreme_Gym_Backup_${getLocalISODate(0)}.json`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                this.showToast('Full system backup downloaded.', 'success');
+            }
+
+            importDatabaseBackup(event) {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                event.target.value = '';
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (!Array.isArray(data.users) || !Array.isArray(data.members) || !Array.isArray(data.plans)) {
+                            this.showToast('Invalid backup file format.', 'error');
+                            return;
+                        }
+                        this.plans = data.plans;
+                        this.users = data.users;
+                        this.members = data.members;
+                        this.payments = data.payments || [];
+                        this.attendance = data.attendance || [];
+
+                        this.saveData('plans');
+                        this.saveData('users');
+                        this.saveData('members');
+                        this.saveData('payments');
+                        this.saveData('attendance');
+
+                        this.populatePlanSelects();
+                        this.renderAdminDashboard();
+                        this.showToast('System backup restored successfully.', 'success');
+                    } catch (err) {
+                        this.showToast('Failed to read backup file.', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            openModal(modalId) {
+                const el = document.getElementById(modalId);
+                if (el) el.classList.remove('hidden');
+            }
+
+            closeModal(modalId) {
+                const el = document.getElementById(modalId);
+                if (el) el.classList.add('hidden');
+            }
+
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border text-xs font-bold transition transform translate-y-2 opacity-0';
+
+                if (type === 'success') {
+                    toast.className += ' bg-emerald-950 border-emerald-500/60 text-emerald-300';
+                    toast.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> <span>${escapeHTML(message)}</span>`;
+                } else if (type === 'error') {
+                    toast.className += ' bg-rose-950 border-rose-500/60 text-rose-300';
+                    toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base"></i> <span>${escapeHTML(message)}</span>`;
+                } else if (type === 'warning') {
+                    toast.className += ' bg-amber-950 border-amber-500/60 text-amber-300';
+                    toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base"></i> <span>${escapeHTML(message)}</span>`;
+                } else {
+                    toast.className += ' bg-zinc-900 border-zinc-700 text-zinc-200';
+                    toast.innerHTML = `<i class="fa-solid fa-circle-info text-base text-brand-400"></i> <span>${escapeHTML(message)}</span>`;
+                }
+
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-2', 'opacity-0');
+                }, 50);
+
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+        }
+
+        let app;
+        window.onload = function() {
+            app = new GymApp();
+        };
+    </script>
+</body>
+</html>
