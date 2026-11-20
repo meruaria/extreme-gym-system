@@ -256,6 +256,21 @@
                         <select id="regPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></select>
                     </div>
 
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">Payment Method <span class="text-rose-400">*</span></label>
+                            <select id="regPayMethod" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                                <option value="GCash">GCash</option>
+                                <option value="Cash at Front Desk">Cash at Front Desk</option>
+                                <option value="Card">Card</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">GCash / Payment Ref No.</label>
+                            <input type="text" id="regRefNo" maxlength="40" placeholder="e.g. GCash Ref No." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1">Create Password <span class="text-rose-400">*</span></label>
                         <div class="relative">
@@ -267,7 +282,7 @@
                     </div>
 
                     <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold py-2.5 rounded-xl text-xs transition shadow-lg">
-                        Create Account & Generate QR Pass
+                        Submit Sign Up (Pending Admin Verification)
                     </button>
                 </form>
             </div>
@@ -277,6 +292,15 @@
              VIEW 2: MEMBER CUSTOMER PORTAL
         =============================================================== -->
         <section id="memberPortalView" class="hidden space-y-6">
+            <!-- Pending Verification Banner if unverified -->
+            <div id="memberPendingNotice" class="hidden bg-amber-950/80 border border-amber-500/50 rounded-2xl p-4 text-amber-300 text-xs flex items-center gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xl shrink-0"></i>
+                <div>
+                    <strong class="block text-amber-200 text-sm">Subscription Pending Verification</strong>
+                    <span>Your payment/registration is currently under review by Xtreme Gym staff. Once verified, your QR pass and active membership status will be fully unlocked.</span>
+                </div>
+            </div>
+
             <div class="bg-darkcard border border-darkborder rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="flex items-center gap-4">
                     <div id="memberAvatar" class="w-16 h-16 rounded-2xl bg-brand-400 text-black font-black text-2xl flex items-center justify-center">
@@ -336,8 +360,8 @@
                 <div class="lg:col-span-2 space-y-6">
                     <div class="grid grid-cols-3 gap-4">
                         <div class="bg-darkcard border border-darkborder p-4 rounded-2xl">
-                            <span class="text-xs text-zinc-400">Days Remaining</span>
-                            <div id="memberDaysLeft" class="text-2xl font-black text-brand-400 mt-1">25 Days</div>
+                            <span class="text-xs text-zinc-400">Time / Days Left</span>
+                            <div id="memberDaysLeft" class="text-xl font-black text-brand-400 mt-1">25 Days</div>
                         </div>
                         <div class="bg-darkcard border border-darkborder p-4 rounded-2xl">
                             <span class="text-xs text-zinc-400">Total Check-Ins</span>
@@ -559,9 +583,16 @@
             <div id="adminMembersSubTab" class="hidden space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                        <input type="text" id="memberSearchInput" oninput="app.renderMembersTable()" placeholder="Search name, ID, or email..." class="bg-darkcard border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white w-full sm:w-64">
+                        <input type="text" id="memberSearchInput" oninput="app.renderMembersTable()" placeholder="Search name, ID, or email..." class="bg-darkcard border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white w-full sm:w-56">
+                        <select id="memberCategoryFilter" onchange="app.renderMembersTable()" class="bg-darkcard border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                            <option value="ALL">All Categories</option>
+                            <option value="Walk-in">Walk-in Daily</option>
+                            <option value="Membership">Regular Membership</option>
+                            <option value="VIP">VIP / Promo</option>
+                        </select>
                         <select id="memberStatusFilter" onchange="app.renderMembersTable()" class="bg-darkcard border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                             <option value="ALL">All Statuses</option>
+                            <option value="Pending Verification">Pending Verification</option>
                             <option value="Active">Active Only</option>
                             <option value="Expired">Expired Only</option>
                         </select>
@@ -579,8 +610,8 @@
                                 <tr>
                                     <th class="p-3.5">Member</th>
                                     <th class="p-3.5">Contact & Home Branch</th>
-                                    <th class="p-3.5">Membership Plan</th>
-                                    <th class="p-3.5">Expiry Date</th>
+                                    <th class="p-3.5">Membership Plan & Ref</th>
+                                    <th class="p-3.5">Time / Expiry</th>
                                     <th class="p-3.5">Status</th>
                                     <th class="p-3.5 text-right">Actions</th>
                                 </tr>
@@ -1197,7 +1228,7 @@
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">New Password <span class="text-rose-400">*</span></label>
                     <div class="relative">
                         <input type="password" id="cpNewPassword" required minlength="6" maxlength="64" placeholder="6–64 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <button type="button" onclick="app.togglePasswordVisibility('cpNewPassword', 'cpNewPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
+                        <button type="button" onclick="app.togglePasswordVisibility('cpNewPassword', 'cpNewPassIcon')" class="absolute right-3 top-2 text-xs p-1">
                             <i id="cpNewPassIcon" class="fa-solid fa-eye"></i>
                         </button>
                     </div>
@@ -1207,7 +1238,7 @@
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">Confirm New Password <span class="text-rose-400">*</span></label>
                     <div class="relative">
                         <input type="password" id="cpConfirmPassword" required minlength="6" maxlength="64" placeholder="Re-enter new password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <button type="button" onclick="app.togglePasswordVisibility('cpConfirmPassword', 'cpConfirmPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
+                        <button type="button" onclick="app.togglePasswordVisibility('cpConfirmPassword', 'cpConfirmPassIcon')" class="absolute right-3 top-2 text-xs p-1">
                             <i id="cpConfirmPassIcon" class="fa-solid fa-eye"></i>
                         </button>
                     </div>
@@ -1308,20 +1339,20 @@
                         <label class="block text-xs font-semibold text-zinc-300 mb-1">Payment Method</label>
                         <select id="renewMethod" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                             <option value="GCash">GCash</option>
-                            <option value="Cash">Cash at Front Desk</option>
+                            <option value="Cash at Front Desk">Cash at Front Desk</option>
                             <option value="Card">Card</option>
                         </select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-1">GCash / Payment Reference No.</label>
-                    <input type="text" id="renewRefNo" maxlength="40" oninput="this.value = this.value.replace(/[^A-Za-z0-9-_]/g, '')" placeholder="Optional reference number" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">GCash / Payment Reference No. <span class="text-rose-400">*</span></label>
+                    <input type="text" id="renewRefNo" required maxlength="40" placeholder="e.g. GCash Ref No." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
                 <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
                     <button type="button" onclick="app.closeModal('renewalModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
-                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Confirm Renewal</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Submit Renewal (Pending Verification)</button>
                 </div>
             </form>
         </div>
@@ -1418,9 +1449,90 @@
             return `${year}-${month}-${day}`;
         }
 
+        function getMemberExpiryTimestamp(member) {
+            if (!member) return 0;
+            if (typeof member.expiryTimestamp === 'number' && !isNaN(member.expiryTimestamp)) {
+                return member.expiryTimestamp;
+            }
+            if (member.expiryDate) {
+                return new Date(member.expiryDate + 'T23:59:59').getTime();
+            }
+            return 0;
+        }
+
         function isMemberExpired(member) {
-            if (!member || !member.expiryDate) return true;
-            return new Date(member.expiryDate + 'T23:59:59') < new Date();
+            if (!member || member.status === 'Pending Verification') return true;
+            const expMs = getMemberExpiryTimestamp(member);
+            if (!expMs) return true;
+            return expMs <= Date.now();
+        }
+
+        function getMembershipRemainingInfo(member) {
+            if (!member || member.status === 'Pending Verification') {
+                return {
+                    isExpired: false,
+                    label: 'Verification Pending',
+                    badgeClass: 'text-amber-300 bg-amber-500/10 border-amber-500/30',
+                    icon: 'fa-hourglass-start'
+                };
+            }
+
+            const expMs = getMemberExpiryTimestamp(member);
+            const diffMs = expMs - Date.now();
+
+            if (!expMs || diffMs <= 0) {
+                return {
+                    isExpired: true,
+                    label: 'Expired',
+                    badgeClass: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+                    icon: 'fa-hourglass-end'
+                };
+            }
+
+            const totalMinutes = Math.floor(diffMs / 60000);
+            const totalHours = Math.floor(diffMs / 3600000);
+            const days = Math.floor(totalHours / 24);
+            const remHours = totalHours % 24;
+            const remMinutes = totalMinutes % 60;
+
+            let label = '';
+            let badgeClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+            let icon = 'fa-hourglass-half';
+
+            if (days >= 1) {
+                label = remHours > 0 ? `${days}d ${remHours}h left` : `${days} day${days > 1 ? 's' : ''} left`;
+                if (days <= 3) {
+                    badgeClass = 'text-amber-300 bg-amber-500/10 border-amber-500/30';
+                }
+            } else if (totalHours >= 1) {
+                label = `${totalHours}hr${totalHours > 1 ? 's' : ''} ${remMinutes}m left`;
+                badgeClass = 'text-amber-300 bg-amber-500/10 border-amber-500/30';
+            } else {
+                const mins = Math.max(1, remMinutes);
+                label = `${mins} min${mins > 1 ? 's' : ''} left`;
+                badgeClass = 'text-orange-400 bg-orange-500/10 border-orange-500/30';
+            }
+
+            return { isExpired: false, label, badgeClass, icon };
+        }
+
+        function computeNewExpiryData(durationDays, existingExpiryMs = 0) {
+            const nowMs = Date.now();
+            const baseMs = existingExpiryMs > nowMs ? existingExpiryMs : nowMs;
+            const days = Math.max(1, parseInt(durationDays, 10) || 1);
+
+            if (days === 1) {
+                const expMs = nowMs + (24 * 60 * 60 * 1000);
+                const d = new Date(expMs);
+                const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                return { expiryDate: iso, expiryTimestamp: expMs };
+            }
+
+            const baseDate = new Date(baseMs);
+            baseDate.setDate(baseDate.getDate() + days);
+            const iso = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, '0')}-${String(baseDate.getDate()).padStart(2, '0')}`;
+            const expMs = new Date(iso + 'T23:59:59').getTime();
+            return { expiryDate: iso, expiryTimestamp: expMs };
         }
 
         async function hashPasswordSHA256(plainText) {
@@ -1475,7 +1587,7 @@
 
         const INITIAL_MEMBERS = [
             {
-                id: 'EG-2026-0001',
+                id: 'XG-2026-0001',
                 userId: 'usr_3',
                 firstName: 'Juan',
                 lastName: 'Dela Cruz',
@@ -1485,14 +1597,17 @@
                 branchName: 'Xtreme Gym World - Sta. Maria',
                 planId: 'plan_2',
                 planName: 'Monthly Basic Membership',
+                planCategory: 'Membership',
                 status: 'Active',
                 startDate: '2026-11-15',
                 expiryDate: '2026-12-15',
+                expiryTimestamp: new Date('2026-12-15T23:59:59').getTime(),
                 totalPaid: 800,
+                paymentRef: 'GCash-870724',
                 createdAtMs: 1
             },
             {
-                id: 'EG-2026-0002',
+                id: 'XG-2026-0002',
                 userId: 'usr_4',
                 firstName: 'Maria',
                 lastName: 'Santos',
@@ -1502,14 +1617,17 @@
                 branchName: 'Xtreme Gym World - Sta. Maria',
                 planId: 'plan_1',
                 planName: 'Daily Walk-in Pass',
+                planCategory: 'Walk-in',
                 status: 'Expired',
                 startDate: '2026-11-01',
                 expiryDate: '2026-11-01',
+                expiryTimestamp: new Date('2026-11-01T23:59:59').getTime(),
                 totalPaid: 60,
+                paymentRef: 'Cash-Walkin',
                 createdAtMs: 2
             },
             {
-                id: 'EG-2026-0003',
+                id: 'XG-2026-0003',
                 userId: '',
                 firstName: 'Kian',
                 lastName: 'Puente',
@@ -1519,58 +1637,24 @@
                 branchName: 'Xtreme Gym World - Sta. Maria',
                 planId: 'plan_3',
                 planName: 'Quarterly Pro Membership',
+                planCategory: 'Membership',
                 status: 'Active',
                 startDate: '2026-10-01',
-                expiryDate: '2026-12-30',
+                expiryDate: '2027-12-30',
+                expiryTimestamp: new Date('2027-12-30T23:59:59').getTime(),
                 totalPaid: 2100,
+                paymentRef: 'Card-POS',
                 createdAtMs: 3
-            },
-            {
-                id: 'EG-2026-0004',
-                userId: '',
-                firstName: 'Jan Mark',
-                lastName: 'Nolasco',
-                email: 'janmark@xtremegym.ph',
-                phone: '09203334444',
-                branchId: 'branch_1',
-                branchName: 'Xtreme Gym World - Sta. Maria',
-                planId: 'plan_4',
-                planName: 'Annual VIP Membership',
-                status: 'Active',
-                startDate: '2026-05-20',
-                expiryDate: '2027-05-20',
-                totalPaid: 7500,
-                createdAtMs: 4
-            },
-            {
-                id: 'EG-2026-0005',
-                userId: '',
-                firstName: 'Jan Moises',
-                lastName: 'Gaca',
-                email: 'janmoises@xtremegym.ph',
-                phone: '09215556666',
-                branchId: 'branch_1',
-                branchName: 'Xtreme Gym World - Sta. Maria',
-                planId: 'plan_2',
-                planName: 'Monthly Basic Membership',
-                status: 'Active',
-                startDate: '2026-11-05',
-                expiryDate: '2026-12-05',
-                totalPaid: 800,
-                createdAtMs: 5
             }
         ];
 
         const INITIAL_PAYMENTS = [
-            { id: 'TXN-1001', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash', date: '2026-11-15 10:30 AM', recordedBy: 'staff1', createdAtMs: 1763173800000 },
-            { id: 'TXN-1002', memberId: 'EG-2026-0002', memberName: 'Maria Santos', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-01 08:15 AM', recordedBy: 'admin', createdAtMs: 1761956100000 },
-            { id: 'TXN-1003', memberId: 'EG-2026-0003', memberName: 'Kian Puente', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Quarterly Pro Membership', amount: 2100, method: 'Card', date: '2026-10-01 02:00 PM', recordedBy: 'admin', createdAtMs: 1759298400000 },
+            { id: 'TXN-1001', memberId: 'XG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash (GCash-870724)', date: '2026-11-15 10:30 AM', recordedBy: 'staff1', createdAtMs: 1763173800000 },
+            { id: 'TXN-1002', memberId: 'XG-2026-0002', memberName: 'Maria Santos', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-01 08:15 AM', recordedBy: 'admin', createdAtMs: 1761956100000 },
         ];
 
         const INITIAL_ATTENDANCE = [
-            { id: 'ATT-901', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', dateISO: '2026-11-18', operator: 'desk_scanner', createdAtMs: 1763423100000 },
-            { id: 'ATT-902', memberId: 'EG-2026-0003', memberName: 'Kian Puente', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Quarterly Pro Membership', status: 'Verified Active', timestamp: '2026-11-19 06:15 AM', dateISO: '2026-11-19', operator: 'desk_scanner', createdAtMs: 1763504100000 },
-            { id: 'ATT-903', memberId: 'EG-2026-0002', memberName: 'Maria Santos', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Daily Walk-in Pass', status: 'Denied (Expired)', timestamp: '2026-11-19 09:30 AM', dateISO: '2026-11-19', operator: 'desk_scanner', createdAtMs: 1763515800000 }
+            { id: 'ATT-901', memberId: 'XG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', dateISO: '2026-11-18', operator: 'desk_scanner', createdAtMs: 1763423100000 }
         ];
 
         class GymApp {
@@ -1593,6 +1677,12 @@
                 this.loadData();
                 this.initUI();
                 this.initCloudSync();
+
+                setInterval(() => {
+                    if (this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'staff')) {
+                        this.renderMembersTable();
+                    }
+                }, 60000);
             }
 
             loadSecurityState() {
@@ -1657,11 +1747,6 @@
                         this.attendance.forEach(item => batch.set(db.collection('eg_attendance').doc(item.id), item));
                         batch.set(metaRef, { seeded: true, createdAt: new Date().toISOString() });
                         await batch.commit();
-                    } else {
-                        const branchSnap = await db.collection('eg_branches').limit(1).get();
-                        if (branchSnap.empty && this.branches.length > 0) {
-                            await this.pushFullCollectionToCloud('eg_branches', this.branches);
-                        }
                     }
 
                     const collections = [
@@ -1684,7 +1769,7 @@
                                     localStorage.setItem(col.localKey, JSON.stringify(sorted));
                                     this.onCloudDataUpdated(col.prop);
                                 }
-                                this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore (extremegym-53eed)');
+                                this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore');
                             },
                             (error) => {
                                 console.warn(`Firestore listener (${col.name}):`, error);
@@ -1760,7 +1845,7 @@
                 if (!db) return;
                 try {
                     await db.collection(collectionName).doc(String(docId)).set(record);
-                    this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore (extremegym-53eed)');
+                    this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore');
                 } catch (err) {
                     console.warn(`Cloud write error (${collectionName}/${docId}):`, err);
                     this.setCloudStatus('warning', 'Cloud Sync Pending', 'Check Firestore rules or internet connection');
@@ -1771,7 +1856,7 @@
                 if (!db || !docId) return;
                 try {
                     await db.collection(collectionName).doc(String(docId)).delete();
-                    this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore (extremegym-53eed)');
+                    this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore');
                 } catch (err) {
                     console.warn(`Cloud delete error (${collectionName}/${docId}):`, err);
                     this.setCloudStatus('warning', 'Cloud Sync Pending', 'Check Firestore rules or internet connection');
@@ -1795,24 +1880,12 @@
             }
 
             loadData() {
-                if (!localStorage.getItem('eg_branches')) {
-                    localStorage.setItem('eg_branches', JSON.stringify(INITIAL_BRANCHES));
-                }
-                if (!localStorage.getItem('eg_plans')) {
-                    localStorage.setItem('eg_plans', JSON.stringify(INITIAL_PLANS));
-                }
-                if (!localStorage.getItem('eg_users')) {
-                    localStorage.setItem('eg_users', JSON.stringify(INITIAL_USERS));
-                }
-                if (!localStorage.getItem('eg_members')) {
-                    localStorage.setItem('eg_members', JSON.stringify(INITIAL_MEMBERS));
-                }
-                if (!localStorage.getItem('eg_payments')) {
-                    localStorage.setItem('eg_payments', JSON.stringify(INITIAL_PAYMENTS));
-                }
-                if (!localStorage.getItem('eg_attendance')) {
-                    localStorage.setItem('eg_attendance', JSON.stringify(INITIAL_ATTENDANCE));
-                }
+                if (!localStorage.getItem('eg_branches')) localStorage.setItem('eg_branches', JSON.stringify(INITIAL_BRANCHES));
+                if (!localStorage.getItem('eg_plans')) localStorage.setItem('eg_plans', JSON.stringify(INITIAL_PLANS));
+                if (!localStorage.getItem('eg_users')) localStorage.setItem('eg_users', JSON.stringify(INITIAL_USERS));
+                if (!localStorage.getItem('eg_members')) localStorage.setItem('eg_members', JSON.stringify(INITIAL_MEMBERS));
+                if (!localStorage.getItem('eg_payments')) localStorage.setItem('eg_payments', JSON.stringify(INITIAL_PAYMENTS));
+                if (!localStorage.getItem('eg_attendance')) localStorage.setItem('eg_attendance', JSON.stringify(INITIAL_ATTENDANCE));
 
                 this.branches = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_branches')));
                 this.plans = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_plans')));
@@ -1820,19 +1893,6 @@
                 this.members = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_members')));
                 this.payments = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_payments')));
                 this.attendance = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_attendance')));
-
-                const defaultBranch = this.branches.find(b => b.id === 'branch_1');
-                if (defaultBranch && defaultBranch.name.startsWith('Extreme Gym')) {
-                    defaultBranch.name = 'Xtreme Gym World - Sta. Maria';
-                    this.saveData('branches');
-                }
-
-                const mainAdmin = this.users.find(u => u.id === 'usr_1' || u.username === 'admin');
-                if (mainAdmin && mainAdmin.firstName === 'Emmanuel') {
-                    mainAdmin.firstName = 'Kian Edward';
-                    mainAdmin.lastName = 'Puente';
-                    this.saveData('users');
-                }
             }
 
             saveData(key) {
@@ -2083,9 +2143,7 @@
                     return;
                 }
 
-                if (now - this.lastLoginAttemptMs < 700) {
-                    return;
-                }
+                if (now - this.lastLoginAttemptMs < 700) return;
                 this.lastLoginAttemptMs = now;
 
                 const usernameInput = document.getElementById('loginUsername').value.trim().slice(0, 80);
@@ -2183,7 +2241,7 @@
             generateNextMemberId() {
                 let maxNum = this.members.length;
                 this.members.forEach(m => {
-                    const match = String(m.id).match(/(?:XG|EG)-2026-(\d+)/);
+                    const match = String(m.id).match(/XG-2026-(\d+)/);
                     if (match) {
                         const n = parseInt(match[1], 10);
                         if (n > maxNum) maxNum = n;
@@ -2211,30 +2269,27 @@
                 const phone = document.getElementById('regPhone').value.trim();
                 const branchId = document.getElementById('regBranchSelect').value;
                 const planId = document.getElementById('regPlanSelect').value;
+                const payMethod = document.getElementById('regPayMethod').value;
+                const refNo = document.getElementById('regRefNo').value.trim().replace(/[^A-Za-z0-9-_]/g, '').slice(0, 40);
                 const rawPassword = document.getElementById('regPassword').value;
 
-                if (!isValidHumanName(fn, 2, 40)) {
-                    this.showToast('First Name must be 2–40 letters (spaces/hyphens allowed, no repeated spam characters).', 'error');
-                    return;
-                }
-
-                if (!isValidHumanName(ln, 2, 35)) {
-                    this.showToast('Last Name must be 2–35 letters (spaces/hyphens allowed, no repeated spam characters).', 'error');
+                if (!isValidHumanName(fn, 2, 40) || !isValidHumanName(ln, 2, 35)) {
+                    this.showToast('First Name (2–40) and Last Name (2–35) must contain valid letters only.', 'error');
                     return;
                 }
 
                 if (!isValidAccountUsername(username)) {
-                    this.showToast('Username must be 3–24 characters using letters, numbers, dots, or underscores (no reserved/system words).', 'error');
+                    this.showToast('Username must be 3–24 characters using letters, numbers, dots, or underscores.', 'error');
                     return;
                 }
 
                 if (!isValidEmailAddress(email)) {
-                    this.showToast('Please enter a valid email address (max 80 characters).', 'error');
+                    this.showToast('Please enter a valid email address.', 'error');
                     return;
                 }
 
                 if (!isValidOptionalPhone(phone)) {
-                    this.showToast('Phone number must be a valid 11-digit PH mobile number starting with 09 (or left blank).', 'error');
+                    this.showToast('Phone number must be an 11-digit PH mobile number starting with 09.', 'error');
                     return;
                 }
 
@@ -2244,7 +2299,7 @@
                 }
 
                 if (this.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-                    this.showToast('Username is already taken. Please pick another.', 'error');
+                    this.showToast('Username is already taken.', 'error');
                     return;
                 }
 
@@ -2255,7 +2310,7 @@
 
                 const selectedPlan = this.plans.find(p => p.id === planId);
                 if (!selectedPlan) {
-                    this.showToast('Selected membership plan is invalid.', 'error');
+                    this.showToast('Selected plan is invalid.', 'error');
                     return;
                 }
 
@@ -2265,7 +2320,7 @@
                 const hashedPassword = await hashPasswordSHA256(rawPassword);
 
                 const startDate = getLocalISODate(0);
-                const expiryDate = getLocalISODate(selectedPlan.durationDays);
+                const expData = computeNewExpiryData(selectedPlan.durationDays, 0);
 
                 const newUser = {
                     id: userId,
@@ -2291,49 +2346,35 @@
                     branchName: selectedBranch.name,
                     planId: selectedPlan.id,
                     planName: selectedPlan.name,
-                    status: 'Active',
+                    planCategory: selectedPlan.category || 'Membership',
+                    status: 'Pending Verification',
                     startDate,
-                    expiryDate,
+                    expiryDate: expData.expiryDate,
+                    expiryTimestamp: expData.expiryTimestamp,
                     totalPaid: selectedPlan.price,
-                    createdAtMs: nowMs
-                };
-
-                const newPayment = {
-                    id: `TXN-${String(nowMs).slice(-6)}`,
-                    memberId,
-                    memberName: `${fn} ${ln}`,
-                    branchId: selectedBranch.id,
-                    branchName: selectedBranch.name,
-                    planName: selectedPlan.name,
-                    amount: selectedPlan.price,
-                    method: 'Cash (Self-Registration)',
-                    date: new Date().toLocaleString(),
-                    recordedBy: 'Self Registered',
+                    paymentRef: refNo ? `${payMethod} (${refNo})` : payMethod,
                     createdAtMs: nowMs
                 };
 
                 this.users.push(newUser);
                 this.members.push(newMember);
-                this.payments.push(newPayment);
 
                 this.saveData('users');
                 this.saveData('members');
-                this.saveData('payments');
 
                 this.failedLoginState.regTimestamps.push(nowMs);
                 this.saveSecurityState();
 
                 await Promise.all([
                     this.pushRecordToCloud('eg_users', newUser.id, newUser),
-                    this.pushRecordToCloud('eg_members', newMember.id, newMember),
-                    this.pushRecordToCloud('eg_payments', newPayment.id, newPayment)
+                    this.pushRecordToCloud('eg_members', newMember.id, newMember)
                 ]);
 
                 e.target.reset();
                 const counterSpan = document.getElementById('regUsernameCounter');
                 if (counterSpan) counterSpan.textContent = '0/24';
                 this.resetPasswordFieldState('regPassword', 'regPassIcon');
-                this.showToast('Registration successful & synced to cloud! Logging you in...', 'success');
+                this.showToast('Registration submitted! Pending staff payment verification.', 'success');
 
                 this.currentUser = newUser;
                 sessionStorage.setItem('eg_session', JSON.stringify(newUser));
@@ -2427,29 +2468,20 @@
             }
 
             openSelfChangePasswordModal() {
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Only Staff and Admin accounts can use this option.', 'error');
-                    return;
-                }
-
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
                 document.getElementById('selfCpAccountDisplay').textContent = `${this.currentUser.firstName} ${this.currentUser.lastName} (${this.currentUser.username} - ${this.currentUser.role.toUpperCase()})`;
                 document.getElementById('selfCpCurrentPassword').value = '';
                 document.getElementById('selfCpNewPassword').value = '';
                 document.getElementById('selfCpConfirmPassword').value = '';
-
                 this.resetPasswordFieldState('selfCpCurrentPassword', 'selfCpCurrIcon');
                 this.resetPasswordFieldState('selfCpNewPassword', 'selfCpNewIcon');
                 this.resetPasswordFieldState('selfCpConfirmPassword', 'selfCpConfIcon');
-
                 this.openModal('selfChangePasswordModal');
             }
 
             async handleSelfChangePassword(e) {
                 e.preventDefault();
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
 
                 const currentPass = document.getElementById('selfCpCurrentPassword').value;
                 const newPass = document.getElementById('selfCpNewPassword').value;
@@ -2469,26 +2501,20 @@
                     return;
                 }
 
-                if (newPass === currentPass) {
-                    this.showToast('New password must be different from your current password.', 'warning');
-                    return;
-                }
-
                 if (newPass !== confirmPass) {
-                    this.showToast('New passwords do not match. Please try again.', 'error');
+                    this.showToast('New passwords do not match.', 'error');
                     return;
                 }
 
                 const hashed = await hashPasswordSHA256(newPass);
                 targetUser.password = hashed;
                 this.currentUser = targetUser;
-
                 this.saveData('users');
                 sessionStorage.setItem('eg_session', JSON.stringify(this.currentUser));
                 await this.pushRecordToCloud('eg_users', targetUser.id, targetUser);
 
                 this.closeModal('selfChangePasswordModal');
-                this.showToast('Your password has been updated & synced to cloud!', 'success');
+                this.showToast('Password updated & synced to cloud!', 'success');
             }
 
             getCurrentMemberRecord() {
@@ -2507,16 +2533,24 @@
                 document.getElementById('memberPlanSub').textContent = `Plan: ${member.planName}`;
                 document.getElementById('memberAvatar').textContent = `${member.firstName[0] || ''}${member.lastName[0] || ''}`.toUpperCase();
 
-                const expired = isMemberExpired(member);
+                const pendingNotice = document.getElementById('memberPendingNotice');
                 const statusBadge = document.getElementById('memberStatusBadge');
                 const cardStatusChip = document.getElementById('cardStatusChip');
 
-                if (expired) {
+                if (member.status === 'Pending Verification') {
+                    pendingNotice.classList.remove('hidden');
+                    statusBadge.className = 'bg-amber-500/10 border border-amber-500/30 text-amber-400 px-2.5 py-0.5 rounded-full text-xs font-bold';
+                    statusBadge.textContent = 'Pending Verification';
+                    cardStatusChip.className = 'bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider';
+                    cardStatusChip.textContent = 'PENDING';
+                } else if (isMemberExpired(member)) {
+                    pendingNotice.classList.add('hidden');
                     statusBadge.className = 'bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-0.5 rounded-full text-xs font-bold';
                     statusBadge.textContent = 'Expired Member';
                     cardStatusChip.className = 'bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider';
                     cardStatusChip.textContent = 'EXPIRED';
                 } else {
+                    pendingNotice.classList.add('hidden');
                     statusBadge.className = 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-xs font-bold';
                     statusBadge.textContent = 'Active Member';
                     cardStatusChip.className = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider';
@@ -2531,11 +2565,8 @@
 
                 this.generateQRCode('memberQrContainer', member.id, 160);
 
-                const today = new Date(getLocalISODate(0) + 'T00:00:00');
-                const expDate = new Date(member.expiryDate + 'T00:00:00');
-                const diffTime = expDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                document.getElementById('memberDaysLeft').textContent = diffDays > 0 ? `${diffDays} Days` : '0 Days';
+                const remaining = getMembershipRemainingInfo(member);
+                document.getElementById('memberDaysLeft').textContent = remaining.label;
 
                 const myAttendance = this.sortCollectionChronologically(
                     this.attendance.filter(a => a.memberId === member.id)
@@ -2597,68 +2628,35 @@
                 const method = document.getElementById('renewMethod').value;
                 const refNo = document.getElementById('renewRefNo').value.replace(/[^A-Za-z0-9-_]/g, '').slice(0, 40);
 
-                const allowedMethods = ['GCash', 'Cash', 'Card'];
-                if (!allowedMethods.includes(method)) {
-                    this.showToast('Invalid payment method.', 'error');
-                    return;
-                }
-
                 const plan = this.plans.find(p => p.id === planId);
                 if (!plan) {
                     this.showToast('Invalid membership plan selected.', 'error');
                     return;
                 }
 
-                let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
-                const currentExp = new Date(member.expiryDate + 'T00:00:00');
-                if (currentExp > baseDate) {
-                    baseDate = currentExp;
-                }
-                baseDate.setDate(baseDate.getDate() + plan.durationDays);
-
-                const year = baseDate.getFullYear();
-                const month = String(baseDate.getMonth() + 1).padStart(2, '0');
-                const day = String(baseDate.getDate()).padStart(2, '0');
+                const currentExpMs = getMemberExpiryTimestamp(member);
+                const expData = computeNewExpiryData(plan.durationDays, currentExpMs);
 
                 const branchId = this.resolveRecordBranchId(member);
                 const branchName = this.resolveRecordBranchName(member);
 
                 member.planId = plan.id;
                 member.planName = plan.name;
+                member.planCategory = plan.category || 'Membership';
                 member.branchId = branchId;
                 member.branchName = branchName;
-                member.expiryDate = `${year}-${month}-${day}`;
-                member.status = 'Active';
+                member.expiryDate = expData.expiryDate;
+                member.expiryTimestamp = expData.expiryTimestamp;
+                member.status = 'Pending Verification';
                 member.totalPaid = (member.totalPaid || 0) + plan.price;
-
-                const nowMs = Date.now();
-                const paymentRec = {
-                    id: `TXN-${String(nowMs).slice(-6)}`,
-                    memberId: member.id,
-                    memberName: `${member.firstName} ${member.lastName}`,
-                    branchId,
-                    branchName,
-                    planName: plan.name,
-                    amount: plan.price,
-                    method: method + (refNo ? ` (${refNo})` : ''),
-                    date: new Date().toLocaleString(),
-                    recordedBy: this.currentUser.username,
-                    createdAtMs: nowMs
-                };
-
-                this.payments.push(paymentRec);
+                member.paymentRef = `${method} (${refNo})`;
 
                 this.saveData('members');
-                this.saveData('payments');
-
-                await Promise.all([
-                    this.pushRecordToCloud('eg_members', member.id, member),
-                    this.pushRecordToCloud('eg_payments', paymentRec.id, paymentRec)
-                ]);
+                await this.pushRecordToCloud('eg_members', member.id, member);
 
                 this.closeModal('renewalModal');
                 this.renderMemberPortal();
-                this.showToast(`Membership renewed (${plan.name})! Valid until ${member.expiryDate}.`, 'success');
+                this.showToast('Renewal submitted successfully! Pending staff verification.', 'success');
             }
 
             generateQRCode(elementId, qrText, size = 160) {
@@ -2725,21 +2723,17 @@
 
             printCurrentMemberPass() {
                 const member = this.getCurrentMemberRecord();
-                if (member) {
-                    this.printQRPass(member.id);
-                }
+                if (member) this.printQRPass(member.id);
             }
 
             printModalMemberPass() {
-                if (this.activeModalMemberId) {
-                    this.printQRPass(this.activeModalMemberId);
-                }
+                if (this.activeModalMemberId) this.printQRPass(this.activeModalMemberId);
             }
 
             printSelectedMemberPass() {
                 const memberId = document.getElementById('scannerMemberSelect')?.value;
                 if (!memberId) {
-                    this.showToast('Please select a member from the dropdown to print their QR pass.', 'error');
+                    this.showToast('Please select a member from the dropdown.', 'error');
                     return;
                 }
                 this.printQRPass(memberId);
@@ -2755,12 +2749,12 @@
 
             async startCameraScanner(preferredDeviceId = null) {
                 if (window.location.protocol === 'file:') {
-                    this.showToast('Camera blocked on local file://. Open via your GitHub Pages HTTPS link to scan.', 'error');
+                    this.showToast('Camera blocked on local file://. Use HTTPS link.', 'error');
                     return;
                 }
 
                 if (!window.Html5Qrcode) {
-                    this.showToast('QR Camera library failed to load. Check your internet connection.', 'error');
+                    this.showToast('QR Camera library failed to load.', 'error');
                     return;
                 }
 
@@ -2790,9 +2784,7 @@
                                     opt.textContent = dev.label || `Camera ${idx + 1}`;
                                     cameraSelect.appendChild(opt);
                                 });
-                                if (devices.length > 1) {
-                                    cameraSelectWrapper.classList.remove('hidden');
-                                }
+                                if (devices.length > 1) cameraSelectWrapper.classList.remove('hidden');
                                 const backCam = devices.find(d => /back|rear|environment/i.test(d.label));
                                 const chosenCam = backCam || devices[0];
                                 cameraSelect.value = chosenCam.id;
@@ -2804,9 +2796,7 @@
                     const scanOpts = { fps: 10, qrbox: { width: 210, height: 210 } };
                     const onDecode = (decodedText) => {
                         const now = Date.now();
-                        if (this.lastCameraDecodeText === decodedText && (now - this.lastCameraDecodeTime < 3000)) {
-                            return;
-                        }
+                        if (this.lastCameraDecodeText === decodedText && (now - this.lastCameraDecodeTime < 3000)) return;
                         this.lastCameraDecodeText = decodedText;
                         this.lastCameraDecodeTime = now;
                         this.processQRScan(decodedText.trim().slice(0, 30));
@@ -2825,13 +2815,13 @@
                     this.isCameraScanning = true;
                     toggleBtn.innerHTML = '<i class="fa-solid fa-video-slash"></i><span>Stop Camera</span>';
                     toggleBtn.className = 'bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 shadow';
-                    this.showToast('Camera started! Hold a member QR pass in front of the lens.', 'info');
+                    this.showToast('Camera started!', 'info');
                 } catch (err) {
                     placeholder.classList.remove('hidden');
                     readerEl.classList.add('hidden');
                     cameraSelectWrapper.classList.add('hidden');
                     this.isCameraScanning = false;
-                    this.showToast('Could not access camera. Allow camera permission in browser or use Scan Image / Manual ID.', 'error');
+                    this.showToast('Could not access camera.', 'error');
                 }
             }
 
@@ -2850,9 +2840,7 @@
                 const cameraSelectWrapper = document.getElementById('cameraSelectWrapper');
 
                 if (this.html5QrScanner && this.isCameraScanning) {
-                    try {
-                        await this.html5QrScanner.stop();
-                    } catch (e) {}
+                    try { await this.html5QrScanner.stop(); } catch (e) {}
                 }
 
                 this.isCameraScanning = false;
@@ -2870,21 +2858,15 @@
                 if (!file) return;
                 event.target.value = '';
 
-                if (!window.Html5Qrcode) {
-                    this.showToast('QR decoder library unavailable.', 'error');
-                    return;
-                }
-
+                if (!window.Html5Qrcode) return;
                 const fileScanner = new Html5Qrcode('qrFileScanTarget');
                 try {
                     const decodedText = await fileScanner.scanFile(file, false);
                     this.processQRScan(decodedText.trim().slice(0, 30));
                 } catch (err) {
-                    this.showToast('No readable QR code found in that image.', 'error');
+                    this.showToast('No readable QR code found in image.', 'error');
                 } finally {
-                    try {
-                        fileScanner.clear();
-                    } catch (e) {}
+                    try { fileScanner.clear(); } catch (e) {}
                 }
             }
 
@@ -2918,7 +2900,7 @@
                 });
 
                 const totalM = scopedMembers.length;
-                const activeM = scopedMembers.filter(m => !isMemberExpired(m)).length;
+                const activeM = scopedMembers.filter(m => !isMemberExpired(m) && m.status !== 'Pending Verification').length;
 
                 const todayISO = getLocalISODate(0);
                 const todayAtt = scopedAttendance.filter(a => {
@@ -2942,17 +2924,13 @@
             }
 
             async switchAdminSubTab(subTab) {
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
                 if (this.currentUser.role === 'staff' && (subTab === 'plans' || subTab === 'branches' || subTab === 'accounts')) {
-                    this.showToast('Access restricted to Administrator accounts only.', 'error');
+                    this.showToast('Access restricted to Administrator accounts.', 'error');
                     return;
                 }
 
-                if (subTab !== 'scanner' && this.isCameraScanning) {
-                    await this.stopCameraScanner();
-                }
+                if (subTab !== 'scanner' && this.isCameraScanning) await this.stopCameraScanner();
 
                 this.currentSubTab = subTab;
                 const subTabs = ['scanner', 'members', 'payments', 'attendance', 'plans', 'branches', 'accounts'];
@@ -2983,7 +2961,7 @@
                 paySel.innerHTML = '<option value="">-- Select Member to Record Payment --</option>';
 
                 this.members.forEach(m => {
-                    const liveStatus = isMemberExpired(m) ? 'Expired' : 'Active';
+                    const liveStatus = m.status === 'Pending Verification' ? 'Pending' : (isMemberExpired(m) ? 'Expired' : 'Active');
                     const opt1 = document.createElement('option');
                     opt1.value = m.id;
                     opt1.textContent = `${m.firstName} ${m.lastName} (${m.id}) - ${liveStatus}`;
@@ -3015,7 +2993,7 @@
             simScanFromSelect() {
                 const memberId = document.getElementById('scannerMemberSelect').value;
                 if (!memberId) {
-                    this.showToast('Please select a member from the dropdown first.', 'error');
+                    this.showToast('Please select a member first.', 'error');
                     return;
                 }
                 this.processQRScan(memberId);
@@ -3058,14 +3036,13 @@
             }
 
             async processQRScan(scannedCode) {
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Unauthorized scan attempt.', 'error');
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
 
                 const cleanCode = String(scannedCode || '').trim().slice(0, 30);
                 const member = this.members.find(m => m.id.toUpperCase() === cleanCode.toUpperCase() || m.id === cleanCode);
                 const resultCard = document.getElementById('scanResultCard');
+                const activeBranch = this.getBranchById(this.selectedBranchId);
+                const now = Date.now();
 
                 if (!member) {
                     this.playAudioBeep('error');
@@ -3074,15 +3051,30 @@
                         <div class="w-16 h-16 mx-auto rounded-full bg-rose-500/20 text-rose-400 text-3xl flex items-center justify-center border border-rose-500/40">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
-                        <h4 class="text-lg font-black text-white">INVALID QR CODE / UNKNOWN MEMBER</h4>
+                        <h4 class="text-lg font-black text-white">UNKNOWN MEMBER</h4>
                         <p class="text-xs text-rose-300">No member record found for ID: <span class="font-mono">${escapeHTML(cleanCode)}</span></p>
                     `;
                     this.showToast('Scan Rejected: Member ID not found!', 'error');
                     return;
                 }
 
+                if (member.status === 'Pending Verification') {
+                    this.playAudioBeep('error');
+                    resultCard.className = 'bg-amber-950/60 border border-amber-600/50 rounded-xl p-6 text-center space-y-3';
+                    resultCard.innerHTML = `
+                        <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 text-amber-400 text-3xl flex items-center justify-center border border-amber-500/40">
+                            <i class="fa-solid fa-hourglass-start"></i>
+                        </div>
+                        <h4 class="text-lg font-black text-white">PENDING VERIFICATION</h4>
+                        <p class="text-sm font-bold text-white">${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)}</p>
+                        <p class="text-xs text-amber-300">Payment verification is required in the Members Directory before check-in is allowed.</p>
+                        <button onclick="app.verifyMemberPayment('${member.id}')" class="bg-amber-500 hover:bg-amber-600 text-black text-xs font-extrabold px-4 py-2 rounded-xl mt-2">Approve Payment & Verify Now</button>
+                    `;
+                    this.showToast('Entry Denied: Account pending payment verification.', 'warning');
+                    return;
+                }
+
                 const lastScan = this.scanCooldowns[member.id];
-                const now = Date.now();
                 if (lastScan && (now - lastScan < 15000)) {
                     const secsWait = Math.ceil((15000 - (now - lastScan)) / 1000);
                     this.playAudioBeep('error');
@@ -3092,15 +3084,13 @@
                             <i class="fa-solid fa-clock"></i>
                         </div>
                         <h4 class="text-lg font-black text-white">DUPLICATE CHECK-IN PREVENTED</h4>
-                        <p class="text-xs text-amber-300">Member <strong>${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)}</strong> was scanned moments ago. Wait ${secsWait}s before scanning again.</p>
+                        <p class="text-xs text-amber-300">Member scanned moments ago. Wait ${secsWait}s.</p>
                     `;
-                    this.showToast(`Duplicate check-in blocked! Please wait ${secsWait} seconds.`, 'warning');
+                    this.showToast(`Duplicate check-in blocked! Wait ${secsWait}s.`, 'warning');
                     return;
                 }
 
-                const activeBranch = this.getBranchById(this.selectedBranchId);
                 const expired = isMemberExpired(member);
-
                 if (expired) {
                     this.playAudioBeep('error');
                     resultCard.className = 'bg-rose-950/60 border border-rose-600/50 rounded-xl p-6 text-center space-y-3';
@@ -3108,9 +3098,9 @@
                         <div class="w-16 h-16 mx-auto rounded-full bg-rose-500/20 text-rose-400 text-3xl flex items-center justify-center border border-rose-500/40">
                             <i class="fa-solid fa-user-xmark"></i>
                         </div>
-                        <h4 class="text-lg font-black text-white">MEMBERSHIP EXPIRED - ENTRY DENIED</h4>
-                        <p class="text-sm font-bold text-white">${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)} <span class="text-xs text-zinc-400">(${member.id})</span></p>
-                        <p class="text-xs text-rose-300">Plan: ${escapeHTML(member.planName)} | Expired on ${member.expiryDate}</p>
+                        <h4 class="text-lg font-black text-white">MEMBERSHIP EXPIRED</h4>
+                        <p class="text-sm font-bold text-white">${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)}</p>
+                        <p class="text-xs text-rose-300">Plan: ${escapeHTML(member.planName)} | Expired</p>
                         <button onclick="app.quickRenewMember('${member.id}')" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold px-4 py-2 rounded-xl mt-2">Renew Subscription Now</button>
                     `;
 
@@ -3132,11 +3122,11 @@
                     await this.pushRecordToCloud('eg_attendance', attLog.id, attLog);
                     this.renderStatsSummary();
                     this.renderAttendanceLogTable();
-                    this.renderPaymentsModule();
                     this.showToast('ENTRY DENIED: Member plan is expired.', 'error');
                 } else {
                     this.scanCooldowns[member.id] = now;
                     this.playAudioBeep('success');
+                    const remaining = getMembershipRemainingInfo(member);
 
                     resultCard.className = 'bg-emerald-950/60 border border-emerald-500/60 rounded-xl p-6 text-center space-y-3 glow-lime';
                     resultCard.innerHTML = `
@@ -3147,6 +3137,10 @@
                         <p class="text-lg font-extrabold text-white">${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)}</p>
                         <p class="text-xs text-zinc-300">ID: <span class="font-mono text-brand-400">${member.id}</span> | Plan: <span class="text-white">${escapeHTML(member.planName)}</span></p>
                         <p class="text-xs text-emerald-300">Branch: ${escapeHTML(activeBranch.name)} • Valid Until: ${member.expiryDate}</p>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border ${remaining.badgeClass}">
+                            <i class="fa-solid ${remaining.icon}"></i>
+                            <span>Time Left: ${escapeHTML(remaining.label)}</span>
+                        </div>
                     `;
 
                     const attLog = {
@@ -3167,13 +3161,47 @@
                     await this.pushRecordToCloud('eg_attendance', attLog.id, attLog);
                     this.renderStatsSummary();
                     this.renderAttendanceLogTable();
-                    this.renderPaymentsModule();
                     this.showToast(`Check-in verified for ${member.firstName} ${member.lastName}!`, 'success');
                 }
             }
 
+            async verifyMemberPayment(memberId) {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) return;
+
+                member.status = 'Active';
+                const nowMs = Date.now();
+                const paymentRec = {
+                    id: `TXN-${String(nowMs).slice(-6)}`,
+                    memberId: member.id,
+                    memberName: `${member.firstName} ${member.lastName}`,
+                    branchId: member.branchId || 'branch_1',
+                    branchName: member.branchName || 'Xtreme Gym World - Sta. Maria',
+                    planName: member.planName,
+                    amount: member.totalPaid || 0,
+                    method: member.paymentRef || 'Verified GCash / Cash',
+                    date: new Date().toLocaleString(),
+                    recordedBy: this.currentUser.username,
+                    createdAtMs: nowMs
+                };
+
+                this.payments.push(paymentRec);
+                this.saveData('members');
+                this.saveData('payments');
+
+                await Promise.all([
+                    this.pushRecordToCloud('eg_members', member.id, member),
+                    this.pushRecordToCloud('eg_payments', paymentRec.id, paymentRec)
+                ]);
+
+                this.renderAdminDashboard();
+                this.showToast(`Payment approved and membership activated for ${member.firstName} ${member.lastName}!`, 'success');
+            }
+
             renderMembersTable() {
                 const searchVal = (document.getElementById('memberSearchInput')?.value || '').toLowerCase().slice(0, 60);
+                const categoryFilter = document.getElementById('memberCategoryFilter')?.value || 'ALL';
                 const statusFilter = document.getElementById('memberStatusFilter')?.value || 'ALL';
                 const tbody = document.getElementById('membersTableBody');
                 if (!tbody) return;
@@ -3187,21 +3215,33 @@
                                         m.id.toLowerCase().includes(searchVal) ||
                                         (m.email && m.email.toLowerCase().includes(searchVal));
 
-                    const computedStatus = isMemberExpired(m) ? 'Expired' : 'Active';
+                    const planCat = m.planCategory || 'Membership';
+                    const matchCat = categoryFilter === 'ALL' || planCat === categoryFilter;
+
+                    let computedStatus = isMemberExpired(m) ? 'Expired' : 'Active';
+                    if (m.status === 'Pending Verification') computedStatus = 'Pending Verification';
+
                     const matchStatus = statusFilter === 'ALL' || computedStatus === statusFilter;
-                    return matchSearch && matchStatus;
+                    return matchSearch && matchCat && matchStatus;
                 });
 
                 if (filtered.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No member records match the selected branch/search filter.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No member records match your filters.</td></tr>`;
                     return;
                 }
 
                 filtered.forEach(m => {
-                    const expired = isMemberExpired(m);
-                    const statusText = expired ? 'Expired' : 'Active';
-                    const statusBadgeClass = expired ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+                    const remaining = getMembershipRemainingInfo(m);
+                    let statusText = remaining.isExpired ? 'Expired' : 'Active';
+                    let statusBadgeClass = remaining.isExpired ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+
+                    if (m.status === 'Pending Verification') {
+                        statusText = 'Pending Verification';
+                        statusBadgeClass = 'bg-amber-500/10 text-amber-300 border border-amber-500/30 animate-pulse';
+                    }
+
                     const branchLabel = this.resolveRecordBranchName(m);
+                    const planCatBadge = m.planCategory === 'Walk-in' ? 'bg-sky-500/10 text-sky-400 border-sky-500/30' : (m.planCategory === 'VIP' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' : 'bg-brand-500/10 text-brand-400 border-brand-500/30');
 
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-zinc-900/50 transition';
@@ -3214,21 +3254,38 @@
                             <div>${escapeHTML(m.email || 'N/A')} <span class="text-zinc-600">•</span> <span class="text-zinc-400">${escapeHTML(m.phone || 'No phone')}</span></div>
                             <div class="text-[10px] text-zinc-500"><i class="fa-solid fa-location-dot text-brand-400/70 mr-1"></i>${escapeHTML(branchLabel)}</div>
                         </td>
-                        <td class="p-3.5 font-medium text-zinc-300">${escapeHTML(m.planName)}</td>
-                        <td class="p-3.5 font-mono text-zinc-300">${m.expiryDate}</td>
                         <td class="p-3.5">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass}">
+                            <div class="font-medium text-zinc-200">${escapeHTML(m.planName)}</div>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border ${planCatBadge}">${escapeHTML(m.planCategory || 'Membership')}</span>
+                                ${m.paymentRef ? `<span class="text-[10px] text-zinc-400 font-mono" title="Ref/Method">Ref: ${escapeHTML(m.paymentRef)}</span>` : ''}
+                            </div>
+                        </td>
+                        <td class="p-3.5">
+                            <div class="font-mono text-zinc-300">${m.expiryDate}</div>
+                            <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${remaining.badgeClass}">
+                                <i class="fa-solid ${remaining.icon} text-[9px]"></i>
+                                <span>${escapeHTML(remaining.label)}</span>
+                            </span>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass}">
                                 ${statusText}
                             </span>
                         </td>
                         <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
+                            ${m.status === 'Pending Verification' ? `
+                                <button onclick="app.verifyMemberPayment('${m.id}')" class="bg-amber-500 hover:bg-amber-600 text-black px-2.5 py-1 rounded-lg text-[11px] font-extrabold shadow" title="Approve Payment">
+                                    <i class="fa-solid fa-check"></i> Approve
+                                </button>
+                            ` : ''}
                             <button onclick="app.showMemberPassModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="View & Print QR Pass">
                                 <i class="fa-solid fa-qrcode"></i>
                             </button>
                             <button onclick="app.openEditMemberModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="Edit Member">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button onclick="app.openMemberPasswordModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="Change Member Password">
+                            <button onclick="app.openMemberPasswordModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="Change Password">
                                 <i class="fa-solid fa-key"></i>
                             </button>
                             <button onclick="app.quickRenewMember('${m.id}')" class="bg-brand-400/20 hover:bg-brand-400/30 text-brand-300 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-brand-500/30" title="Renew Plan">
@@ -3244,10 +3301,7 @@
             }
 
             openDeleteMemberModal(memberId) {
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
                 const member = this.members.find(m => m.id === memberId);
                 if (!member) return;
 
@@ -3259,10 +3313,7 @@
             }
 
             async confirmDeleteMember() {
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
 
                 const memberId = document.getElementById('delMemberId').value;
                 const memberIndex = this.members.findIndex(m => m.id === memberId);
@@ -3293,7 +3344,7 @@
 
                 this.closeModal('deleteMemberModal');
                 this.renderAdminDashboard();
-                this.showToast(`Member ${fullName} (${member.id}) deleted & synced to cloud.`, 'success');
+                this.showToast(`Member ${fullName} deleted successfully.`, 'success');
             }
 
             openAddMemberModal() {
@@ -3304,9 +3355,7 @@
                 document.getElementById('mLastName').value = '';
                 document.getElementById('mEmail').value = '';
                 document.getElementById('mPhone').value = '';
-                if (this.selectedBranchId) {
-                    document.getElementById('mBranchSelect').value = this.selectedBranchId;
-                }
+                if (this.selectedBranchId) document.getElementById('mBranchSelect').value = this.selectedBranchId;
                 const changePassBtn = document.getElementById('editMemberChangePassBtn');
                 if (changePassBtn) changePassBtn.classList.add('hidden');
                 this.openModal('memberModal');
@@ -3323,9 +3372,7 @@
                 document.getElementById('mLastName').value = member.lastName;
                 document.getElementById('mEmail').value = member.email || '';
                 document.getElementById('mPhone').value = member.phone || '';
-                if (member.branchId) {
-                    document.getElementById('mBranchSelect').value = member.branchId;
-                }
+                if (member.branchId) document.getElementById('mBranchSelect').value = member.branchId;
                 document.getElementById('mPlanSelect').value = member.planId;
 
                 const changePassBtn = document.getElementById('editMemberChangePassBtn');
@@ -3342,11 +3389,7 @@
             }
 
             openMemberPasswordModal(memberId) {
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Only Admin and Staff can change member passwords.', 'error');
-                    return;
-                }
-
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
                 const member = this.members.find(m => m.id === memberId);
                 if (!member) return;
 
@@ -3368,15 +3411,11 @@
                     usernameInput.required = false;
                     usernameInput.value = '';
                 } else {
-                    noteEl.textContent = 'No portal login account yet — saving a password will activate member portal login.';
+                    noteEl.textContent = 'No portal login account yet — saving password will activate portal login.';
                     createUserSection.classList.remove('hidden');
                     usernameInput.required = true;
-                    const suggestedBase = `${member.firstName}${member.lastName}`
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]/g, '')
-                        .slice(0, 16) || 'member';
-                    const idSuffix = String(member.id).slice(-4);
-                    const suggested = `${suggestedBase}${idSuffix}`.slice(0, 24);
+                    const suggestedBase = `${member.firstName}${member.lastName}`.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16) || 'member';
+                    const suggested = `${suggestedBase}${String(member.id).slice(-4)}`.slice(0, 24);
                     usernameInput.value = suggested;
                     if (counterSpan) counterSpan.textContent = `${suggested.length}/24`;
                 }
@@ -3385,49 +3424,32 @@
                 document.getElementById('mpConfirmPassword').value = '';
                 this.resetPasswordFieldState('mpNewPassword', 'mpNewPassIcon');
                 this.resetPasswordFieldState('mpConfirmPassword', 'mpConfirmPassIcon');
-
                 this.openModal('memberPasswordModal');
             }
 
             async handleSaveMemberPassword(e) {
                 e.preventDefault();
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
 
                 const memberId = document.getElementById('mpMemberId').value;
                 const newPass = document.getElementById('mpNewPassword').value;
                 const confirmPass = document.getElementById('mpConfirmPassword').value;
 
                 if (newPass.length < 6 || newPass.length > 64) {
-                    this.showToast('Password must be between 6 and 64 characters.', 'error');
+                    this.showToast('Password must be 6–64 characters.', 'error');
                     return;
                 }
-
                 if (newPass !== confirmPass) {
-                    this.showToast('Passwords do not match. Please try again.', 'error');
+                    this.showToast('Passwords do not match.', 'error');
                     return;
                 }
 
                 const member = this.members.find(m => m.id === memberId);
-                if (!member) {
-                    this.showToast('Member record not found.', 'error');
-                    return;
-                }
-
-                const nonMemberConflict = this.users.find(u =>
-                    (u.id === member.userId || u.memberId === member.id) && u.role !== 'member'
-                );
-                if (nonMemberConflict) {
-                    this.showToast('Cannot modify Staff or Admin credentials from Member Password reset.', 'error');
-                    return;
-                }
+                if (!member) return;
 
                 let linkedUser = this.users.find(u =>
                     u.role === 'member' && (u.id === member.userId || u.memberId === member.id)
                 );
-
                 const hashedPassword = await hashPasswordSHA256(newPass);
 
                 if (linkedUser) {
@@ -3435,15 +3457,15 @@
                     this.saveData('users');
                     await this.pushRecordToCloud('eg_users', linkedUser.id, linkedUser);
                     this.closeModal('memberPasswordModal');
-                    this.showToast(`Password updated for ${member.firstName} ${member.lastName} (${linkedUser.username})!`, 'success');
+                    this.showToast('Password updated!', 'success');
                 } else {
                     const chosenUsername = document.getElementById('mpNewUsername').value.trim();
                     if (!isValidAccountUsername(chosenUsername)) {
-                        this.showToast('Username must be 3–24 characters using letters, numbers, dots, or underscores.', 'error');
+                        this.showToast('Invalid username format.', 'error');
                         return;
                     }
                     if (this.users.some(u => u.username.toLowerCase() === chosenUsername.toLowerCase())) {
-                        this.showToast('That username is already taken. Choose another.', 'error');
+                        this.showToast('Username already taken.', 'error');
                         return;
                     }
 
@@ -3463,7 +3485,6 @@
 
                     member.userId = newUser.id;
                     this.users.push(newUser);
-
                     this.saveData('users');
                     this.saveData('members');
 
@@ -3473,16 +3494,13 @@
                     ]);
 
                     this.closeModal('memberPasswordModal');
-                    this.showToast(`Portal login activated & password set for ${member.firstName} (${chosenUsername})!`, 'success');
+                    this.showToast('Portal login activated & password set!', 'success');
                 }
             }
 
             async handleSaveMember(e) {
                 e.preventDefault();
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
 
                 const editId = document.getElementById('editMemberId').value;
                 const fn = normalizeCleanText(document.getElementById('mFirstName').value, 40);
@@ -3493,17 +3511,12 @@
                 const planId = document.getElementById('mPlanSelect').value;
 
                 if (!isValidHumanName(fn, 2, 40) || !isValidHumanName(ln, 2, 35)) {
-                    this.showToast('Validation Error: First Name (2–40) and Last Name (2–35) must contain valid letters only.', 'error');
+                    this.showToast('First Name (2–40) and Last Name (2–35) must contain valid letters only.', 'error');
                     return;
                 }
 
                 if (email && !isValidEmailAddress(email)) {
-                    this.showToast('Please enter a valid email address.', 'error');
-                    return;
-                }
-
-                if (!isValidOptionalPhone(phone)) {
-                    this.showToast('Phone number must be 11 digits starting with 09 (or left blank).', 'error');
+                    this.showToast('Invalid email format.', 'error');
                     return;
                 }
 
@@ -3527,18 +3540,21 @@
                         if (m.planId !== planId) {
                             m.planId = planId;
                             m.planName = selectedPlan.name;
-                            m.expiryDate = getLocalISODate(selectedPlan.durationDays);
+                            m.planCategory = selectedPlan.category || 'Membership';
+                            const expData = computeNewExpiryData(selectedPlan.durationDays, 0);
+                            m.expiryDate = expData.expiryDate;
+                            m.expiryTimestamp = expData.expiryTimestamp;
                             m.status = 'Active';
                         }
                         this.saveData('members');
                         await this.pushRecordToCloud('eg_members', m.id, m);
                     }
-                    this.showToast('Member updated & synced to cloud.', 'success');
+                    this.showToast('Member updated successfully.', 'success');
                 } else {
                     const nowMs = Date.now();
                     const newId = this.generateNextMemberId();
                     const startDate = getLocalISODate(0);
-                    const expiryDate = getLocalISODate(selectedPlan.durationDays);
+                    const expData = computeNewExpiryData(selectedPlan.durationDays, 0);
 
                     const newMember = {
                         id: newId,
@@ -3551,10 +3567,13 @@
                         branchName: selectedBranch.name,
                         planId: selectedPlan.id,
                         planName: selectedPlan.name,
+                        planCategory: selectedPlan.category || 'Membership',
                         status: 'Active',
                         startDate,
-                        expiryDate,
+                        expiryDate: expData.expiryDate,
+                        expiryTimestamp: expData.expiryTimestamp,
                         totalPaid: selectedPlan.price,
+                        paymentRef: 'Cash at Desk',
                         createdAtMs: nowMs
                     };
 
@@ -3583,7 +3602,7 @@
                         this.pushRecordToCloud('eg_payments', newPayment.id, newPayment)
                     ]);
 
-                    this.showToast(`New member ${fn} ${ln} created & synced to cloud!`, 'success');
+                    this.showToast(`New member ${fn} ${ln} registered & activated!`, 'success');
                 }
 
                 this.closeModal('memberModal');
@@ -3591,32 +3610,21 @@
             }
 
             async quickRenewMember(memberId) {
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
                 const member = this.members.find(m => m.id === memberId);
                 if (!member) return;
 
                 const selectedPlan = this.plans.find(p => p.id === member.planId) || this.plans[0];
-
-                let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
-                const currentExp = new Date(member.expiryDate + 'T00:00:00');
-                if (currentExp > baseDate) {
-                    baseDate = currentExp;
-                }
-                baseDate.setDate(baseDate.getDate() + selectedPlan.durationDays);
-
-                const year = baseDate.getFullYear();
-                const month = String(baseDate.getMonth() + 1).padStart(2, '0');
-                const day = String(baseDate.getDate()).padStart(2, '0');
+                const currentExpMs = getMemberExpiryTimestamp(member);
+                const expData = computeNewExpiryData(selectedPlan.durationDays, currentExpMs);
 
                 const branchId = this.resolveRecordBranchId(member);
                 const branchName = this.resolveRecordBranchName(member);
 
                 member.branchId = branchId;
                 member.branchName = branchName;
-                member.expiryDate = `${year}-${month}-${day}`;
+                member.expiryDate = expData.expiryDate;
+                member.expiryTimestamp = expData.expiryTimestamp;
                 member.status = 'Active';
                 member.totalPaid = (member.totalPaid || 0) + selectedPlan.price;
 
@@ -3636,7 +3644,6 @@
                 };
 
                 this.payments.push(newPayment);
-
                 this.saveData('members');
                 this.saveData('payments');
 
@@ -3646,7 +3653,7 @@
                 ]);
 
                 this.renderAdminDashboard();
-                this.showToast(`Plan renewed for ${member.firstName} ${member.lastName}! Expiry extended to ${member.expiryDate}`, 'success');
+                this.showToast(`Plan renewed for ${member.firstName}! Valid until ${member.expiryDate}`, 'success');
             }
 
             showMemberPassModal(memberId) {
@@ -3664,19 +3671,13 @@
                 if (!tbody) return;
                 tbody.innerHTML = '';
 
-                let grandMembers = 0;
-                let grandActive = 0;
-                let grandStaff = 0;
-                let grandCheckins = 0;
-                let grandRevenue = 0;
+                let grandMembers = 0, grandActive = 0, grandStaff = 0, grandCheckins = 0, grandRevenue = 0;
 
                 this.branches.forEach(branch => {
                     const isActive = branch.status !== 'Inactive';
                     const bMembers = this.members.filter(m => this.resolveRecordBranchId(m) === branch.id);
-                    const bActiveMembers = bMembers.filter(m => !isMemberExpired(m));
-                    const bStaff = this.users.filter(u =>
-                        (u.role === 'admin' || u.role === 'staff') && this.resolveRecordBranchId(u) === branch.id
-                    );
+                    const bActiveMembers = bMembers.filter(m => !isMemberExpired(m) && m.status !== 'Pending Verification');
+                    const bStaff = this.users.filter(u => (u.role === 'admin' || u.role === 'staff') && this.resolveRecordBranchId(u) === branch.id);
                     const bAttendance = this.attendance.filter(a => this.resolveRecordBranchId(a, a.memberId) === branch.id);
                     const bPayments = this.payments.filter(p => this.resolveRecordBranchId(p, p.memberId) === branch.id);
                     const bRevenue = bPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
@@ -3728,14 +3729,13 @@
                 if (!tbody) return;
 
                 this.renderBranchAnalyticsTable();
-
                 tbody.innerHTML = '';
                 const scopedPayments = this.filterRecordsByAnalyticsScope(this.payments, p => p.memberId);
                 const sorted = this.sortCollectionChronologically(scopedPayments);
                 const filtered = sorted.filter(p => methodFilter === 'ALL' || p.method.startsWith(methodFilter));
 
                 if (filtered.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-zinc-500">No payment transactions match the selected branch/method filter.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-zinc-500">No payment transactions match filters.</td></tr>`;
                 } else {
                     filtered.slice().reverse().forEach(p => {
                         const branchLabel = this.resolveRecordBranchName(p, p.memberId);
@@ -3763,17 +3763,12 @@
                 const payAmount = document.getElementById('payAmount');
                 if (!planSelect || !payAmount) return;
                 const plan = this.plans.find(p => p.id === planSelect.value);
-                if (plan) {
-                    payAmount.value = plan.price;
-                }
+                if (plan) payAmount.value = plan.price;
             }
 
             async handleManualPaymentSubmit(e) {
                 e.preventDefault();
-                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
 
                 const memberId = document.getElementById('payMemberSelect').value;
                 const branchId = document.getElementById('payBranchSelect').value;
@@ -3783,13 +3778,7 @@
                 const refNo = document.getElementById('payRefNo').value.replace(/[^A-Za-z0-9-_]/g, '').slice(0, 40);
 
                 if (!memberId) {
-                    this.showToast('Please select a member.', 'error');
-                    return;
-                }
-
-                const allowedMethods = ['Cash', 'GCash', 'Card'];
-                if (!allowedMethods.includes(method)) {
-                    this.showToast('Invalid payment method.', 'error');
+                    this.showToast('Select a member.', 'error');
                     return;
                 }
 
@@ -3799,20 +3788,16 @@
                 const creditedBranch = this.getBranchById(branchId);
 
                 if (member && plan && creditedBranch) {
-                    let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
-                    const currentExp = new Date(member.expiryDate + 'T00:00:00');
-                    if (currentExp > baseDate) {
-                        baseDate = currentExp;
-                    }
-                    baseDate.setDate(baseDate.getDate() + plan.durationDays);
-
-                    const year = baseDate.getFullYear();
-                    const month = String(baseDate.getMonth() + 1).padStart(2, '0');
-                    const day = String(baseDate.getDate()).padStart(2, '0');
+                    const currentExpMs = getMemberExpiryTimestamp(member);
+                    const expData = computeNewExpiryData(plan.durationDays, currentExpMs);
 
                     member.planId = plan.id;
                     member.planName = plan.name;
-                    member.expiryDate = `${year}-${month}-${day}`;
+                    member.planCategory = plan.category || 'Membership';
+                    member.branchId = creditedBranch.id;
+                    member.branchName = creditedBranch.name;
+                    member.expiryDate = expData.expiryDate;
+                    member.expiryTimestamp = expData.expiryTimestamp;
                     member.status = 'Active';
                     member.totalPaid = (member.totalPaid || 0) + amount;
 
@@ -3832,7 +3817,6 @@
                     };
 
                     this.payments.push(newPayment);
-
                     this.saveData('members');
                     this.saveData('payments');
 
@@ -3843,20 +3827,16 @@
 
                     document.getElementById('payRefNo').value = '';
                     this.renderAdminDashboard();
-                    this.showToast(`Payment of ₱${amount} recorded for ${creditedBranch.name}!`, 'success');
+                    this.showToast(`Payment of ₱${amount} recorded & synced!`, 'success');
                 }
             }
 
             renderBranchRevenueChart() {
                 const ctx = document.getElementById('branchRevenueChart')?.getContext('2d');
                 if (!ctx) return;
+                if (window.myBranchRevenueChart) window.myBranchRevenueChart.destroy();
 
-                if (window.myBranchRevenueChart) {
-                    window.myBranchRevenueChart.destroy();
-                }
-
-                const branchLabels = [];
-                const branchTotals = [];
+                const branchLabels = [], branchTotals = [];
                 const palette = ['#a3e635', '#38bdf8', '#f59e0b', '#c084fc', '#34d399', '#fb7185'];
 
                 this.branches.forEach(branch => {
@@ -3881,18 +3861,10 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
-                            y: {
-                                ticks: { color: '#a1a1aa' },
-                                grid: { color: '#27272a' }
-                            },
-                            x: {
-                                ticks: { color: '#a1a1aa' },
-                                grid: { display: false }
-                            }
+                            y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
+                            x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }
                         }
                     }
                 });
@@ -3905,9 +3877,7 @@
                 const scopeBadge = document.getElementById('planChartScopeBadge');
                 if (scopeBadge) scopeBadge.textContent = this.getAnalyticsScopeName();
 
-                if (window.myRevenueChart) {
-                    window.myRevenueChart.destroy();
-                }
+                if (window.myRevenueChart) window.myRevenueChart.destroy();
 
                 const sourcePayments = scopedPayments || this.filterRecordsByAnalyticsScope(this.payments, p => p.memberId);
                 const planTotals = {};
@@ -3934,18 +3904,10 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
-                            y: {
-                                ticks: { color: '#a1a1aa' },
-                                grid: { color: '#27272a' }
-                            },
-                            x: {
-                                ticks: { color: '#a1a1aa' },
-                                grid: { display: false }
-                            }
+                            y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
+                            x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }
                         }
                     }
                 });
@@ -3962,11 +3924,11 @@
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.setAttribute('href', url);
-                a.setAttribute('download', `Xtreme_Gym_Revenue_${getLocalISODate(0)}.csv`);
+                a.href = url;
+                a.download = `Xtreme_Gym_Revenue_${getLocalISODate(0)}.csv`;
                 a.click();
                 window.URL.revokeObjectURL(url);
-                this.showToast('Revenue CSV exported successfully.', 'success');
+                this.showToast('Revenue CSV exported.', 'success');
             }
 
             renderAttendanceLogTable() {
@@ -3977,7 +3939,7 @@
                 const scopedAttendance = this.filterRecordsByAnalyticsScope(this.attendance, a => a.memberId);
                 const sorted = this.sortCollectionChronologically(scopedAttendance);
                 if (sorted.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-zinc-500">No check-in logs recorded for selected branch.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-zinc-500">No attendance logs.</td></tr>`;
                     return;
                 }
 
@@ -4013,11 +3975,11 @@
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.setAttribute('href', url);
-                a.setAttribute('download', `Xtreme_Gym_Attendance_${getLocalISODate(0)}.csv`);
+                a.href = url;
+                a.download = `Xtreme_Gym_Attendance_${getLocalISODate(0)}.csv`;
                 a.click();
                 window.URL.revokeObjectURL(url);
-                this.showToast('Attendance CSV exported successfully.', 'success');
+                this.showToast('Attendance CSV exported.', 'success');
             }
 
             renderPlansList() {
@@ -4044,10 +4006,7 @@
             }
 
             openAddPlanModal() {
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Administrator access required.', 'error');
-                    return;
-                }
+                if (this.currentUser?.role !== 'admin') return;
                 document.getElementById('pName').value = '';
                 document.getElementById('pPrice').value = '';
                 document.getElementById('pDays').value = '';
@@ -4056,25 +4015,12 @@
 
             async handleSavePlan(e) {
                 e.preventDefault();
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (this.currentUser?.role !== 'admin') return;
 
                 const name = normalizeCleanText(document.getElementById('pName').value, 50);
-                if (name.length < 3 || name.length > 50) {
-                    this.showToast('Plan name must be between 3 and 50 characters.', 'error');
-                    return;
-                }
-
                 const price = clamp(document.getElementById('pPrice').value, 1, 50000);
                 const days = Math.round(clamp(document.getElementById('pDays').value, 1, 365));
                 const category = document.getElementById('pCategory').value;
-                const allowedCategories = ['Walk-in', 'Membership', 'VIP'];
-                if (!allowedCategories.includes(category)) {
-                    this.showToast('Invalid plan category.', 'error');
-                    return;
-                }
 
                 const nowMs = Date.now();
                 const newPlan = {
@@ -4087,13 +4033,12 @@
                 };
 
                 this.plans.push(newPlan);
-
                 this.saveData('plans');
                 await this.pushRecordToCloud('eg_plans', newPlan.id, newPlan);
                 this.populatePlanSelects();
                 this.renderPlansList();
                 this.closeModal('planModal');
-                this.showToast('New membership plan saved & synced to cloud.', 'success');
+                this.showToast('New plan saved & synced!', 'success');
             }
 
             renderBranchesList() {
@@ -4104,9 +4049,7 @@
                 this.branches.forEach(branch => {
                     const isActive = branch.status !== 'Inactive';
                     const bMembers = this.members.filter(m => this.resolveRecordBranchId(m) === branch.id);
-                    const bStaff = this.users.filter(u =>
-                        (u.role === 'admin' || u.role === 'staff') && this.resolveRecordBranchId(u) === branch.id
-                    );
+                    const bStaff = this.users.filter(u => (u.role === 'admin' || u.role === 'staff') && this.resolveRecordBranchId(u) === branch.id);
                     const bPayments = this.payments.filter(p => this.resolveRecordBranchId(p, p.memberId) === branch.id);
                     const bRevenue = bPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
@@ -4128,20 +4071,13 @@
                                     ${isActive ? 'Active' : 'Inactive'}
                                 </span>
                             </div>
-
                             <p class="text-xs text-zinc-300 flex items-start gap-2 pt-1">
                                 <i class="fa-solid fa-location-dot text-brand-400 mt-0.5"></i>
                                 <span>${escapeHTML(branch.address)}</span>
                             </p>
-
-                            <div class="flex flex-wrap gap-4 text-[11px] text-zinc-400 pt-1">
-                                <span><i class="fa-solid fa-clock text-zinc-500 mr-1"></i>${escapeHTML(branch.hours || 'Mon-Sat: 6:00 AM - 10:00 PM')}</span>
-                                ${branch.contact ? `<span><i class="fa-solid fa-phone text-zinc-500 mr-1"></i>${escapeHTML(branch.contact)}</span>` : ''}
-                            </div>
-
                             <div class="grid grid-cols-3 gap-2 pt-2">
                                 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
-                                    <div class="text-[10px] text-zinc-400">Revenue Gained</div>
+                                    <div class="text-[10px] text-zinc-400">Revenue</div>
                                     <div class="text-xs font-extrabold text-brand-400">₱${bRevenue.toLocaleString()}</div>
                                 </div>
                                 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
@@ -4149,20 +4085,17 @@
                                     <div class="text-xs font-extrabold text-white">${bMembers.length}</div>
                                 </div>
                                 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
-                                    <div class="text-[10px] text-zinc-400">Staff / Admins</div>
+                                    <div class="text-[10px] text-zinc-400">Staff</div>
                                     <div class="text-xs font-extrabold text-purple-300">${bStaff.length}</div>
                                 </div>
                             </div>
                         </div>
-
                         <div class="pt-3 border-t border-zinc-800 flex justify-between items-center text-xs">
-                            <button onclick="app.inspectBranchAnalytics('${branch.id}')" class="text-brand-400 hover:underline text-[11px] font-bold flex items-center gap-1">
-                                <i class="fa-solid fa-chart-line"></i>
-                                <span>View Branch Analytics</span>
+                            <button onclick="app.inspectBranchAnalytics('${branch.id}')" class="text-brand-400 hover:underline text-[11px] font-bold">
+                                <i class="fa-solid fa-chart-line"></i> View Branch Analytics
                             </button>
-                            <button onclick="app.openEditBranchModal('${branch.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition">
-                                <i class="fa-solid fa-pen"></i>
-                                <span>Edit Branch</span>
+                            <button onclick="app.openEditBranchModal('${branch.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700">
+                                <i class="fa-solid fa-pen"></i> Edit Branch
                             </button>
                         </div>
                     `;
@@ -4179,10 +4112,7 @@
             }
 
             openAddBranchModal() {
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Only an Administrator can add branches.', 'error');
-                    return;
-                }
+                if (this.currentUser?.role !== 'admin') return;
                 document.getElementById('branchModalTitle').textContent = 'Add Xtreme Gym World Branch';
                 document.getElementById('editBranchId').value = '';
                 document.getElementById('bName').value = 'Xtreme Gym World - ';
@@ -4194,18 +4124,15 @@
             }
 
             openEditBranchModal(branchId) {
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Only an Administrator can edit branches.', 'error');
-                    return;
-                }
+                if (this.currentUser?.role !== 'admin') return;
                 const branch = this.branches.find(b => b.id === branchId);
                 if (!branch) return;
 
-                document.getElementById('branchModalTitle').textContent = 'Edit Xtreme Gym World Branch';
+                document.getElementById('branchModalTitle').textContent = 'Edit Branch';
                 document.getElementById('editBranchId').value = branch.id;
                 document.getElementById('bName').value = branch.name;
                 document.getElementById('bAddress').value = branch.address;
-                document.getElementById('bHours').value = branch.hours || 'Mon-Sat: 6:00 AM - 10:00 PM';
+                document.getElementById('bHours').value = branch.hours || '';
                 document.getElementById('bContact').value = branch.contact || '';
                 document.getElementById('bStatus').value = branch.status || 'Active';
                 this.openModal('branchModal');
@@ -4213,10 +4140,7 @@
 
             async handleSaveBranch(e) {
                 e.preventDefault();
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (this.currentUser?.role !== 'admin') return;
 
                 const editId = document.getElementById('editBranchId').value;
                 const name = normalizeCleanText(document.getElementById('bName').value, 60);
@@ -4225,85 +4149,33 @@
                 const contact = document.getElementById('bContact').value.replace(/[^0-9]/g, '').slice(0, 11);
                 const status = document.getElementById('bStatus').value === 'Inactive' ? 'Inactive' : 'Active';
 
-                if (name.length < 3 || name.length > 60) {
-                    this.showToast('Branch name must be between 3 and 60 characters.', 'error');
-                    return;
-                }
-
-                if (address.length < 5 || address.length > 140) {
-                    this.showToast('Branch address must be between 5 and 140 characters.', 'error');
-                    return;
-                }
-
-                if (!isValidOptionalPhone(contact)) {
-                    this.showToast('Contact number must be 11 digits starting with 09 (or left blank).', 'error');
-                    return;
-                }
-
                 if (editId) {
                     const branch = this.branches.find(b => b.id === editId);
                     if (!branch) return;
-
-                    if (status === 'Inactive') {
-                        const otherActive = this.branches.some(b => b.id !== editId && b.status !== 'Inactive');
-                        if (!otherActive) {
-                            this.showToast('At least one Xtreme Gym World branch must remain Active.', 'error');
-                            return;
-                        }
-                    }
-
                     branch.name = name;
                     branch.address = address;
-                    branch.hours = hours || 'Mon-Sat: 6:00 AM - 10:00 PM';
+                    branch.hours = hours;
                     branch.contact = contact;
                     branch.status = status;
 
-                    this.members.forEach(m => {
-                        if (m.branchId === branch.id) m.branchName = branch.name;
-                    });
-                    this.users.forEach(u => {
-                        if (u.branchId === branch.id) u.branchName = branch.name;
-                    });
-                    this.payments.forEach(p => {
-                        if (p.branchId === branch.id) p.branchName = branch.name;
-                    });
-                    this.attendance.forEach(a => {
-                        if (a.branchId === branch.id) a.branchName = branch.name;
-                    });
-
                     this.saveData('branches');
-                    this.saveData('members');
-                    this.saveData('users');
-                    this.saveData('payments');
-                    this.saveData('attendance');
-
-                    await Promise.all([
-                        this.pushRecordToCloud('eg_branches', branch.id, branch),
-                        this.pushFullCollectionToCloud('eg_members', this.members),
-                        this.pushFullCollectionToCloud('eg_users', this.users),
-                        this.pushFullCollectionToCloud('eg_payments', this.payments),
-                        this.pushFullCollectionToCloud('eg_attendance', this.attendance)
-                    ]);
-                    this.showToast(`Branch "${branch.name}" updated & synced to cloud!`, 'success');
+                    await this.pushRecordToCloud('eg_branches', branch.id, branch);
+                    this.showToast('Branch updated!', 'success');
                 } else {
                     const nowMs = Date.now();
                     const newBranch = {
                         id: `branch_${nowMs}`,
                         name,
                         address,
-                        hours: hours || 'Mon-Sat: 6:00 AM - 10:00 PM',
+                        hours,
                         contact,
                         status,
                         createdAtMs: nowMs
                     };
-
                     this.branches.push(newBranch);
-                    this.selectedBranchId = newBranch.id;
-                    localStorage.setItem('eg_selected_branch', this.selectedBranchId);
-
                     this.saveData('branches');
                     await this.pushRecordToCloud('eg_branches', newBranch.id, newBranch);
-                    this.showToast(`New branch "${newBranch.name}" added & synced to cloud!`, 'success');
+                    this.showToast('Branch added!', 'success');
                 }
 
                 this.populateBranchSelects();
@@ -4324,7 +4196,7 @@
                 });
 
                 if (staffAndAdmins.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No staff or admin accounts assigned to the selected branch.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No staff accounts.</td></tr>`;
                     return;
                 }
 
@@ -4340,21 +4212,14 @@
                                 ${u.role.toUpperCase()}
                             </span>
                         </td>
-                        <td class="p-3.5 text-zinc-300">
-                            <span class="inline-flex items-center gap-1.5 text-xs">
-                                <i class="fa-solid fa-location-dot text-brand-400 text-[10px]"></i>
-                                <span>${escapeHTML(branchLabel)}</span>
-                            </span>
-                        </td>
+                        <td class="p-3.5 text-zinc-300"><i class="fa-solid fa-location-dot text-brand-400 text-[10px] mr-1"></i>${escapeHTML(branchLabel)}</td>
                         <td class="p-3.5 text-zinc-500 font-mono text-xs">${u.createdAt || '2026-01-01'}</td>
                         <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
-                            <button onclick="app.openEditAccountBranchModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition" title="Assign Branch">
-                                <i class="fa-solid fa-building text-brand-400"></i>
-                                <span>Branch</span>
+                            <button onclick="app.openEditAccountBranchModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700">
+                                <i class="fa-solid fa-building text-brand-400"></i> Branch
                             </button>
-                            <button onclick="app.openChangePasswordModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition" title="Reset Password">
-                                <i class="fa-solid fa-key"></i>
-                                <span>Reset Password</span>
+                            <button onclick="app.openChangePasswordModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700">
+                                <i class="fa-solid fa-key"></i> Reset Pass
                             </button>
                         </td>
                     `;
@@ -4363,28 +4228,19 @@
             }
 
             openAddAccountModal() {
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Only an Administrator can create staff/admin accounts.', 'error');
-                    return;
-                }
+                if (this.currentUser?.role !== 'admin') return;
                 document.getElementById('accFn').value = '';
                 document.getElementById('accLn').value = '';
                 document.getElementById('accUsername').value = '';
                 document.getElementById('accPassword').value = '';
-                if (this.selectedBranchId) {
-                    document.getElementById('accBranchSelect').value = this.selectedBranchId;
-                }
-                const counterSpan = document.getElementById('accUsernameCounter');
-                if (counterSpan) counterSpan.textContent = '0/24';
+                if (this.selectedBranchId) document.getElementById('accBranchSelect').value = this.selectedBranchId;
                 this.openModal('accountModal');
             }
 
             async handleSaveStaffAccount(e) {
                 e.preventDefault();
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (this.currentUser?.role !== 'admin') return;
+
                 const fn = normalizeCleanText(document.getElementById('accFn').value, 40);
                 const ln = normalizeCleanText(document.getElementById('accLn').value, 35);
                 const username = document.getElementById('accUsername').value.trim();
@@ -4392,28 +4248,8 @@
                 const branchId = document.getElementById('accBranchSelect').value;
                 const rawPassword = document.getElementById('accPassword').value;
 
-                if (!isValidHumanName(fn, 2, 40) || !isValidHumanName(ln, 2, 35)) {
-                    this.showToast('First Name (2–40) and Last Name (2–35) must contain valid letters only.', 'error');
-                    return;
-                }
-
                 if (!isValidAccountUsername(username)) {
-                    this.showToast('Username must be 3–24 characters using letters, numbers, dots, or underscores.', 'error');
-                    return;
-                }
-
-                if (role !== 'staff' && role !== 'admin') {
-                    this.showToast('Invalid role selected.', 'error');
-                    return;
-                }
-
-                if (rawPassword.length < 6 || rawPassword.length > 64) {
-                    this.showToast('Password must be between 6 and 64 characters.', 'error');
-                    return;
-                }
-
-                if (this.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-                    this.showToast('Username already exists.', 'error');
+                    this.showToast('Invalid username format.', 'error');
                     return;
                 }
 
@@ -4435,39 +4271,29 @@
                 };
 
                 this.users.push(newStaff);
-
                 this.saveData('users');
                 await this.pushRecordToCloud('eg_users', newStaff.id, newStaff);
                 this.renderAdminDashboard();
                 this.closeModal('accountModal');
-                this.showToast(`New ${role.toUpperCase()} account created for ${assignedBranch.name}!`, 'success');
+                this.showToast('Staff account created!', 'success');
             }
 
             openEditAccountBranchModal(userId) {
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Only an Administrator can reassign staff branches.', 'error');
-                    return;
-                }
-                const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
+                if (this.currentUser?.role !== 'admin') return;
+                const targetUser = this.users.find(u => u.id === userId);
                 if (!targetUser) return;
-
                 document.getElementById('eabUserId').value = targetUser.id;
-                document.getElementById('eabTargetDisplay').textContent = `${targetUser.firstName} ${targetUser.lastName} (${targetUser.username} - ${targetUser.role.toUpperCase()})`;
-                const currentBranchId = this.resolveRecordBranchId(targetUser);
-                document.getElementById('eabBranchSelect').value = currentBranchId;
+                document.getElementById('eabTargetDisplay').textContent = `${targetUser.firstName} ${targetUser.lastName} (${targetUser.username})`;
+                document.getElementById('eabBranchSelect').value = this.resolveRecordBranchId(targetUser);
                 this.openModal('editAccountBranchModal');
             }
 
             async handleSaveAccountBranch(e) {
                 e.preventDefault();
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
+                if (this.currentUser?.role !== 'admin') return;
                 const userId = document.getElementById('eabUserId').value;
                 const branchId = document.getElementById('eabBranchSelect').value;
-
-                const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
+                const targetUser = this.users.find(u => u.id === userId);
                 if (!targetUser) return;
 
                 const assignedBranch = this.getBranchById(branchId);
@@ -4476,82 +4302,48 @@
 
                 this.saveData('users');
                 await this.pushRecordToCloud('eg_users', targetUser.id, targetUser);
-
-                if (this.currentUser.id === targetUser.id) {
-                    this.currentUser = targetUser;
-                    sessionStorage.setItem('eg_session', JSON.stringify(targetUser));
-                }
-
                 this.closeModal('editAccountBranchModal');
                 this.renderAdminDashboard();
-                this.showToast(`${targetUser.firstName} assigned to ${assignedBranch.name}!`, 'success');
+                this.showToast('Branch assignment updated!', 'success');
             }
 
             openChangePasswordModal(userId) {
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Only an Administrator can reset other Admin/Staff passwords.', 'error');
-                    return;
-                }
-                const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
+                if (this.currentUser?.role !== 'admin') return;
+                const targetUser = this.users.find(u => u.id === userId);
                 if (!targetUser) return;
-
                 document.getElementById('cpUserId').value = targetUser.id;
-                document.getElementById('cpTargetDisplay').textContent = `${targetUser.firstName} ${targetUser.lastName} (${targetUser.username} - ${targetUser.role.toUpperCase()})`;
+                document.getElementById('cpTargetDisplay').textContent = `${targetUser.firstName} ${targetUser.lastName}`;
                 document.getElementById('cpNewPassword').value = '';
                 document.getElementById('cpConfirmPassword').value = '';
-                this.resetPasswordFieldState('cpNewPassword', 'cpNewPassIcon');
-                this.resetPasswordFieldState('cpConfirmPassword', 'cpConfirmPassIcon');
                 this.openModal('changePasswordModal');
             }
 
             async handleChangeAccountPassword(e) {
                 e.preventDefault();
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Unauthorized action.', 'error');
-                    return;
-                }
-
+                if (this.currentUser?.role !== 'admin') return;
                 const userId = document.getElementById('cpUserId').value;
                 const newPass = document.getElementById('cpNewPassword').value;
                 const confirmPass = document.getElementById('cpConfirmPassword').value;
 
-                if (newPass.length < 6 || newPass.length > 64) {
-                    this.showToast('Password must be between 6 and 64 characters.', 'error');
-                    return;
-                }
-
                 if (newPass !== confirmPass) {
-                    this.showToast('Passwords do not match. Please try again.', 'error');
+                    this.showToast('Passwords do not match.', 'error');
                     return;
                 }
 
-                const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
+                const targetUser = this.users.find(u => u.id === userId);
                 if (!targetUser) return;
 
-                const hashed = await hashPasswordSHA256(newPass);
-                targetUser.password = hashed;
+                targetUser.password = await hashPasswordSHA256(newPass);
                 this.saveData('users');
                 await this.pushRecordToCloud('eg_users', targetUser.id, targetUser);
-
-                if (this.currentUser.id === targetUser.id) {
-                    this.currentUser = targetUser;
-                    sessionStorage.setItem('eg_session', JSON.stringify(targetUser));
-                }
-
                 this.closeModal('changePasswordModal');
-                this.showToast(`Password updated for ${targetUser.username} & synced to cloud!`, 'success');
+                this.showToast('Password updated!', 'success');
             }
 
             exportDatabaseBackup() {
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Administrator access required.', 'error');
-                    return;
-                }
-
-                const backupPayload = {
-                    system: 'Xtreme Gym World QR Membership & Revenue System',
+                if (this.currentUser?.role !== 'admin') return;
+                const backup = {
                     exportedAt: new Date().toISOString(),
-                    version: 3,
                     data: {
                         branches: this.branches,
                         plans: this.plans,
@@ -4561,23 +4353,18 @@
                         attendance: this.attendance
                     }
                 };
-
-                const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `Xtreme_Gym_Backup_${getLocalISODate(0)}.json`;
                 a.click();
                 window.URL.revokeObjectURL(url);
-                this.showToast('System backup JSON downloaded!', 'success');
+                this.showToast('Backup JSON downloaded.', 'success');
             }
 
             importDatabaseBackup(event) {
-                if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Administrator access required.', 'error');
-                    return;
-                }
-
+                if (this.currentUser?.role !== 'admin') return;
                 const file = event.target.files?.[0];
                 if (!file) return;
                 event.target.value = '';
@@ -4587,23 +4374,14 @@
                     try {
                         const parsed = JSON.parse(e.target.result);
                         const d = parsed.data || parsed;
+                        if (d.branches) this.branches = d.branches;
+                        if (d.plans) this.plans = d.plans;
+                        if (d.users) this.users = d.users;
+                        if (d.members) this.members = d.members;
+                        if (d.payments) this.payments = d.payments;
+                        if (d.attendance) this.attendance = d.attendance;
 
-                        if (!Array.isArray(d.plans) || !Array.isArray(d.users) || !Array.isArray(d.members) || !Array.isArray(d.payments) || !Array.isArray(d.attendance)) {
-                            this.showToast('Invalid backup file format.', 'error');
-                            return;
-                        }
-
-                        if (Array.isArray(d.branches) && d.branches.length > 0) {
-                            this.branches = this.sortCollectionChronologically(d.branches);
-                            this.saveData('branches');
-                        }
-
-                        this.plans = this.sortCollectionChronologically(d.plans);
-                        this.users = this.sortCollectionChronologically(d.users);
-                        this.members = this.sortCollectionChronologically(d.members);
-                        this.payments = this.sortCollectionChronologically(d.payments);
-                        this.attendance = this.sortCollectionChronologically(d.attendance);
-
+                        this.saveData('branches');
                         this.saveData('plans');
                         this.saveData('users');
                         this.saveData('members');
@@ -4619,26 +4397,21 @@
                             this.pushFullCollectionToCloud('eg_attendance', this.attendance)
                         ]);
 
-                        this.populateBranchSelects();
-                        this.updateHeaderBranchInfo();
-                        this.populatePlanSelects();
                         this.renderAdminDashboard();
-                        this.showToast('Database backup restored & synced to cloud!', 'success');
+                        this.showToast('Database restored successfully!', 'success');
                     } catch (err) {
-                        this.showToast('Failed to read JSON backup file.', 'error');
+                        this.showToast('Failed to parse backup JSON.', 'error');
                     }
                 };
                 reader.readAsText(file);
             }
 
             openModal(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) modal.classList.remove('hidden');
+                document.getElementById(modalId)?.classList.remove('hidden');
             }
 
             closeModal(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) modal.classList.add('hidden');
+                document.getElementById(modalId)?.classList.add('hidden');
             }
 
             showToast(message, type = 'info') {
@@ -4662,13 +4435,9 @@
 
                 toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md text-xs font-semibold transition-all duration-300 translate-y-2 opacity-0 ${bgClass}`;
                 toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span>${escapeHTML(message)}</span>`;
-
                 container.appendChild(toast);
 
-                requestAnimationFrame(() => {
-                    toast.classList.remove('translate-y-2', 'opacity-0');
-                });
-
+                requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
                 setTimeout(() => {
                     toast.classList.add('translate-y-2', 'opacity-0');
                     setTimeout(() => toast.remove(), 300);
