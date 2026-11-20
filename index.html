@@ -321,12 +321,17 @@
                         <i class="fa-solid fa-print text-brand-400"></i>
                         <span>Print QR Pass</span>
                     </button>
+                    <button id="cancelSubBtn" onclick="app.cancelMySubscription()" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 border border-rose-500/30 transition">
+                        <i class="fa-solid fa-ban"></i>
+                        <span>Cancel Subscription</span>
+                    </button>
                     <button onclick="app.showRenewalModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg transition">
                         <i class="fa-solid fa-arrows-rotate"></i>
                         <span>Renew / Upgrade Plan</span>
                     </button>
                 </div>
             </div>
+            
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Digital QR Pass Card -->
@@ -471,7 +476,7 @@
                 </button>
                 <button id="subTabMembers" onclick="app.switchAdminSubTab('members')" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
                     <i class="fa-solid fa-users"></i>
-                    <span>Members Directory</span>
+                    <span>Members Directory</span><span id="pendingTabCount" class="hidden bg-amber-400 text-black text-[10px] font-black px-1.5 py-0.5 rounded-full animate-pulse">0</span>
                 </button>
                 <button id="subTabPayments" onclick="app.switchAdminSubTab('payments')" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
                     <i class="fa-solid fa-cash-register"></i>
@@ -581,6 +586,7 @@
 
             <!-- SUB-TAB 2: MEMBERS DIRECTORY -->
             <div id="adminMembersSubTab" class="hidden space-y-4">
+                <div id="pendingVerifyPanel" class="hidden"></div>
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                         <input type="text" id="memberSearchInput" oninput="app.renderMembersTable()" placeholder="Search name, ID, or email..." class="bg-darkcard border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white w-full sm:w-56">
@@ -1461,7 +1467,7 @@
         }
 
         function isMemberExpired(member) {
-            if (!member || member.status === 'Pending Verification') return true;
+            if (!member || member.status === 'Pending Verification' || member.status === 'Cancelled') return true;
             const expMs = getMemberExpiryTimestamp(member);
             if (!expMs) return true;
             return expMs <= Date.now();
@@ -1483,7 +1489,7 @@
             if (!expMs || diffMs <= 0) {
                 return {
                     isExpired: true,
-                    label: 'Expired',
+                    label: member.status === 'Cancelled' ? 'Cancelled' : 'Expired',
                     badgeClass: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
                     icon: 'fa-hourglass-end'
                 };
@@ -1581,8 +1587,8 @@
         const INITIAL_USERS = [
             { id: 'usr_1', username: 'admin', password: 'Admin123!', role: 'admin', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', firstName: 'Kian Edward', lastName: 'Puente', createdAt: '2026-01-01', createdAtMs: 1 },
             { id: 'usr_2', username: 'staff1', password: 'Staff123!', role: 'staff', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', firstName: 'Staff', lastName: 'Member', createdAt: '2026-01-05', createdAtMs: 2 },
-            { id: 'usr_3', username: 'juan', password: 'Member123!', role: 'member', memberId: 'EG-2026-0001', firstName: 'Juan', lastName: 'Dela Cruz', createdAt: '2026-02-01', createdAtMs: 3 },
-            { id: 'usr_4', username: 'maria', password: 'Member123!', role: 'member', memberId: 'EG-2026-0002', firstName: 'Maria', lastName: 'Santos', createdAt: '2026-02-10', createdAtMs: 4 },
+            { id: 'usr_3', username: 'juan', password: 'Member123!', role: 'member', memberId: 'XG-2026-0001', firstName: 'Juan', lastName: 'Dela Cruz', createdAt: '2026-02-01', createdAtMs: 3 },
+            { id: 'usr_4', username: 'maria', password: 'Member123!', role: 'member', memberId: 'XG-2026-0002', firstName: 'Maria', lastName: 'Santos', createdAt: '2026-02-10', createdAtMs: 4 },
         ];
 
         const INITIAL_MEMBERS = [
@@ -2348,6 +2354,10 @@
                     planName: selectedPlan.name,
                     planCategory: selectedPlan.category || 'Membership',
                     status: 'Pending Verification',
+                    pendingAmount: selectedPlan.price,
+                    pendingDays: selectedPlan.durationDays,
+                    pendingBaseExpiryMs: 0,
+                    pendingIsNew: true,
                     startDate,
                     expiryDate: expData.expiryDate,
                     expiryTimestamp: expData.expiryTimestamp,
@@ -2382,6 +2392,13 @@
             }
 
             async logout() {
+                if (this.currentUser && this.currentUser.role === 'member') {
+                    const dm = this.getCurrentMemberRecord();
+                    if (dm && dm.status === 'Active' && !isMemberExpired(dm) && this.isDailyPlanMember(dm)) {
+                        if (!confirm('Your Daily Walk-in Pass will expire as soon as you log out. Log out anyway?')) return;
+                        this.expireDailyPassOnLogout(dm);
+                    }
+                }
                 await this.stopCameraScanner();
                 this.currentUser = null;
                 sessionStorage.removeItem('eg_session');
@@ -2546,9 +2563,9 @@
                 } else if (isMemberExpired(member)) {
                     pendingNotice.classList.add('hidden');
                     statusBadge.className = 'bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-0.5 rounded-full text-xs font-bold';
-                    statusBadge.textContent = 'Expired Member';
+                    statusBadge.textContent = member.status === 'Cancelled' ? 'Cancelled' : 'Expired Member';
                     cardStatusChip.className = 'bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider';
-                    cardStatusChip.textContent = 'EXPIRED';
+                    cardStatusChip.textContent = member.status === 'Cancelled' ? 'CANCELLED' : 'EXPIRED';
                 } else {
                     pendingNotice.classList.add('hidden');
                     statusBadge.className = 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-xs font-bold';
@@ -2564,6 +2581,8 @@
                 document.getElementById('cardBranchName').textContent = memberBranch ? memberBranch.name : (member.branchName || 'Xtreme Gym World - Sta. Maria');
 
                 this.generateQRCode('memberQrContainer', member.id, 160);
+                const cancelBtn = document.getElementById('cancelSubBtn');
+                if (cancelBtn) cancelBtn.classList.toggle('hidden', member.status === 'Cancelled' || (member.status !== 'Pending Verification' && isMemberExpired(member)));
 
                 const remaining = getMembershipRemainingInfo(member);
                 document.getElementById('memberDaysLeft').textContent = remaining.label;
@@ -2648,7 +2667,9 @@
                 member.expiryDate = expData.expiryDate;
                 member.expiryTimestamp = expData.expiryTimestamp;
                 member.status = 'Pending Verification';
-                member.totalPaid = (member.totalPaid || 0) + plan.price;
+                member.pendingAmount = plan.price;
+                member.pendingDays = plan.durationDays;
+                if (typeof member.pendingBaseExpiryMs !== 'number') member.pendingBaseExpiryMs = currentExpMs;
                 member.paymentRef = `${method} (${refNo})`;
 
                 this.saveData('members');
@@ -3165,12 +3186,42 @@
                 }
             }
 
+            isDailyPlanMember(m) {
+                if (!m) return false;
+                if (m.planCategory === 'Walk-in') return true;
+                const p = this.plans.find(x => x.id === m.planId);
+                return !!(p && Number(p.durationDays) === 1);
+            }
+
+            expireDailyPassOnLogout(m) {
+                m.status = 'Expired';
+                m.expiryTimestamp = Date.now();
+                m.expiryDate = getLocalISODate(0);
+                this.saveData('members');
+                this.pushRecordToCloud('eg_members', m.id, m);
+            }
+
             async verifyMemberPayment(memberId) {
                 if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
                 const member = this.members.find(m => m.id === memberId);
-                if (!member) return;
+                if (!member || member.status !== 'Pending Verification') return;
 
+                const plan = this.plans.find(p => p.id === member.planId);
+                const hasPending = typeof member.pendingAmount === 'number';
+                const amount = hasPending ? member.pendingAmount : (plan ? plan.price : (member.totalPaid || 0));
+
+                if (hasPending) {
+                    const exp = computeNewExpiryData(member.pendingDays || (plan ? plan.durationDays : 30), member.pendingBaseExpiryMs || 0);
+                    member.expiryDate = exp.expiryDate;
+                    member.expiryTimestamp = exp.expiryTimestamp;
+                    if (!member.pendingIsNew) member.totalPaid = (member.totalPaid || 0) + amount;
+                }
+                delete member.pendingAmount;
+                delete member.pendingDays;
+                delete member.pendingBaseExpiryMs;
+                delete member.pendingIsNew;
                 member.status = 'Active';
+
                 const nowMs = Date.now();
                 const paymentRec = {
                     id: `TXN-${String(nowMs).slice(-6)}`,
@@ -3179,7 +3230,7 @@
                     branchId: member.branchId || 'branch_1',
                     branchName: member.branchName || 'Xtreme Gym World - Sta. Maria',
                     planName: member.planName,
-                    amount: member.totalPaid || 0,
+                    amount,
                     method: member.paymentRef || 'Verified GCash / Cash',
                     date: new Date().toLocaleString(),
                     recordedBy: this.currentUser.username,
@@ -3189,17 +3240,87 @@
                 this.payments.push(paymentRec);
                 this.saveData('members');
                 this.saveData('payments');
-
-                await Promise.all([
-                    this.pushRecordToCloud('eg_members', member.id, member),
-                    this.pushRecordToCloud('eg_payments', paymentRec.id, paymentRec)
-                ]);
-
                 this.renderAdminDashboard();
-                this.showToast(`Payment approved and membership activated for ${member.firstName} ${member.lastName}!`, 'success');
+                this.showToast(`Payment verified. ${member.firstName} ${member.lastName} is now Active until ${member.expiryDate}!`, 'success');
+
+                this.pushRecordToCloud('eg_members', member.id, member);
+                this.pushRecordToCloud('eg_payments', paymentRec.id, paymentRec);
+            }
+
+            cancelSubscription(memberId) {
+                if (!this.currentUser) return;
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) return;
+
+                const isStaff = this.currentUser.role === 'admin' || this.currentUser.role === 'staff';
+                const own = this.getCurrentMemberRecord();
+                if (!isStaff && !(own && own.id === member.id)) return;
+                if (member.status === 'Cancelled') {
+                    this.showToast('This subscription is already cancelled.', 'info');
+                    return;
+                }
+
+                const name = `${member.firstName} ${member.lastName}`;
+                const msg = member.status === 'Pending Verification'
+                    ? `Reject the pending payment request of ${name}? The subscription will be marked Cancelled.`
+                    : `Cancel the subscription of ${name}? Access ends immediately and refunds are not automatic.`;
+                if (!confirm(msg)) return;
+
+                member.status = 'Cancelled';
+                member.expiryTimestamp = Date.now();
+                member.expiryDate = getLocalISODate(0);
+                member.cancelledAt = new Date().toISOString();
+                member.cancelledBy = this.currentUser.username;
+                delete member.pendingAmount;
+                delete member.pendingDays;
+                delete member.pendingBaseExpiryMs;
+                delete member.pendingIsNew;
+
+                this.saveData('members');
+                this.pushRecordToCloud('eg_members', member.id, member);
+                if (isStaff) this.renderAdminDashboard(); else this.renderMemberPortal();
+                this.showToast(`Subscription cancelled for ${name}.`, 'success');
+            }
+
+            cancelMySubscription() {
+                const m = this.getCurrentMemberRecord();
+                if (m) this.cancelSubscription(m.id);
+            }
+
+            renderPendingPanel() {
+                const panel = document.getElementById('pendingVerifyPanel');
+                const badge = document.getElementById('pendingTabCount');
+                if (!panel) return;
+                const pending = this.filterRecordsByAnalyticsScope(this.members).filter(m => m.status === 'Pending Verification');
+                if (badge) {
+                    badge.textContent = pending.length;
+                    badge.classList.toggle('hidden', pending.length === 0);
+                }
+                if (!pending.length) {
+                    panel.classList.add('hidden');
+                    panel.innerHTML = '';
+                    return;
+                }
+                panel.classList.remove('hidden');
+                const rows = pending.map(m => {
+                    const plan = this.plans.find(p => p.id === m.planId);
+                    const amt = typeof m.pendingAmount === 'number' ? m.pendingAmount : (plan ? plan.price : 0);
+                    return `<div class="flex flex-wrap items-center justify-between gap-3 bg-zinc-900/80 border border-zinc-800 rounded-xl p-3 text-xs">
+                        <div>
+                            <div class="font-bold text-white">${escapeHTML(m.firstName)} ${escapeHTML(m.lastName)} <span class="font-mono text-brand-400 text-[10px]">${escapeHTML(m.id)}</span></div>
+                            <div class="text-zinc-400">${escapeHTML(m.planName)} • ₱${amt.toLocaleString()} • ${escapeHTML(m.paymentRef || 'No ref')} • ${escapeHTML(this.resolveRecordBranchName(m))}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="app.verifyMemberPayment('${m.id}')" class="bg-amber-400 hover:bg-amber-500 text-black font-extrabold px-3 py-1.5 rounded-lg"><i class="fa-solid fa-check"></i> Verify & Activate</button>
+                            <button onclick="app.cancelSubscription('${m.id}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 font-bold px-3 py-1.5 rounded-lg border border-rose-500/30"><i class="fa-solid fa-xmark"></i> Reject</button>
+                        </div>
+                    </div>`;
+                }).join('');
+                panel.innerHTML = `<div class="bg-amber-950/40 border border-amber-500/40 rounded-2xl p-4 space-y-3"><div class="flex items-center gap-2 text-sm font-extrabold text-amber-300"><i class="fa-solid fa-hourglass-start"></i><span>Pending Payment Verification (${pending.length})</span></div>${rows}</div>`;
             }
 
             renderMembersTable() {
+                this.renderPendingPanel();
                 const searchVal = (document.getElementById('memberSearchInput')?.value || '').toLowerCase().slice(0, 60);
                 const categoryFilter = document.getElementById('memberCategoryFilter')?.value || 'ALL';
                 const statusFilter = document.getElementById('memberStatusFilter')?.value || 'ALL';
@@ -3232,7 +3353,7 @@
 
                 filtered.forEach(m => {
                     const remaining = getMembershipRemainingInfo(m);
-                    let statusText = remaining.isExpired ? 'Expired' : 'Active';
+                    let statusText = m.status === 'Cancelled' ? 'Cancelled' : (remaining.isExpired ? 'Expired' : 'Active');
                     let statusBadgeClass = remaining.isExpired ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
 
                     if (m.status === 'Pending Verification') {
@@ -3291,6 +3412,7 @@
                             <button onclick="app.quickRenewMember('${m.id}')" class="bg-brand-400/20 hover:bg-brand-400/30 text-brand-300 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-brand-500/30" title="Renew Plan">
                                 <i class="fa-solid fa-arrows-rotate"></i>
                             </button>
+                            ${(m.status === 'Pending Verification' || !remaining.isExpired) ? `<button onclick="app.cancelSubscription('${m.id}')" class="bg-orange-500/15 hover:bg-orange-500/25 text-orange-300 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-orange-500/30" title="Cancel Subscription"><i class="fa-solid fa-ban"></i></button>` : ''}
                             <button onclick="app.openDeleteMemberModal('${m.id}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-rose-500/30" title="Delete Member">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
@@ -4453,5 +4575,230 @@
             }
         });
     </script>
+<!-- Patch: daily-pass stacking (1-7 days), cancel days, Bocaue seed, XG ID fix -->
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const DAY = 864e5, MAXD = 7, A = GymApp.prototype;
+  const iso = ms => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const stackExp = (q, base = 0) => { const e = Math.max(Date.now(), base) + q * DAY; return { expiryDate: iso(e), expiryTimestamp: e }; };
+  const dLabel = i => i + (i > 1 ? ' days' : ' day');
+  const SEL = 'w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white';
+
+  // ---------- Daily-pass stacking hook (reused by the original renew / POS / verify code) ----------
+  const origExpiry = window.computeNewExpiryData;
+  window.computeNewExpiryData = (days, base) => window.__q ? stackExp(window.__q, base) : origExpiry(days, base);
+  const stacked = (self, planId, q, fn) => {
+    const p = self.plans.find(x => x.id === planId), o = { price: p.price, d: p.durationDays };
+    p.price = o.price * q; p.durationDays = q; window.__q = q;
+    try { return fn(); } finally { p.price = o.price; p.durationDays = o.d; window.__q = 0; }
+  };
+
+  // ---------- 1. EG- -> XG- IDs ----------
+  A.generateNextMemberId = function () {
+    let max = this.members.length;
+    this.members.forEach(m => { const x = String(m.id).match(/(?:XG|EG)-2026-(\d+)/); if (x) max = Math.max(max, +x[1]); });
+    return `XG-2026-${String(max + 1).padStart(4, '0')}`;
+  };
+  A.migrateLegacyIds = function () {
+    this.users.forEach(u => {
+      if (/^EG-/.test(u.memberId || '')) {
+        u.memberId = u.memberId.replace(/^EG-/, 'XG-');
+        this.saveData('users'); this.pushRecordToCloud('eg_users', u.id, u);
+      }
+    });
+  };
+  const oCloud = A.onCloudDataUpdated;
+  A.onCloudDataUpdated = function (prop) { if (prop === 'users') this.migrateLegacyIds(); return oCloud.call(this, prop); };
+
+  // ---------- 2. Daily walk-in helpers ----------
+  A.isDailyPlan = p => !!p && (p.category === 'Walk-in' || +p.durationDays === 1);
+  A.dayLeft = function (m) {
+    if (!m || m.status !== 'Active') return 0;
+    const ms = getMemberExpiryTimestamp(m) - Date.now();
+    return ms > 0 ? Math.ceil(ms / DAY) : 0;
+  };
+  A.dayCap = function (m) { return m && this.isDailyPlanMember(m) ? Math.max(0, MAXD - this.dayLeft(m)) : MAXD; };
+
+  // UI injection
+  $('renewRefNo').parentElement.insertAdjacentHTML('beforebegin',
+    `<div id="renewDaysWrap" class="hidden"><label class="block text-xs font-semibold text-zinc-300 mb-1">Number of Days (max 7 stacked)</label><select id="renewDays" onchange="app.onRenewPlanChange()" class="${SEL}"></select><span id="renewDaysNote" class="text-[10px] text-zinc-500"></span></div>`);
+  $('payPlanSelect').parentElement.insertAdjacentHTML('afterend',
+    `<div id="payDaysWrap" class="hidden"><label class="block text-xs font-semibold text-zinc-300 mb-1">Number of Days (1–7)</label><select id="payDays" onchange="app.onPayPlanSelectChange()" class="${SEL}"></select></div>`);
+  document.body.insertAdjacentHTML('beforeend',
+    `<div id="cancelDaysModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"><div class="bg-darkcard border border-rose-500/40 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl"><h3 class="text-sm font-extrabold text-rose-400"><i class="fa-solid fa-calendar-minus"></i> Cancel Walk-in Pass Days</h3><input type="hidden" id="cdMemberId"><div id="cdInfo" class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-white"></div><div><label class="block text-xs font-semibold text-zinc-300 mb-1">Days to cancel</label><input type="number" id="cdQty" min="1" step="1" value="1" class="${SEL}"><span id="cdHint" class="text-[10px] text-zinc-500"></span></div><div class="flex justify-end gap-2 border-t border-zinc-800 pt-3"><button type="button" onclick="app.closeModal('cancelDaysModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Keep</button><button type="button" onclick="app.confirmCancelDays()" class="bg-rose-500 hover:bg-rose-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs">Cancel Days</button></div></div></div>`);
+
+  A.onRenewPlanChange = function () {
+    const sel = $('renewPlanSelect'), disp = $('renewAmountDisplay');
+    if (!sel || !disp) return;
+    const plan = this.plans.find(p => p.id === sel.value) || this.plans[0];
+    if (!plan) return;
+    const wrap = $('renewDaysWrap'), ds = $('renewDays');
+    let q = 1;
+    if (wrap && this.isDailyPlan(plan)) {
+      const cap = this.dayCap(this.getCurrentMemberRecord()), max = Math.max(cap, 1), prev = +ds.value || 1;
+      ds.innerHTML = '';
+      for (let i = 1; i <= max; i++) ds.add(new Option(dLabel(i), i));
+      ds.value = Math.min(prev, max); q = +ds.value;
+      $('renewDaysNote').textContent = cap < 1 ? 'You already have the 7-day maximum.' : `You can add up to ${cap} more day(s).`;
+      wrap.classList.remove('hidden');
+    } else if (wrap) wrap.classList.add('hidden');
+    disp.value = '₱' + (plan.price * q).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  A.onPayPlanSelectChange = function () {
+    const ps = $('payPlanSelect'), pa = $('payAmount');
+    if (!ps || !pa) return;
+    const plan = this.plans.find(p => p.id === ps.value);
+    if (!plan) return;
+    const wrap = $('payDaysWrap'), ds = $('payDays');
+    let q = 1;
+    if (wrap && this.isDailyPlan(plan)) {
+      if (!ds.options.length) for (let i = 1; i <= MAXD; i++) ds.add(new Option(dLabel(i), i));
+      q = +ds.value || 1; wrap.classList.remove('hidden');
+    } else if (wrap) wrap.classList.add('hidden');
+    pa.value = plan.price * q;
+  };
+
+  const oRenew = A.handleMemberRenewalSubmit;
+  A.handleMemberRenewalSubmit = function (e) {
+    const m = this.getCurrentMemberRecord(), plan = this.plans.find(p => p.id === $('renewPlanSelect').value);
+    if (!m || !plan || !this.isDailyPlan(plan)) return oRenew.call(this, e);
+    e.preventDefault();
+    const q = +$('renewDays').value || 1, cap = this.dayCap(m);
+    if (cap < 1 || q > cap) { this.showToast('Daily passes can stack up to 7 days total.', 'error'); return; }
+    if (!this.isDailyPlanMember(m)) m.expiryTimestamp = 0;
+    return stacked(this, plan.id, q, () => oRenew.call(this, e));
+  };
+
+  const oPay = A.handleManualPaymentSubmit;
+  A.handleManualPaymentSubmit = function (e) {
+    const m = this.members.find(x => x.id === $('payMemberSelect').value), plan = this.plans.find(x => x.id === $('payPlanSelect').value);
+    if (!m || !plan || !this.isDailyPlan(plan)) return oPay.call(this, e);
+    e.preventDefault();
+    const q = +$('payDays').value || 1, cap = this.dayCap(m);
+    if (q > cap) { this.showToast(`Max 7 stacked days. ${m.firstName} can only add ${cap} more.`, 'error'); return; }
+    if (!this.isDailyPlanMember(m)) m.expiryTimestamp = 0;
+    return stacked(this, plan.id, q, () => oPay.call(this, e));
+  };
+
+  const oQuick = A.quickRenewMember;
+  A.quickRenewMember = function (id) {
+    const m = this.members.find(x => x.id === id), plan = m && this.plans.find(x => x.id === m.planId);
+    if (!m || !plan || !this.isDailyPlan(plan)) return oQuick.call(this, id);
+    if (this.dayCap(m) < 1) { this.showToast('Already at the 7-day maximum.', 'warning'); return; }
+    return stacked(this, plan.id, 1, () => oQuick.call(this, id));
+  };
+
+  const oVerify = A.verifyMemberPayment;
+  A.verifyMemberPayment = function (id) {
+    const m = this.members.find(x => x.id === id);
+    if (m && m.status === 'Pending Verification' && typeof m.pendingAmount === 'number' && this.isDailyPlanMember(m)) window.__q = Math.max(1, +m.pendingDays || 1);
+    try { return oVerify.call(this, id); } finally { window.__q = 0; }
+  };
+
+  // Logging out only ends a daily pass when it is the last day
+  const oLogout = A.logout;
+  A.logout = function () {
+    const dm = this.getCurrentMemberRecord();
+    if (dm && this.dayLeft(dm) > 1) {
+      this.isDailyPlanMember = () => false;
+      try { return oLogout.call(this); } finally { delete this.isDailyPlanMember; }
+    }
+    return oLogout.call(this);
+  };
+
+  // Admin / staff: cancel an amount of days
+  A.openCancelDaysModal = function (id) {
+    if (!this.currentUser || !['admin', 'staff'].includes(this.currentUser.role)) return;
+    const m = this.members.find(x => x.id === id);
+    if (!m) return;
+    const n = this.dayLeft(m);
+    if (n < 1) { this.showToast('No active pass days to cancel.', 'info'); return; }
+    $('cdMemberId').value = m.id;
+    $('cdInfo').textContent = `${m.firstName} ${m.lastName} (${m.id}) • ${n} pass day(s) left • expires ${m.expiryDate}`;
+    const q = $('cdQty'); q.max = n; q.value = 1;
+    $('cdHint').textContent = `Enter 1–${n}. Cancelling all ${n} ends the pass now. Refunds are not automatic.`;
+    this.openModal('cancelDaysModal');
+  };
+  A.confirmCancelDays = async function () {
+    if (!this.currentUser || !['admin', 'staff'].includes(this.currentUser.role)) return;
+    const m = this.members.find(x => x.id === $('cdMemberId').value);
+    if (!m) return;
+    const n = this.dayLeft(m), k = parseInt($('cdQty').value, 10);
+    if (!k || k < 1 || k > n) { this.showToast(`Enter a number from 1 to ${n}.`, 'error'); return; }
+    if (k >= n) {
+      m.status = 'Cancelled'; m.expiryTimestamp = Date.now(); m.expiryDate = getLocalISODate(0);
+      m.cancelledAt = new Date().toISOString(); m.cancelledBy = this.currentUser.username;
+    } else {
+      m.expiryTimestamp = getMemberExpiryTimestamp(m) - k * DAY; m.expiryDate = iso(m.expiryTimestamp);
+    }
+    m.daysCancelledTotal = (m.daysCancelledTotal || 0) + k;
+    this.saveData('members');
+    await this.pushRecordToCloud('eg_members', m.id, m);
+    this.closeModal('cancelDaysModal'); this.renderAdminDashboard();
+    this.showToast(`${k} day(s) cancelled for ${m.firstName} ${m.lastName}.`, 'success');
+  };
+
+  const oTable = A.renderMembersTable;
+  A.renderMembersTable = function () {
+    oTable.call(this);
+    document.querySelectorAll('#membersTableBody tr').forEach(tr => {
+      const id = tr.querySelector('td .font-mono')?.textContent.trim();
+      const m = id && this.members.find(x => x.id === id);
+      if (!m || !this.isDailyPlanMember(m)) return;
+      const n = this.dayLeft(m);
+      if (n < 1) return;
+      tr.children[3].insertAdjacentHTML('beforeend', `<div class="text-[10px] text-sky-400 mt-1">${n} pass day(s)</div>`);
+      tr.lastElementChild.insertAdjacentHTML('afterbegin', `<button onclick="app.openCancelDaysModal('${m.id}')" class="bg-orange-500/15 hover:bg-orange-500/25 text-orange-300 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-orange-500/30" title="Cancel Days"><i class="fa-solid fa-calendar-minus"></i></button>`);
+    });
+  };
+
+  // ---------- 3. Bocaue branch: 2 staff + 4 members (runs once, members start at XG-2026-0008) ----------
+  A.seedBocaue = async function () {
+    const P = { eg_branches: 'branches', eg_users: 'users', eg_members: 'members', eg_payments: 'payments', eg_plans: 'plans' }, flag = 'eg_seed_bocaue_v1';
+    try {
+      const ref = db ? db.collection('eg_meta').doc('seed_bocaue_v1') : null;
+      if (db ? (await ref.get()).exists : localStorage.getItem(flag)) return;
+      const grab = async c => db ? (await db.collection(c).get()).docs.map(d => d.data()) : this[P[c]];
+      const [branches, users, members, plans] = await Promise.all(['eg_branches', 'eg_users', 'eg_members', 'eg_plans'].map(grab));
+      const out = { eg_branches: [], eg_users: [], eg_members: [], eg_payments: [] };
+      let n = Date.now(), boc = branches.find(b => /bocaue/i.test(b.name));
+      if (!boc) {
+        boc = { id: `branch_${n}`, name: 'Xtreme Gym World - Bocaue', address: 'Bocaue, Bulacan (edit full address in Branches tab)', hours: 'Mon-Sat: 6:00 AM - 10:00 PM', contact: '', status: 'Active', createdAtMs: n++ };
+        out.eg_branches.push(boc);
+      }
+      const [sp, mp] = await Promise.all([hashPasswordSHA256('Staff123!'), hashPasswordSHA256('Member123!')]);
+      const taken = new Set(users.map(u => u.username.toLowerCase())), where = { branchId: boc.id, branchName: boc.name };
+      [['staff.bocaue', 'Bocaue', 'Front Desk'], ['staff.bocaue2', 'Bocaue', 'Cashier']].forEach(([un, fn, ln]) => {
+        if (taken.has(un)) return;
+        out.eg_users.push({ id: `usr_${n}`, username: un, password: sp, role: 'staff', ...where, firstName: fn, lastName: ln, createdAt: getLocalISODate(0), createdAtMs: n++ });
+      });
+      let next = Math.max(8, ...members.map(m => (parseInt((String(m.id).match(/-(\d+)$/) || [0, 0])[1], 10) || 0) + 1));
+      [['Rico', 'Valdez', 'rico.valdez', 'plan_2', 1, '09175550101'], ['Angela', 'Reyes', 'angela.reyes', 'plan_3', 1, '09175550102'],
+       ['Mark', 'Villanueva', 'mark.villanueva', 'plan_1', 3, '09175550103'], ['Joy', 'Mendoza', 'joy.mendoza', 'plan_4', 1, '09175550104']
+      ].forEach(([fn, ln, un, pid, q, ph]) => {
+        const plan = plans.find(p => p.id === pid);
+        if (!plan || taken.has(un)) return;
+        const id = `XG-2026-${String(next++).padStart(4, '0')}`, uid = `usr_${n}`, email = `${un}@example.com`;
+        const e = this.isDailyPlan(plan) ? stackExp(q) : computeNewExpiryData(plan.durationDays, 0), paid = plan.price * q;
+        out.eg_users.push({ id: uid, username: un, password: mp, role: 'member', memberId: id, firstName: fn, lastName: ln, email, createdAt: getLocalISODate(0), createdAtMs: n++ });
+        out.eg_members.push({ id, userId: uid, firstName: fn, lastName: ln, email, phone: ph, ...where, planId: plan.id, planName: plan.name, planCategory: plan.category || 'Membership', status: 'Active', startDate: getLocalISODate(0), expiryDate: e.expiryDate, expiryTimestamp: e.expiryTimestamp, totalPaid: paid, paymentRef: 'Cash at Desk', createdAtMs: n++ });
+        out.eg_payments.push({ id: `TXN-${String(n).slice(-6)}`, memberId: id, memberName: `${fn} ${ln}`, ...where, planName: plan.name, amount: paid, method: 'Cash', date: new Date().toLocaleString(), recordedBy: 'staff.bocaue', createdAtMs: n++ });
+      });
+      for (const [c, items] of Object.entries(out)) {
+        for (const it of items) { if (db) await this.pushRecordToCloud(c, it.id, it); else this[P[c]].push(it); }
+        if (!db) this.saveData(P[c]);
+      }
+      if (db) await ref.set({ seededAt: new Date().toISOString() }); else localStorage.setItem(flag, '1');
+    } catch (err) { console.warn('Bocaue seed skipped:', err); }
+  };
+
+  // ---------- start-up ----------
+  app.migrateLegacyIds(); app.onPayPlanSelectChange(); app.onRenewPlanChange();
+  if (app.currentUser && app.currentUser.role !== 'member') app.renderMembersTable();
+  setTimeout(() => app.seedBocaue(), 4000);
+})();
+</script>
 </body>
 </html>
