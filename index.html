@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xtreme Gym World - QR Membership &amp; Revenue System</title>
+    <title>Xtreme Gym World | QR Membership & Revenue System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Firebase Compat SDKs for Realtime Multi-Device Cloud Sync -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -12,226 +19,210 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f7fee7',
-                            100: '#ecfccb',
                             300: '#bef264',
                             400: '#a3e635',
                             500: '#84cc16',
                             600: '#65a30d',
-                            900: '#1a2e05',
                         },
                         darkbg: '#09090b',
                         darkcard: '#121215',
-                        darkborder: '#27272a',
+                        darkborder: '#27272a'
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Firebase SDK (Compat for GitHub Pages) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #09090b;
             color: #f4f4f5;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #121215;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #27272a;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #3f3f46;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         .glow-lime {
-            box-shadow: 0 0 20px rgba(163, 230, 53, 0.15);
-        }
-        .scanner-laser {
-            position: absolute;
-            height: 3px;
-            width: 100%;
-            background: linear-gradient(90deg, transparent, #a3e635, transparent);
-            animation: scan 2s infinite ease-in-out;
-        }
-        @keyframes scan {
-            0% { top: 5%; }
-            50% { top: 90%; }
-            100% { top: 5%; }
+            box-shadow: 0 0 25px rgba(163, 230, 53, 0.25);
         }
         #qrCameraReader video {
             border-radius: 0.75rem;
             object-fit: cover;
-            width: 100% !important;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121215;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
         }
         @media print {
-            body {
+            body * {
+                visibility: hidden !important;
+            }
+            #printPassArea, #printPassArea * {
+                visibility: visible !important;
+            }
+            #printPassArea {
+                display: flex !important;
+                position: fixed !important;
+                inset: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
-            }
-            header, nav, main, #toastContainer, .modal-overlay {
-                display: none !important;
-            }
-            #printPassSheet {
-                display: flex !important;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                padding: 24px;
-                background: #ffffff !important;
+                align-items: center !important;
+                justify-content: center !important;
+                z-index: 999999 !important;
+                padding: 24px !important;
             }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col bg-darkbg text-zinc-100 selection:bg-brand-400 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between selection:bg-brand-400 selection:text-black">
 
-    <header class="bg-zinc-950 border-b border-zinc-800 text-xs py-2 px-4">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
-            <div class="flex items-center gap-2 text-zinc-400">
-                <i class="fa-solid fa-location-dot text-brand-400"></i>
-                <span><strong id="headerBranchTitle">XTREME GYM WORLD:</strong> <span id="headerBranchAddress">3rd Floor, A&amp;E Building, Fortunato F. Halili Avenue, Bagbaguin, Santa Maria, Bulacan</span></span>
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Hidden File Scan Target for Image QR Decoding -->
+    <div id="qrFileScanTarget" class="hidden"></div>
+
+    <!-- Dedicated Print QR Pass Sheet (Visible only when printing) -->
+    <div id="printPassArea" class="hidden">
+        <div style="width: 340px; border: 2px solid #000; border-radius: 16px; padding: 24px; text-align: center; font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #000;">
+            <div style="font-weight: 900; font-size: 20px; letter-spacing: 0.04em; text-transform: uppercase;">XTREME GYM WORLD</div>
+            <div id="printBranchName" style="font-size: 11px; color: #555; margin-top: 2px;">Xtreme Gym World - Sta. Maria</div>
+            <div style="margin: 16px auto; padding: 12px; border: 1px solid #ddd; border-radius: 12px; display: inline-block; background: #fff;">
+                <div id="printQrTarget"></div>
             </div>
-            <div class="flex flex-wrap items-center gap-3 text-zinc-400">
-                <span><i class="fa-solid fa-clock text-zinc-500 mr-1"></i> <span id="headerBranchHours">Mon-Sat: 6:00 AM - 10:00 PM</span></span>
-                <div class="flex items-center gap-1.5">
-                    <label for="headerBranchSelect" class="text-[11px] text-zinc-500">Active Terminal Branch:</label>
-                    <select id="headerBranchSelect" onchange="app.onHeaderBranchChange()" class="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-0.5 text-[11px] text-brand-400 font-semibold focus:outline-none focus:border-brand-400"></select>
+            <div id="printMemberName" style="font-weight: 800; font-size: 18px; margin-top: 6px;">Member Name</div>
+            <div id="printMemberId" style="font-family: monospace; font-size: 14px; font-weight: 700; margin-top: 4px;">XG-2026-0001</div>
+            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #999; font-size: 12px; display: flex; justify-content: space-between;">
+                <span>Plan: <strong id="printPlanName">Monthly Basic</strong></span>
+                <span>Valid Until: <strong id="printExpiryDate">2026-12-31</strong></span>
+            </div>
+            <div style="margin-top: 10px; font-size: 10px; color: #666;">Present this QR Pass at the Front Desk Scanner</div>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-darkcard/90 backdrop-blur-md border-b border-darkborder sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-brand-400 text-black flex items-center justify-center font-black text-xl shadow-lg shrink-0">
+                    <i class="fa-solid fa-dumbbell"></i>
                 </div>
+                <div class="min-w-0">
+                    <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-1.5 truncate">
+                        XTREME <span class="text-brand-400">GYM WORLD</span>
+                    </h1>
+                    <p class="text-[11px] text-zinc-400 hidden sm:block truncate">QR Attendance & Revenue Management System</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <!-- Branch Switcher -->
+                <div class="hidden md:flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-full">
+                    <i class="fa-solid fa-location-dot text-brand-400 text-[10px]"></i>
+                    <select id="headerBranchSelect" onchange="app.onHeaderBranchChange()" aria-label="Select Active Gym Branch" class="bg-transparent text-[11px] font-bold text-zinc-200 focus:outline-none cursor-pointer max-w-[190px] truncate"></select>
+                </div>
+
+                <!-- Cloud Sync Status Pill -->
+                <div id="cloudStatusBadge" class="bg-zinc-900 border border-zinc-800 text-zinc-400 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5" title="Firebase Firestore Cloud Sync">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span>Connecting Cloud...</span>
+                </div>
+
+                <div id="userInfoHeader" class="hidden items-center gap-2 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-full text-xs">
+                    <span id="userRoleBadge" class="px-2 py-0.5 rounded-full font-bold text-[10px] uppercase bg-brand-400/20 text-brand-400 border border-brand-400/30">ADMIN</span>
+                    <span id="userNameDisplay" class="font-semibold text-zinc-200">Kian Puente</span>
+                </div>
+
+                <button id="selfChangePassBtn" onclick="app.openSelfChangePasswordModal()" class="hidden bg-zinc-900 hover:bg-zinc-800 text-brand-400 text-xs font-bold px-3 py-2 rounded-lg transition items-center gap-1.5 border border-zinc-700" title="Change Your Account Password">
+                    <i class="fa-solid fa-key"></i>
+                    <span class="hidden md:inline">Change Password</span>
+                </button>
+
+                <button id="logoutBtn" onclick="app.logout()" class="hidden bg-zinc-800 hover:bg-rose-600/90 text-zinc-200 hover:text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition items-center gap-1.5 border border-zinc-700 hover:border-rose-500">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
             </div>
         </div>
     </header>
 
-    <nav class="bg-darkcard border-b border-darkborder sticky top-0 z-30 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-black font-extrabold text-xl shadow-lg shadow-brand-500/20">
-                        <i class="fa-solid fa-dumbbell"></i>
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ==============================================================
+             VIEW 1: AUTHENTICATION (LOGIN / CUSTOMER REGISTRATION)
+        =============================================================== -->
+        <section id="authView" class="max-w-md mx-auto my-6">
+            <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-400/10 border border-brand-400/30 text-brand-400 text-2xl mb-1">
+                        <i class="fa-solid fa-qrcode"></i>
                     </div>
-                    <div>
-                        <span class="font-extrabold text-lg tracking-wider text-white flex items-center gap-1.5">
-                            XTREME <span class="text-brand-400">GYM WORLD</span>
-                        </span>
-                        <p class="text-[10px] text-zinc-400 font-medium">QR Membership &amp; Revenue System</p>
-                    </div>
+                    <h2 class="text-2xl font-extrabold text-white">Welcome to Xtreme Gym World</h2>
+                    <p class="text-xs text-zinc-400">Sign in to manage memberships, scan QR passes, or check your workout pass.</p>
                 </div>
 
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <div id="cloudStatusBadge" class="bg-zinc-900 border border-zinc-700 text-zinc-400 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5" title="Firebase Cloud Database Status">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span>Connecting Cloud...</span>
-                    </div>
-
-                    <div id="userInfoHeader" class="hidden text-right">
-                        <div id="userNameDisplay" class="text-sm font-bold text-zinc-200">User</div>
-                        <div id="userRoleBadge" class="text-[11px] text-brand-400 font-medium">Role</div>
-                    </div>
-
-                    <button id="selfChangePassBtn" onclick="app.openSelfChangePasswordModal()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-zinc-700" title="Change Your Password">
-                        <i class="fa-solid fa-key"></i>
-                        <span class="hidden sm:inline">Password</span>
-                    </button>
-
-                    <button id="logoutBtn" onclick="app.logout()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-zinc-700">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-
-        <div id="authView" class="max-w-md mx-auto my-8">
-            <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-                <div class="absolute -top-12 -right-12 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                <div class="text-center mb-6">
-                    <div class="inline-flex w-14 h-14 rounded-2xl bg-zinc-900 border border-brand-500/30 items-center justify-center text-brand-400 text-2xl mb-3 shadow-inner">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-                    <h2 class="text-2xl font-extrabold text-white">Xtreme Gym Portal</h2>
-                    <p class="text-xs text-zinc-400 mt-1">Access member card, QR check-in &amp; management</p>
-                </div>
-
-                <div class="flex rounded-xl bg-zinc-900/90 p-1 mb-6 border border-zinc-800">
-                    <button id="authTabLoginBtn" onclick="app.switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-xs font-bold transition bg-brand-400 text-black shadow">
+                <!-- Tab Toggle -->
+                <div class="grid grid-cols-2 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+                    <button id="authTabLoginBtn" onclick="app.switchAuthTab('login')" class="py-2 rounded-lg text-xs font-bold transition bg-brand-400 text-black shadow">
                         Sign In
                     </button>
-                    <button id="authTabRegisterBtn" onclick="app.switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-xs font-bold text-zinc-400 transition hover:text-white">
-                        Customer Sign Up
+                    <button id="authTabRegisterBtn" onclick="app.switchAuthTab('register')" class="py-2 rounded-lg text-xs font-bold text-zinc-400 transition hover:text-white">
+                        New Member Sign Up
                     </button>
                 </div>
 
-                <form id="loginForm" onsubmit="app.handleLogin(event)" class="space-y-4">
-                    <div id="lockoutNotice" class="hidden bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs p-3 rounded-xl flex items-start gap-2.5">
-                        <i class="fa-solid fa-circle-exclamation text-base mt-0.5"></i>
-                        <div>
-                            <strong class="block font-bold">Account Security Lockout</strong>
-                            <span id="lockoutTimerText">Too many failed attempts. Try again in 60s.</span>
-                        </div>
+                <!-- Brute-force Lockout Alert Banner -->
+                <div id="lockoutNotice" class="hidden bg-rose-950/70 border border-rose-600/50 text-rose-300 px-4 py-3 rounded-xl text-xs flex items-center gap-2.5">
+                    <i class="fa-solid fa-shield-halved text-rose-400 text-base"></i>
+                    <div>
+                        <strong class="block text-rose-200">Security Lockout Active</strong>
+                        <span id="lockoutTimerText">Too many failed attempts. Please wait 60s.</span>
                     </div>
+                </div>
 
+                <!-- Login Form -->
+                <form id="loginForm" onsubmit="app.handleLogin(event)" class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Username or Email</label>
                         <div class="relative">
                             <i class="fa-solid fa-user absolute left-3.5 top-3 text-zinc-500 text-xs"></i>
-                            <input type="text" id="loginUsername" required maxlength="80" autocomplete="username" placeholder="Enter username or email" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition">
+                            <input type="text" id="loginUsername" required maxlength="80" placeholder="Enter username or email" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-400 transition">
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Password</label>
                         <div class="relative">
                             <i class="fa-solid fa-lock absolute left-3.5 top-3 text-zinc-500 text-xs"></i>
-                            <input type="password" id="loginPassword" required maxlength="64" autocomplete="current-password" placeholder="Enter password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-10 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition">
+                            <input type="password" id="loginPassword" required maxlength="64" placeholder="Enter password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-10 py-2.5 text-xs text-white focus:outline-none focus:border-brand-400 transition">
                             <button type="button" onclick="app.togglePasswordVisibility('loginPassword', 'loginPassIcon')" class="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300 text-xs p-1">
                                 <i id="loginPassIcon" class="fa-solid fa-eye"></i>
                             </button>
                         </div>
                     </div>
-
-                    <button type="submit" id="loginSubmitBtn" class="w-full bg-brand-400 hover:bg-brand-500 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2 mt-2">
-                        <span>Sign In To Portal</span>
-                        <i class="fa-solid fa-arrow-right"></i>
+                    <button type="submit" id="loginSubmitBtn" class="w-full bg-brand-400 hover:bg-brand-500 text-black font-extrabold py-2.5 rounded-xl text-xs transition shadow-lg">
+                        Sign In to Dashboard
                     </button>
                 </form>
 
+                <!-- Customer Self-Registration Form -->
                 <form id="registerForm" onsubmit="app.handleCustomerSelfRegister(event)" class="hidden space-y-3.5">
-                    <div class="bg-brand-500/10 border border-brand-500/20 p-2.5 rounded-xl text-[11px] text-brand-300 flex items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-brand-400"></i>
-                        <span>Creating a new member account will automatically generate your scannable QR pass.</span>
-                    </div>
-
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="block text-xs font-semibold text-zinc-300">First Name <span class="text-rose-400">*</span></label>
-                                <span class="text-[10px] text-zinc-500">2–40 chars</span>
-                            </div>
-                            <input type="text" id="regFirstName" required minlength="2" maxlength="40" placeholder="e.g. Juan" oninput="app.validateNameInput(this, 'regFnErr', 40)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                            <span id="regFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters, spaces &amp; hyphens only (max 40)</span>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name <span class="text-rose-400">*</span></label>
+                            <input type="text" id="regFirstName" required minlength="2" maxlength="40" placeholder="e.g. Juan" oninput="app.validateNameInput(this, 'regFnErr', 40)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                            <span id="regFnErr" class="text-[10px] text-rose-400 hidden mt-0.5 block">Letters only (2–40 chars)</span>
                         </div>
                         <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="block text-xs font-semibold text-zinc-300">Last Name <span class="text-rose-400">*</span></label>
-                                <span class="text-[10px] text-zinc-500">2–35 chars</span>
-                            </div>
-                            <input type="text" id="regLastName" required minlength="2" maxlength="35" placeholder="e.g. Dela Cruz" oninput="app.validateNameInput(this, 'regLnErr', 35)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                            <span id="regLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters, spaces &amp; hyphens only (max 35)</span>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name <span class="text-rose-400">*</span></label>
+                            <input type="text" id="regLastName" required minlength="2" maxlength="35" placeholder="e.g. Dela Cruz" oninput="app.validateNameInput(this, 'regLnErr', 35)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                            <span id="regLnErr" class="text-[10px] text-rose-400 hidden mt-0.5 block">Letters only (2–35 chars)</span>
                         </div>
                     </div>
 
@@ -240,488 +231,428 @@
                             <label class="block text-xs font-semibold text-zinc-300">Username <span class="text-rose-400">*</span></label>
                             <span id="regUsernameCounter" class="text-[10px] text-zinc-500 font-mono">0/24</span>
                         </div>
-                        <input type="text" id="regUsername" required minlength="3" maxlength="24" placeholder="3–24 chars (letters, numbers, . or _)" oninput="app.validateUsernameInput(this, 'regUserErr', 'regUsernameCounter')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                        <span id="regUserErr" class="text-[10px] text-rose-400 hidden block mt-0.5">3–24 chars: letters, numbers, dots (.) or underscores (_) only</span>
+                        <input type="text" id="regUsername" required minlength="3" maxlength="24" placeholder="3–24 chars (letters, numbers, . or _)" oninput="app.validateUsernameInput(this, 'regUserErr', 'regUsernameCounter')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                        <span id="regUserErr" class="text-[10px] text-rose-400 hidden mt-0.5 block">3–24 chars: letters, numbers, . or _ only</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">Email <span class="text-rose-400">*</span></label>
+                            <input type="email" id="regEmail" required maxlength="80" placeholder="juan@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
+                            <input type="tel" id="regPhone" maxlength="11" placeholder="09171234567" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                        </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Email Address <span class="text-rose-400">*</span></label>
-                        <input type="email" id="regEmail" required maxlength="80" placeholder="juan@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
-                        <input type="tel" id="regPhone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Home Branch</label>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Home Gym Branch <span class="text-rose-400">*</span></label>
                         <select id="regBranchSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Initial Membership Plan</label>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Initial Membership Plan <span class="text-rose-400">*</span></label>
                         <select id="regPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></select>
                     </div>
 
                     <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="block text-xs font-semibold text-zinc-300">Password <span class="text-rose-400">*</span></label>
-                            <span class="text-[10px] text-zinc-500">6–64 chars</span>
-                        </div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Create Password <span class="text-rose-400">*</span></label>
                         <div class="relative">
-                            <input type="password" id="regPassword" required minlength="6" maxlength="64" placeholder="At least 6 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                            <button type="button" onclick="app.togglePasswordVisibility('regPassword', 'regPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
+                            <input type="password" id="regPassword" required minlength="6" maxlength="64" placeholder="6–64 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white focus:outline-none focus:border-brand-400">
+                            <button type="button" onclick="app.togglePasswordVisibility('regPassword', 'regPassIcon')" class="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-xs p-1">
                                 <i id="regPassIcon" class="fa-solid fa-eye"></i>
                             </button>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 mt-2">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Complete Registration</span>
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold py-2.5 rounded-xl text-xs transition shadow-lg">
+                        Create Account & Generate QR Pass
                     </button>
                 </form>
             </div>
-        </div>
+        </section>
 
-        <div id="memberPortalView" class="hidden space-y-6">
-            <div class="bg-darkcard border border-darkborder rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <!-- ==============================================================
+             VIEW 2: MEMBER CUSTOMER PORTAL
+        =============================================================== -->
+        <section id="memberPortalView" class="hidden space-y-6">
+            <div class="bg-darkcard border border-darkborder rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="flex items-center gap-4">
-                    <div id="memberAvatar" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 text-black text-2xl font-black flex items-center justify-center shadow-lg">
+                    <div id="memberAvatar" class="w-16 h-16 rounded-2xl bg-brand-400 text-black font-black text-2xl flex items-center justify-center">
                         JD
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h2 id="memberNameTitle" class="text-2xl font-extrabold text-white">Juan Dela Cruz</h2>
+                            <h2 id="memberNameTitle" class="text-xl font-extrabold text-white">Juan Dela Cruz</h2>
                             <span id="memberStatusBadge" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-xs font-bold">Active Member</span>
                         </div>
-                        <p id="memberIdSub" class="text-xs text-zinc-400 font-mono mt-0.5">Member ID: EG-2026-0001</p>
-                        <p id="memberPlanSub" class="text-xs text-brand-400 font-medium mt-1">Plan: Monthly Basic Pass</p>
+                        <p id="memberIdSub" class="text-xs text-zinc-400 font-mono mt-1">Member ID: XG-2026-0001</p>
+                        <p id="memberPlanSub" class="text-xs text-brand-400 font-semibold mt-0.5">Plan: Monthly Basic Membership</p>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <button onclick="app.showRenewalModal()" class="bg-brand-400 hover:bg-brand-500 text-black px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-lg flex items-center gap-2">
-                        <i class="fa-solid fa-arrows-rotate"></i>
-                        <span>Request Renewal / Pay</span>
-                    </button>
-                    <button onclick="app.printCurrentMemberPass()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-zinc-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-print"></i>
+
+                <div class="flex flex-wrap gap-2.5">
+                    <button onclick="app.printCurrentMemberPass()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 border border-zinc-700 transition">
+                        <i class="fa-solid fa-print text-brand-400"></i>
                         <span>Print QR Pass</span>
+                    </button>
+                    <button onclick="app.showRenewalModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg transition">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Renew / Upgrade Plan</span>
                     </button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-1">
-                    <div class="bg-gradient-to-b from-zinc-900 to-black border-2 border-brand-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden glow-lime">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <div class="text-brand-400 font-extrabold text-sm tracking-wider flex items-center gap-1.5">
-                                    <i class="fa-solid fa-dumbbell"></i> XTREME GYM WORLD
-                                </div>
-                                <div class="text-[10px] text-zinc-500">OFFICIAL MEMBER PASS</div>
-                            </div>
-                            <span id="cardStatusChip" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">VALID</span>
-                        </div>
+                <!-- Digital QR Pass Card -->
+                <div class="bg-darkcard border border-darkborder rounded-2xl p-6 flex flex-col items-center text-center justify-between space-y-4">
+                    <div class="w-full flex justify-between items-center border-b border-zinc-800 pb-3">
+                        <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Digital Gym Pass</span>
+                        <span id="cardStatusChip" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">VALID</span>
+                    </div>
 
-                        <div class="bg-white p-4 rounded-xl flex justify-center items-center my-4 shadow-inner">
-                            <div id="memberQrContainer"></div>
-                        </div>
+                    <div id="memberQrContainer" class="bg-white p-4 rounded-2xl shadow-inner my-2"></div>
 
-                        <div class="text-center space-y-1">
-                            <p id="cardMemberName" class="text-lg font-bold text-white">Juan Dela Cruz</p>
-                            <p id="cardMemberId" class="text-xs text-brand-400 font-mono">EG-2026-0001</p>
-                        </div>
+                    <div class="space-y-1 w-full">
+                        <h3 id="cardMemberName" class="text-base font-extrabold text-white">Juan Dela Cruz</h3>
+                        <p id="cardMemberId" class="text-xs font-mono text-brand-400 font-bold">XG-2026-0001</p>
+                        <p id="cardBranchName" class="text-[11px] text-zinc-400">Xtreme Gym World - Sta. Maria</p>
+                    </div>
 
-                        <div class="mt-4 pt-4 border-t border-zinc-800 text-[11px] space-y-1.5 text-zinc-400">
-                            <div class="flex justify-between">
-                                <span>Current Plan:</span>
-                                <strong id="cardPlanName" class="text-white">Monthly Basic</strong>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Expiration Date:</span>
-                                <strong id="cardExpiryDate" class="text-brand-400 font-mono">2026-12-15</strong>
-                            </div>
-                            <div class="flex justify-between gap-2">
-                                <span>Home Branch:</span>
-                                <span id="cardBranchName" class="text-zinc-300 text-right font-medium">Xtreme Gym World - Sta. Maria</span>
-                            </div>
+                    <div class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-left text-xs space-y-1.5">
+                        <div class="flex justify-between">
+                            <span class="text-zinc-400">Active Plan:</span>
+                            <span id="cardPlanName" class="font-bold text-white">Monthly Basic</span>
                         </div>
-
-                        <div class="mt-4 text-[9px] text-center text-zinc-600 uppercase tracking-widest">
-                            Present QR code at desk scanner for check-in
+                        <div class="flex justify-between">
+                            <span class="text-zinc-400">Expiration Date:</span>
+                            <span id="cardExpiryDate" class="font-mono font-bold text-brand-400">2026-12-15</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Member Stats & Attendance History -->
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
-                            <div class="text-xs text-zinc-400 mb-1">Total Check-ins</div>
-                            <div id="memberTotalCheckins" class="text-2xl font-black text-white">0</div>
-                            <div class="text-[10px] text-emerald-400 mt-1"><i class="fa-solid fa-circle-check"></i> Verified entries</div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-darkcard border border-darkborder p-4 rounded-2xl">
+                            <span class="text-xs text-zinc-400">Days Remaining</span>
+                            <div id="memberDaysLeft" class="text-2xl font-black text-brand-400 mt-1">25 Days</div>
                         </div>
-                        <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
-                            <div class="text-xs text-zinc-400 mb-1">Days Remaining</div>
-                            <div id="memberDaysLeft" class="text-2xl font-black text-brand-400">0 Days</div>
-                            <div class="text-[10px] text-zinc-500 mt-1">Until plan renewal</div>
+                        <div class="bg-darkcard border border-darkborder p-4 rounded-2xl">
+                            <span class="text-xs text-zinc-400">Total Check-Ins</span>
+                            <div id="memberTotalCheckins" class="text-2xl font-black text-white mt-1">12</div>
                         </div>
-                        <div class="bg-darkcard border border-darkborder p-4 rounded-xl col-span-2 sm:col-span-1">
-                            <div class="text-xs text-zinc-400 mb-1">Total Contributions</div>
-                            <div id="memberTotalPaid" class="text-2xl font-black text-white">₱0.00</div>
-                            <div class="text-[10px] text-zinc-500 mt-1">Payments recorded</div>
+                        <div class="bg-darkcard border border-darkborder p-4 rounded-2xl">
+                            <span class="text-xs text-zinc-400">Total Invested</span>
+                            <div id="memberTotalPaid" class="text-2xl font-black text-emerald-400 mt-1">₱800.00</div>
                         </div>
                     </div>
 
-                    <div class="bg-darkcard border border-darkborder rounded-2xl p-5">
-                        <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-6 space-y-4">
+                        <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
                             <i class="fa-solid fa-clock-rotate-left text-brand-400"></i>
-                            <span>My Recent Check-in Logs</span>
+                            <span>My Gym Check-in History</span>
                         </h3>
-                        <div class="overflow-x-auto custom-scrollbar">
+                        <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs">
-                                <thead>
-                                    <tr class="border-b border-zinc-800 text-zinc-400">
-                                        <th class="pb-2">Date &amp; Time</th>
-                                        <th class="pb-2">Branch</th>
-                                        <th class="pb-2">Plan Validated</th>
-                                        <th class="pb-2">Status</th>
+                                <thead class="text-zinc-400 border-b border-zinc-800">
+                                    <tr>
+                                        <th class="pb-2.5">Date & Time</th>
+                                        <th class="pb-2.5">Branch</th>
+                                        <th class="pb-2.5">Plan Used</th>
+                                        <th class="pb-2.5">Verification Status</th>
                                     </tr>
                                 </thead>
-                                <tbody id="memberAttendanceTableBody" class="divide-y divide-zinc-800/50 text-zinc-300"></tbody>
+                                <tbody id="memberAttendanceTableBody" class="divide-y divide-zinc-800/60"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div id="adminDashboardView" class="hidden space-y-6">
+        <!-- ==============================================================
+             VIEW 3: ADMIN & STAFF DASHBOARD
+        =============================================================== -->
+        <section id="adminDashboardView" class="hidden space-y-6">
 
-            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-darkborder pb-4">
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="app.switchAdminSubTab('scanner')" id="subTabScanner" class="admin-subtab bg-brand-400 text-black font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow">
-                        <i class="fa-solid fa-qrcode"></i>
-                        <span>QR Attendance Terminal</span>
-                    </button>
-                    <button onclick="app.switchAdminSubTab('members')" id="subTabMembers" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-users"></i>
-                        <span>Members</span>
-                    </button>
-                    <button onclick="app.switchAdminSubTab('payments')" id="subTabPayments" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-chart-column"></i>
-                        <span>Analytics &amp; Revenue</span>
-                    </button>
-                    <button onclick="app.switchAdminSubTab('attendance')" id="subTabAttendance" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-list-check"></i>
-                        <span>Attendance Log</span>
-                    </button>
-                    <button onclick="app.switchAdminSubTab('plans')" id="subTabPlans" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-tags"></i>
-                        <span>Membership Plans</span>
-                    </button>
-                    <button onclick="app.switchAdminSubTab('branches')" id="subTabBranches" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-building"></i>
-                        <span>Branches</span>
-                    </button>
-                    <button onclick="app.switchAdminSubTab('accounts')" id="subTabAccounts" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-user-shield"></i>
-                        <span>Staff Accounts</span>
-                    </button>
+            <!-- Branch Analytics Scope Filter Bar -->
+            <div class="bg-darkcard border border-darkborder rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2 text-xs">
+                    <i class="fa-solid fa-chart-pie text-brand-400"></i>
+                    <span class="font-bold text-white">Analytics & Operations Scope:</span>
+                    <span class="text-zinc-400 hidden md:inline">View overall network metrics or isolate a specific Xtreme Gym World branch</span>
                 </div>
-
-                <!-- Global Analytics & Directory Branch Filter -->
-                <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl">
-                    <i class="fa-solid fa-filter text-brand-400 text-xs"></i>
-                    <label for="analyticsBranchFilter" class="text-[11px] font-semibold text-zinc-400 whitespace-nowrap">Analytics Scope:</label>
-                    <select id="analyticsBranchFilter" onchange="app.onAnalyticsBranchFilterChange()" class="bg-zinc-950 border border-zinc-700 rounded-lg px-2.5 py-1 text-xs text-white font-semibold focus:outline-none focus:border-brand-400">
+                <div class="flex items-center gap-2">
+                    <select id="analyticsBranchFilter" onchange="app.onAnalyticsBranchFilterChange()" class="bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-1.5 text-xs font-bold text-brand-400 focus:outline-none focus:border-brand-400">
                         <option value="ALL">All Xtreme Branches</option>
                     </select>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
-                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
-                        <span>Registered Members</span>
+            <!-- KPI Summary Row -->
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-darkcard border border-darkborder p-5 rounded-2xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs">
+                        <span>Total Members</span>
                         <i class="fa-solid fa-users text-brand-400"></i>
                     </div>
-                    <div id="statTotalMembers" class="text-2xl font-black text-white">0</div>
+                    <div id="statTotalMembers" class="text-2xl font-black text-white mt-2">0</div>
                     <div id="statBranchScopeLabel1" class="text-[10px] text-zinc-500 mt-1 truncate">All Xtreme Branches</div>
                 </div>
-                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
-                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
-                        <span>Active Passes</span>
-                        <i class="fa-solid fa-user-check text-emerald-400"></i>
+
+                <div class="bg-darkcard border border-darkborder p-5 rounded-2xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs">
+                        <span>Active Subscriptions</span>
+                        <i class="fa-solid fa-id-card-clip text-emerald-400"></i>
                     </div>
-                    <div id="statActiveMembers" class="text-2xl font-black text-emerald-400">0</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Valid subscriptions</div>
+                    <div id="statActiveMembers" class="text-2xl font-black text-emerald-400 mt-2">0</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Valid & unexpired</div>
                 </div>
-                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
-                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
-                        <span>Staff &amp; Admins</span>
+
+                <div class="bg-darkcard border border-darkborder p-5 rounded-2xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs">
+                        <span>Staff & Admins</span>
                         <i class="fa-solid fa-user-shield text-purple-400"></i>
                     </div>
-                    <div id="statTotalStaff" class="text-2xl font-black text-purple-400">0</div>
+                    <div id="statTotalStaff" class="text-2xl font-black text-purple-400 mt-2">0</div>
                     <div class="text-[10px] text-zinc-500 mt-1">Assigned team</div>
                 </div>
-                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
-                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
+
+                <div class="bg-darkcard border border-darkborder p-5 rounded-2xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs">
                         <span>Today's Check-ins</span>
-                        <i class="fa-solid fa-door-open text-blue-400"></i>
+                        <i class="fa-solid fa-qrcode text-blue-400"></i>
                     </div>
-                    <div id="statTodayCheckins" class="text-2xl font-black text-white">0</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Attended today</div>
+                    <div id="statTodayCheckins" class="text-2xl font-black text-blue-400 mt-2">0</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">QR scans today</div>
                 </div>
-                <div class="bg-darkcard border border-darkborder p-4 rounded-xl col-span-2 sm:col-span-1">
-                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
+
+                <div class="col-span-2 lg:col-span-1 bg-darkcard border border-darkborder p-5 rounded-2xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs">
                         <span>Total Revenue</span>
                         <i class="fa-solid fa-peso-sign text-brand-400"></i>
                     </div>
-                    <div id="statTotalRevenue" class="text-2xl font-black text-brand-400">₱0.00</div>
+                    <div id="statTotalRevenue" class="text-2xl font-black text-brand-400 mt-2">₱0.00</div>
                     <div id="statBranchScopeLabel2" class="text-[10px] text-zinc-500 mt-1 truncate">All Xtreme Branches</div>
                 </div>
             </div>
 
-            <div id="adminScannerSubTab" class="space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-darkcard border border-darkborder rounded-2xl p-6 relative overflow-hidden">
-                        <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
-                            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+            <!-- Sub-navigation Tabs -->
+            <div class="flex flex-wrap gap-2 border-b border-zinc-800 pb-3">
+                <button id="subTabScanner" onclick="app.switchAdminSubTab('scanner')" class="admin-subtab bg-brand-400 text-black font-extrabold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>QR Desk Scanner</span>
+                </button>
+                <button id="subTabMembers" onclick="app.switchAdminSubTab('members')" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Members Directory</span>
+                </button>
+                <button id="subTabPayments" onclick="app.switchAdminSubTab('payments')" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-cash-register"></i>
+                    <span>Payments & Revenue</span>
+                </button>
+                <button id="subTabAttendance" onclick="app.switchAdminSubTab('attendance')" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Attendance Logs</span>
+                </button>
+                <button id="subTabPlans" onclick="app.switchAdminSubTab('plans')" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Membership Plans</span>
+                </button>
+                <button id="subTabBranches" onclick="app.switchAdminSubTab('branches')" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-building"></i>
+                    <span>Branches</span>
+                </button>
+                <button id="subTabAccounts" onclick="app.switchAdminSubTab('accounts')" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Staff & Admin Accounts</span>
+                </button>
+            </div>
+
+            <!-- SUB-TAB 1: QR DESK SCANNER -->
+            <div id="adminScannerSubTab" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-darkcard border border-darkborder rounded-2xl p-6 space-y-5">
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <div>
+                            <h3 class="text-base font-extrabold text-white flex items-center gap-2">
                                 <i class="fa-solid fa-camera text-brand-400"></i>
-                                <span>QR Attendance Verification Terminal</span>
+                                <span>Front Desk QR Check-in Scanner</span>
                             </h3>
-                            <div class="flex items-center gap-2">
-                                <input type="file" id="qrImageFileInput" accept="image/*" class="hidden" onchange="app.scanQrFromImageFile(event)">
-                                <button type="button" onclick="document.getElementById('qrImageFileInput').click()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5" title="Upload a QR image to scan">
-                                    <i class="fa-solid fa-image text-brand-400"></i>
-                                    <span>Scan Image</span>
-                                </button>
-                                <button type="button" id="toggleCameraBtn" onclick="app.toggleCameraScanner()" class="bg-brand-400 hover:bg-brand-500 text-black text-xs px-3.5 py-1.5 rounded-lg font-extrabold transition flex items-center gap-1.5 shadow">
-                                    <i class="fa-solid fa-video"></i>
-                                    <span>Start Camera</span>
-                                </button>
-                            </div>
+                            <p class="text-[11px] text-zinc-400 mt-0.5">Active Desk Branch: <span id="scannerActiveBranchBadge" class="text-brand-400 font-bold">Xtreme Gym World - Sta. Maria</span></p>
                         </div>
-
-                        <div id="cameraSelectWrapper" class="hidden mb-3">
-                            <div class="flex items-center gap-2">
-                                <label class="text-[11px] text-zinc-400 whitespace-nowrap">Camera Device:</label>
-                                <select id="cameraDeviceSelect" onchange="app.switchCameraDevice()" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-400"></select>
-                            </div>
-                        </div>
-
-                        <div id="scannerPlaceholder" class="relative bg-black rounded-xl border-2 border-dashed border-zinc-800 p-6 text-center flex flex-col items-center justify-center min-h-[250px] overflow-hidden">
-                            <div class="scanner-laser"></div>
-
-                            <div class="w-16 h-16 rounded-2xl border-2 border-brand-400/50 flex items-center justify-center text-brand-400 text-3xl mb-3 bg-brand-500/5 shadow-inner">
-                                <i class="fa-solid fa-qrcode animate-pulse"></i>
-                            </div>
-                            <p class="text-xs font-bold text-zinc-200 mb-2">Webcam &amp; Phone Camera QR Scanner Ready</p>
-                            <button type="button" onclick="app.toggleCameraScanner()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-5 py-2.5 rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-brand-500/20 mb-2">
-                                <i class="fa-solid fa-camera"></i>
-                                <span>Start Camera Scanner</span>
+                        <div class="flex items-center gap-2">
+                            <label for="qrImageFileInput" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs px-3 py-1.5 rounded-lg font-bold border border-zinc-700 cursor-pointer flex items-center gap-1.5 transition" title="Upload a QR image/screenshot to verify">
+                                <i class="fa-solid fa-image text-brand-400"></i>
+                                <span>Scan Image</span>
+                            </label>
+                            <input type="file" id="qrImageFileInput" accept="image/*" onchange="app.scanQrFromImageFile(event)" class="hidden">
+                            <button id="toggleCameraBtn" onclick="app.toggleCameraScanner()" class="bg-brand-400 hover:bg-brand-500 text-black text-xs px-3.5 py-1.5 rounded-lg font-extrabold transition flex items-center gap-1.5 shadow">
+                                <i class="fa-solid fa-video"></i>
+                                <span>Start Camera</span>
                             </button>
-                            <p class="text-[11px] text-zinc-500 max-w-xs">Point a member's QR pass at your camera, or use a USB 2D scanner / dropdown below</p>
-                        </div>
-
-                        <div id="qrCameraReader" class="hidden bg-black rounded-xl border border-brand-500/40 overflow-hidden min-h-[250px]"></div>
-                        <div id="qrFileScanTarget" class="hidden"></div>
-
-                        <div class="mt-6 space-y-3">
-                            <label class="block text-xs font-bold text-zinc-300">Select Member Pass:</label>
-                            <div class="flex flex-wrap sm:flex-nowrap gap-2">
-                                <select id="scannerMemberSelect" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></select>
-                                <button onclick="app.simScanFromSelect()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
-                                    <i class="fa-solid fa-bolt"></i>
-                                    <span>Scan</span>
-                                </button>
-                                <button onclick="app.printSelectedMemberPass()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold px-3.5 py-2 rounded-xl text-xs transition border border-zinc-700 flex items-center gap-1.5" title="Print QR Code Pass for Selected Member">
-                                    <i class="fa-solid fa-print text-brand-400"></i>
-                                    <span>Print QR</span>
-                                </button>
-                            </div>
-
-                            <div class="relative pt-2">
-                                <label class="block text-xs font-semibold text-zinc-400 mb-1">Optical Scanner / Manual Member ID Input:</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="manualScanInput" maxlength="30" onkeydown="if(event.key==='Enter'){event.preventDefault();app.simScanFromInput();}" placeholder="Scan QR or enter ID (e.g. EG-2026-0001)" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-brand-400">
-                                    <button onclick="app.simScanFromInput()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold px-4 py-2 rounded-xl text-xs transition border border-zinc-700">
-                                        Verify ID
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-darkcard border border-darkborder rounded-2xl p-6 flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-sm font-extrabold text-white mb-4 flex items-center gap-2">
-                                <i class="fa-solid fa-id-card text-brand-400"></i>
-                                <span>Verification Result Display</span>
-                            </h3>
+                    <!-- Camera Switcher if multiple cameras exist -->
+                    <div id="cameraSelectWrapper" class="hidden">
+                        <select id="cameraDeviceSelect" onchange="app.switchCameraDevice()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-300"></select>
+                    </div>
 
-                            <div id="scanResultCard" class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center space-y-4">
-                                <div class="w-16 h-16 mx-auto rounded-full bg-zinc-800 text-zinc-600 text-2xl flex items-center justify-center">
-                                    <i class="fa-solid fa-user-check"></i>
-                                </div>
-                                <div class="text-zinc-500 text-xs font-medium">
-                                    Scan a member QR code to verify identity &amp; active plan status
-                                </div>
-                            </div>
+                    <!-- Live Camera Viewport -->
+                    <div id="scannerPlaceholder" class="border-2 border-dashed border-zinc-800 rounded-2xl p-8 text-center space-y-3 bg-zinc-950/60">
+                        <div class="w-16 h-16 mx-auto rounded-2xl bg-brand-400/10 text-brand-400 text-3xl flex items-center justify-center border border-brand-400/20">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">Camera Ready for QR Verification</h4>
+                        <p class="text-xs text-zinc-400 max-w-sm mx-auto">Click <strong>Start Camera</strong> to scan a member's QR pass live, or use <strong>Scan Image</strong> / Manual Member ID below.</p>
+                    </div>
+                    <div id="qrCameraReader" class="hidden rounded-2xl overflow-hidden border border-zinc-800 bg-black"></div>
+
+                    <!-- Quick Member Select & Print QR Pass -->
+                    <div class="bg-zinc-900/80 border border-zinc-800 p-4 rounded-xl space-y-3">
+                        <label class="block text-xs font-bold text-zinc-300">Quick Member Lookup / Print QR Pass</label>
+                        <div class="flex flex-wrap gap-2">
+                            <select id="scannerMemberSelect" class="flex-1 min-w-[180px] bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                            <button onclick="app.simScanFromSelect()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-3.5 py-2 rounded-xl text-xs transition">
+                                Verify Check-in
+                            </button>
+                            <button onclick="app.printSelectedMemberPass()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-3 py-2 rounded-xl text-xs border border-zinc-700 transition flex items-center gap-1.5" title="Print Selected Member's QR Pass">
+                                <i class="fa-solid fa-print text-brand-400"></i>
+                                <span>Print QR</span>
+                            </button>
                         </div>
 
-                        <div class="mt-4 pt-4 border-t border-zinc-800 text-[11px] text-zinc-500 flex items-center gap-2">
-                            <i class="fa-solid fa-shield-halved text-brand-400"></i>
-                            <span>Check-ins are logged under your active terminal branch (<span id="scannerActiveBranchBadge" class="text-zinc-300 font-semibold">Xtreme Gym World - Sta. Maria</span>).</span>
+                        <div class="flex gap-2">
+                            <input type="text" id="manualScanInput" maxlength="30" onkeydown="if(event.key==='Enter') app.simScanFromInput()" placeholder="Type or USB-scan Member ID (e.g. XG-2026-0001)" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono">
+                            <button onclick="app.simScanFromInput()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-4 py-2 rounded-xl text-xs border border-zinc-700">
+                                Scan ID
+                            </button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Live Verification Result Output -->
+                <div class="bg-darkcard border border-darkborder rounded-2xl p-6 flex flex-col justify-between space-y-4">
+                    <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-check text-emerald-400"></i>
+                        <span>Live Scan Verification Result</span>
+                    </h3>
+
+                    <div id="scanResultCard" class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-8 text-center space-y-2 my-auto">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-zinc-800 text-zinc-500 text-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-id-badge"></i>
+                        </div>
+                        <p class="text-sm font-bold text-zinc-300">Awaiting QR Code Scan...</p>
+                        <p class="text-xs text-zinc-500">Verification status, expiration date, and audio feedback will appear immediately upon scan.</p>
+                    </div>
+
+                    <div class="text-[11px] text-zinc-500 border-t border-zinc-800 pt-3 flex justify-between">
+                        <span>Anti-Passback Cooldown: 15s</span>
+                        <span>Audio Beeper: Active</span>
                     </div>
                 </div>
             </div>
 
+            <!-- SUB-TAB 2: MEMBERS DIRECTORY -->
             <div id="adminMembersSubTab" class="hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                        <div class="relative flex-1 sm:w-64">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-zinc-500 text-xs"></i>
-                            <input type="text" id="memberSearchInput" maxlength="60" onkeyup="app.renderMembersTable()" placeholder="Search name, ID, email..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                        </div>
-                        <select id="memberStatusFilter" onchange="app.renderMembersTable()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <input type="text" id="memberSearchInput" oninput="app.renderMembersTable()" placeholder="Search name, ID, or email..." class="bg-darkcard border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white w-full sm:w-64">
+                        <select id="memberStatusFilter" onchange="app.renderMembersTable()" class="bg-darkcard border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                             <option value="ALL">All Statuses</option>
                             <option value="Active">Active Only</option>
                             <option value="Expired">Expired Only</option>
                         </select>
                     </div>
-
-                    <button onclick="app.openAddMemberModal()" class="w-full sm:w-auto bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow">
-                        <i class="fa-solid fa-plus"></i>
+                    <button onclick="app.openAddMemberModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-user-plus"></i>
                         <span>Register New Member</span>
                     </button>
                 </div>
 
-                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden shadow-xl">
-                    <div class="overflow-x-auto custom-scrollbar">
+                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-zinc-900 border-b border-darkborder text-zinc-400 font-bold">
+                            <thead class="bg-zinc-900/90 text-zinc-400 border-b border-zinc-800">
                                 <tr>
-                                    <th class="p-3.5">Member Name &amp; ID</th>
-                                    <th class="p-3.5">Contact &amp; Branch</th>
-                                    <th class="p-3.5">Plan Name</th>
-                                    <th class="p-3.5">Expiration Date</th>
+                                    <th class="p-3.5">Member</th>
+                                    <th class="p-3.5">Contact & Home Branch</th>
+                                    <th class="p-3.5">Membership Plan</th>
+                                    <th class="p-3.5">Expiry Date</th>
                                     <th class="p-3.5">Status</th>
                                     <th class="p-3.5 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="membersTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            <tbody id="membersTableBody" class="divide-y divide-zinc-800/70"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
+            <!-- SUB-TAB 3: PAYMENTS & REVENUE -->
             <div id="adminPaymentsSubTab" class="hidden space-y-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-darkcard border border-darkborder p-4 rounded-2xl">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <div>
-                            <label class="block text-[10px] text-zinc-400 mb-1">Filter Payment Method</label>
-                            <select id="paymentMethodFilter" onchange="app.renderPaymentsModule()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white">
-                                <option value="ALL">All Methods</option>
-                                <option value="Cash">Cash</option>
-                                <option value="GCash">GCash</option>
-                                <option value="Card">Card</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="app.exportRevenueCSV()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-file-csv text-emerald-400"></i>
-                            <span>Export Revenue CSV</span>
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Branch-by-Branch Analytics Overview Table -->
+                <!-- Branch-by-Branch Analytics Breakdown Table -->
                 <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
                     <div class="p-4 border-b border-zinc-800 flex flex-wrap justify-between items-center gap-2">
-                        <h3 class="text-xs font-extrabold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-building-columns text-brand-400"></i>
-                            <span>Branch Performance &amp; Revenue Breakdown</span>
-                        </h3>
-                        <span class="text-[11px] text-zinc-400">Live revenue, members, staff &amp; attendance per Xtreme branch</span>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-building-columns text-brand-400"></i>
+                                <span>Branch-by-Branch Performance & Revenue Breakdown</span>
+                            </h3>
+                            <p class="text-[11px] text-zinc-400 mt-0.5">Individual revenue, member count, staff count, and check-ins per Xtreme Gym World branch</p>
+                        </div>
+                        <button onclick="app.exportRevenueCSV()" class="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-700">
+                            <i class="fa-solid fa-file-csv text-emerald-400 mr-1"></i> Export Revenue CSV
+                        </button>
                     </div>
-                    <div class="overflow-x-auto custom-scrollbar">
+                    <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-zinc-900 text-zinc-400 font-bold">
+                            <thead class="bg-zinc-900/90 text-zinc-400 border-b border-zinc-800">
                                 <tr>
-                                    <th class="p-3.5">Branch Name</th>
+                                    <th class="p-3.5">Xtreme Gym World Branch</th>
                                     <th class="p-3.5">Status</th>
                                     <th class="p-3.5 text-right">Total Members</th>
-                                    <th class="p-3.5 text-right">Active Passes</th>
-                                    <th class="p-3.5 text-right">Assigned Staff</th>
+                                    <th class="p-3.5 text-right">Active Members</th>
+                                    <th class="p-3.5 text-right">Staff / Admins</th>
                                     <th class="p-3.5 text-right">Total Check-ins</th>
-                                    <th class="p-3.5 text-right">Total Revenue Gained</th>
+                                    <th class="p-3.5 text-right">Revenue Gained</th>
                                 </tr>
                             </thead>
-                            <tbody id="branchAnalyticsTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            <tbody id="branchAnalyticsTableBody" class="divide-y divide-zinc-800/70"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Dual Charts: Revenue by Branch + Revenue by Plan -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-darkcard border border-darkborder rounded-2xl p-5">
-                        <h3 class="text-xs font-bold text-white mb-4 flex items-center justify-between">
-                            <span>Money Gained by Branch (₱)</span>
-                            <span class="text-zinc-500 font-normal">Branch Revenue Comparison</span>
-                        </h3>
-                        <div class="h-64 relative">
-                            <canvas id="branchRevenueChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="bg-darkcard border border-darkborder rounded-2xl p-5">
-                        <h3 class="text-xs font-bold text-white mb-4 flex items-center justify-between">
-                            <span>Revenue by Membership Plan (₱)</span>
-                            <span id="planChartScopeBadge" class="text-zinc-500 font-normal">All Xtreme Branches</span>
-                        </h3>
-                        <div class="h-64 relative">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Record Direct Payment + Recent Transactions -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-1 bg-darkcard border border-darkborder rounded-2xl p-5 space-y-3">
-                        <h3 class="text-xs font-extrabold text-white flex items-center gap-2 border-b border-zinc-800 pb-2">
+                    <!-- Record Payment Form -->
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-6 space-y-4">
+                        <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
                             <i class="fa-solid fa-cash-register text-brand-400"></i>
-                            <span>Record Direct Payment / Renewal</span>
+                            <span>Record POS Payment / Renewal</span>
                         </h3>
-
                         <form onsubmit="app.handleManualPaymentSubmit(event)" class="space-y-3">
                             <div>
-                                <label class="block text-[11px] text-zinc-300 mb-1">Select Member</label>
-                                <select id="payMemberSelect" onchange="app.onPayMemberSelectChange()" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-1">Select Member</label>
+                                <select id="payMemberSelect" required onchange="app.onPayMemberSelectChange()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
                             </div>
-
                             <div>
-                                <label class="block text-[11px] text-zinc-300 mb-1">Credited Branch</label>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-1">Credited Branch</label>
                                 <select id="payBranchSelect" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
                             </div>
-
                             <div>
-                                <label class="block text-[11px] text-zinc-300 mb-1">Membership Plan</label>
-                                <select id="payPlanSelect" onchange="app.onPayPlanSelectChange()" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-1">Plan / Package</label>
+                                <select id="payPlanSelect" onchange="app.onPayPlanSelectChange()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
                             </div>
-
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-[11px] text-zinc-300 mb-1">Amount (₱)</label>
-                                    <input type="number" id="payAmount" required min="1" max="50000" step="1" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                                    <span class="text-[9px] text-zinc-500">Cap: ₱50,000</span>
+                                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Amount (₱)</label>
+                                    <input type="number" id="payAmount" required min="1" max="50000" step="1" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-bold">
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] text-zinc-300 mb-1">Payment Method</label>
+                                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Method</label>
                                     <select id="payMethod" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                                         <option value="Cash">Cash</option>
                                         <option value="GCash">GCash</option>
@@ -729,126 +660,150 @@
                                     </select>
                                 </div>
                             </div>
-
                             <div>
-                                <label class="block text-[11px] text-zinc-300 mb-1">Reference / Receipt No.</label>
-                                <input type="text" id="payRefNo" maxlength="40" oninput="this.value = this.value.replace(/[^A-Za-z0-9-_]/g, '')" placeholder="Optional ref #" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                                <label class="block text-xs font-semibold text-zinc-300 mb-1">Reference No. (Optional)</label>
+                                <input type="text" id="payRefNo" maxlength="40" oninput="this.value = this.value.replace(/[^A-Za-z0-9-_]/g, '')" placeholder="e.g. GCash Ref #" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                             </div>
-
-                            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-circle-check"></i>
-                                <span>Record Payment &amp; Renew</span>
+                            <button type="submit" class="w-full bg-brand-400 hover:bg-brand-500 text-black font-extrabold py-2.5 rounded-xl text-xs shadow">
+                                Confirm & Record Payment
                             </button>
                         </form>
                     </div>
 
-                    <div class="lg:col-span-2 bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
-                        <div class="p-4 border-b border-zinc-800 font-bold text-xs text-white">Transactions History</div>
-                        <div class="overflow-x-auto custom-scrollbar">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-zinc-900 text-zinc-400">
-                                    <tr>
-                                        <th class="p-3">Txn ID</th>
-                                        <th class="p-3">Member Name</th>
-                                        <th class="p-3">Branch</th>
-                                        <th class="p-3">Plan Paid</th>
-                                        <th class="p-3">Amount</th>
-                                        <th class="p-3">Method</th>
-                                        <th class="p-3">Date</th>
-                                        <th class="p-3">Recorded By</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="paymentsTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
-                            </table>
+                    <!-- Revenue Analytics Charts (Per Branch & Per Plan) -->
+                    <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-darkcard border border-darkborder rounded-2xl p-6 flex flex-col justify-between space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-sm font-extrabold text-white">Revenue per Branch</h3>
+                                <span class="text-[10px] text-zinc-400 font-semibold">All Branches</span>
+                            </div>
+                            <div class="h-60 w-full">
+                                <canvas id="branchRevenueChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-darkcard border border-darkborder rounded-2xl p-6 flex flex-col justify-between space-y-4">
+                            <div class="flex justify-between items-center gap-2">
+                                <h3 class="text-sm font-extrabold text-white">Revenue by Plan</h3>
+                                <span id="planChartScopeBadge" class="text-[10px] text-brand-400 font-bold truncate max-w-[140px]">All Xtreme Branches</span>
+                            </div>
+                            <div class="h-60 w-full">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="adminAttendanceSubTab" class="hidden space-y-4">
-                <div class="flex justify-between items-center bg-darkcard border border-darkborder p-4 rounded-2xl">
-                    <h3 class="text-xs font-bold text-white">Master Check-in Log</h3>
-                    <button onclick="app.exportAttendanceCSV()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
-                        <i class="fa-solid fa-download text-brand-400"></i>
-                        <span>Export Attendance CSV</span>
-                    </button>
-                </div>
-
+                <!-- Transaction Ledger -->
                 <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
-                    <div class="overflow-x-auto custom-scrollbar">
+                    <div class="p-4 border-b border-zinc-800 flex justify-between items-center">
+                        <h3 class="text-sm font-extrabold text-white">Payment Transaction Ledger</h3>
+                        <select id="paymentMethodFilter" onchange="app.renderPaymentsModule()" class="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 text-xs text-white">
+                            <option value="ALL">All Methods</option>
+                            <option value="Cash">Cash</option>
+                            <option value="GCash">GCash</option>
+                            <option value="Card">Card</option>
+                        </select>
+                    </div>
+                    <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-zinc-900 text-zinc-400 font-bold">
+                            <thead class="bg-zinc-900/90 text-zinc-400 border-b border-zinc-800">
                                 <tr>
-                                    <th class="p-3.5">Timestamp</th>
-                                    <th class="p-3.5">Member Name</th>
-                                    <th class="p-3.5">Member ID</th>
-                                    <th class="p-3.5">Branch</th>
-                                    <th class="p-3.5">Plan Validated</th>
-                                    <th class="p-3.5">Validation Result</th>
-                                    <th class="p-3.5">Operator</th>
+                                    <th class="p-3">TXN ID</th>
+                                    <th class="p-3">Member</th>
+                                    <th class="p-3">Branch</th>
+                                    <th class="p-3">Plan</th>
+                                    <th class="p-3">Amount</th>
+                                    <th class="p-3">Method</th>
+                                    <th class="p-3">Date & Time</th>
+                                    <th class="p-3">Recorded By</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminAttendanceTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            <tbody id="paymentsTableBody" class="divide-y divide-zinc-800/70"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
+            <!-- SUB-TAB 4: ATTENDANCE LOGS -->
+            <div id="adminAttendanceSubTab" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-extrabold text-white">Real-Time QR Check-In Logs</h3>
+                    <button onclick="app.exportAttendanceCSV()" class="bg-zinc-800 hover:bg-zinc-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold border border-zinc-700">
+                        <i class="fa-solid fa-file-csv text-brand-400 mr-1"></i> Export Attendance CSV
+                    </button>
+                </div>
+                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-900/90 text-zinc-400 border-b border-zinc-800">
+                                <tr>
+                                    <th class="p-3.5">Timestamp</th>
+                                    <th class="p-3.5">Member Name</th>
+                                    <th class="p-3.5">Member ID</th>
+                                    <th class="p-3.5">Branch Scanned</th>
+                                    <th class="p-3.5">Plan Validated</th>
+                                    <th class="p-3.5">Scan Status</th>
+                                    <th class="p-3.5">Operator</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAttendanceTableBody" class="divide-y divide-zinc-800/70"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-TAB 5: MEMBERSHIP PLANS (ADMIN ONLY) -->
             <div id="adminPlansSubTab" class="hidden space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-white">Xtreme Gym World Membership Plans Configuration</h3>
-                    <button onclick="app.openAddPlanModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+                    <h3 class="text-sm font-extrabold text-white">Gym Membership Packages & Pricing</h3>
+                    <button onclick="app.openAddPlanModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-plus"></i>
                         <span>Add New Plan</span>
                     </button>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="plansContainer"></div>
+                <div id="plansContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
             </div>
 
-            <!-- Branches Sub-Tab (Admin Only) -->
+            <!-- SUB-TAB 6: GYM BRANCHES (ADMIN ONLY) -->
             <div id="adminBranchesSubTab" class="hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-darkcard border border-darkborder p-4 rounded-2xl">
+                <div class="flex flex-wrap justify-between items-center gap-3">
                     <div>
-                        <h3 class="text-xs font-extrabold text-white">Xtreme Gym World Branches Management</h3>
-                        <p class="text-[10px] text-zinc-400">Add new Xtreme Gym World branches or edit existing branch locations, operating hours &amp; revenue stats</p>
+                        <h3 class="text-sm font-extrabold text-white">Xtreme Gym World Branches</h3>
+                        <p class="text-xs text-zinc-400">Add new gym branches or edit branch location details and operating hours.</p>
                     </div>
-                    <button onclick="app.openAddBranchModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                    <button onclick="app.openAddBranchModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-plus"></i>
-                        <span>Add Xtreme Gym Branch</span>
+                        <span>Add New Branch</span>
                     </button>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="branchesContainer"></div>
+                <div id="branchesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
+            <!-- SUB-TAB 7: STAFF & ADMIN ACCOUNTS + SYSTEM BACKUP (ADMIN ONLY) -->
             <div id="adminAccountsSubTab" class="hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-darkcard border border-darkborder p-4 rounded-2xl">
-                    <div>
-                        <h3 class="text-xs font-extrabold text-white">Staff &amp; Admin Accounts Management</h3>
-                        <p class="text-[10px] text-zinc-400">Create staff/admin accounts, assign branches, or reset passwords for any team member</p>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button onclick="app.exportDatabaseBackup()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5" title="Download full backup file">
-                            <i class="fa-solid fa-download text-emerald-400"></i>
-                            <span>Backup Data</span>
+                <div class="flex flex-wrap justify-between items-center gap-3">
+                    <h3 class="text-sm font-extrabold text-white">System Administrators & Front Desk Staff</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="app.exportDatabaseBackup()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 border border-zinc-700">
+                            <i class="fa-solid fa-download text-brand-400"></i>
+                            <span>Backup JSON</span>
                         </button>
-                        <input type="file" id="restoreBackupInput" accept=".json" class="hidden" onchange="app.importDatabaseBackup(event)">
-                        <button onclick="document.getElementById('restoreBackupInput').click()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5" title="Restore data from backup file">
-                            <i class="fa-solid fa-upload text-brand-400"></i>
-                            <span>Restore Data</span>
-                        </button>
-                        <button onclick="app.openAddAccountModal()" class="bg-purple-500 hover:bg-purple-600 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                        <label for="restoreBackupInput" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 border border-zinc-700 cursor-pointer">
+                            <i class="fa-solid fa-upload text-emerald-400"></i>
+                            <span>Restore JSON</span>
+                        </label>
+                        <input type="file" id="restoreBackupInput" accept="application/json" onchange="app.importDatabaseBackup(event)" class="hidden">
+                        <button onclick="app.openAddAccountModal()" class="bg-purple-500 hover:bg-purple-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow">
                             <i class="fa-solid fa-user-shield"></i>
-                            <span>Create Staff / Admin Account</span>
+                            <span>Create Staff / Admin</span>
                         </button>
                     </div>
                 </div>
-
                 <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
-                    <div class="overflow-x-auto custom-scrollbar">
+                    <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-zinc-900 text-zinc-400 font-bold">
+                            <thead class="bg-zinc-900/90 text-zinc-400 border-b border-zinc-800">
                                 <tr>
                                     <th class="p-3.5">Full Name</th>
                                     <th class="p-3.5">Username</th>
@@ -858,111 +813,128 @@
                                     <th class="p-3.5 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="accountsTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            <tbody id="accountsTableBody" class="divide-y divide-zinc-800/70"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-        </div>
-
+        </section>
     </main>
 
-    <div id="printPassSheet" class="hidden">
-        <div class="border-2 border-black rounded-2xl p-6 w-80 text-center bg-white text-black space-y-4">
-            <div class="border-b-2 border-black pb-3">
-                <div class="font-black text-xl tracking-wider">XTREME GYM WORLD</div>
-                <div class="text-[11px] font-semibold tracking-widest uppercase">Official Attendance QR Pass</div>
+    <!-- Footer -->
+    <footer class="border-t border-darkborder bg-darkcard/60 py-5 px-4 mt-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-zinc-400">
+            <div class="text-center sm:text-left">
+                <strong id="headerBranchTitle" class="text-white">XTREME GYM WORLD - STA. MARIA:</strong>
+                <span id="headerBranchAddress">3rd Floor, A&amp;E Building, Fortunato F. Halili Avenue, Bagbaguin, Santa Maria, Bulacan</span>
             </div>
-            <div id="printQrTarget" class="flex justify-center items-center py-2"></div>
-            <div class="space-y-1">
-                <div id="printMemberName" class="text-lg font-extrabold">Member Name</div>
-                <div id="printMemberId" class="text-sm font-mono font-bold">EG-2026-0001</div>
-            </div>
-            <div class="border-t border-black pt-3 text-xs space-y-1 text-left">
-                <div class="flex justify-between"><span>Plan:</span><strong id="printPlanName">Monthly Basic</strong></div>
-                <div class="flex justify-between"><span>Valid Until:</span><strong id="printExpiryDate" class="font-mono">2026-12-15</strong></div>
-                <div class="flex justify-between gap-2"><span>Branch:</span><strong id="printBranchName" class="text-right">Xtreme Gym World - Sta. Maria</strong></div>
-            </div>
-            <div class="text-[10px] pt-2 text-zinc-700">
-                Scan this QR code at the Xtreme Gym World front desk to log attendance.
+            <div class="flex items-center gap-4">
+                <span><i class="fa-solid fa-clock text-brand-400 mr-1"></i> <span id="headerBranchHours">Mon-Sat: 6:00 AM - 10:00 PM</span></span>
             </div>
         </div>
-    </div>
+    </footer>
 
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+    <!-- ==============================================================
+         MODALS
+    =============================================================== -->
 
-    <div id="memberModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+    <!-- Add/Edit Member Modal -->
+    <div id="memberModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
                 <h3 id="memberModalTitle" class="text-sm font-extrabold text-white">Register New Gym Member</h3>
                 <button onclick="app.closeModal('memberModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <form id="memberModalForm" onsubmit="app.handleSaveMember(event)" class="space-y-3">
+            <form onsubmit="app.handleSaveMember(event)" class="space-y-3">
                 <input type="hidden" id="editMemberId">
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="block text-xs font-semibold text-zinc-300">First Name <span class="text-rose-400">*</span></label>
-                            <span class="text-[10px] text-zinc-500">2–40</span>
-                        </div>
-                        <input type="text" id="mFirstName" required minlength="2" maxlength="40" placeholder="e.g. Kian" oninput="app.validateNameInput(this, 'mFnErr', 40)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <span id="mFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters, spaces &amp; hyphens only (max 40)</span>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name <span class="text-rose-400">*</span></label>
+                        <input type="text" id="mFirstName" required minlength="2" maxlength="40" oninput="app.validateNameInput(this, 'mFnErr', 40)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="mFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters only (max 40)</span>
                     </div>
                     <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="block text-xs font-semibold text-zinc-300">Last Name <span class="text-rose-400">*</span></label>
-                            <span class="text-[10px] text-zinc-500">2–35</span>
-                        </div>
-                        <input type="text" id="mLastName" required minlength="2" maxlength="35" placeholder="e.g. Puente" oninput="app.validateNameInput(this, 'mLnErr', 35)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <span id="mLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters, spaces &amp; hyphens only (max 35)</span>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name <span class="text-rose-400">*</span></label>
+                        <input type="text" id="mLastName" required minlength="2" maxlength="35" oninput="app.validateNameInput(this, 'mLnErr', 35)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="mLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters only (max 35)</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Email Address</label>
-                        <input type="email" id="mEmail" maxlength="80" placeholder="member@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
-                        <input type="tel" id="mPhone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                    </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Email Address</label>
+                    <input type="email" id="mEmail" maxlength="80" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Home Branch</label>
-                        <select id="mBranchSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Select Plan</label>
-                        <select id="mPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
-                    </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
+                    <input type="tel" id="mPhone" maxlength="11" placeholder="09171234567" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
-                <div class="pt-2 flex flex-wrap justify-between items-center gap-2 border-t border-zinc-800">
-                    <button type="button" id="editMemberChangePassBtn" onclick="app.openMemberPasswordFromEditModal()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-brand-400 border border-zinc-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Home Gym Branch</label>
+                    <select id="mBranchSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Membership Plan</label>
+                    <select id="mPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                </div>
+
+                <div class="pt-2 flex justify-between items-center gap-2 border-t border-zinc-800">
+                    <button type="button" id="editMemberChangePassBtn" onclick="app.openMemberPasswordFromEditModal()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-zinc-700 items-center gap-1.5">
                         <i class="fa-solid fa-key"></i>
-                        <span>Change Member Password</span>
+                        <span>Change Password</span>
                     </button>
                     <div class="flex gap-2 ml-auto">
                         <button type="button" onclick="app.closeModal('memberModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
-                        <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Member Record</button>
+                        <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Member</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Admin & Staff Change Member Password Modal -->
+    <!-- Delete Member Confirmation Modal -->
+    <div id="deleteMemberModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-rose-500/40 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-rose-400 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Delete Gym Member</span>
+                </h3>
+                <button onclick="app.closeModal('deleteMemberModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <input type="hidden" id="delMemberId">
+
+            <div class="space-y-2 text-xs">
+                <p class="text-zinc-300">Are you sure you want to permanently delete this member?</p>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 space-y-0.5">
+                    <div id="delMemberDisplay" class="font-extrabold text-white text-sm">Member Name (XG-2026-0000)</div>
+                    <div id="delMemberBranchDisplay" class="text-[11px] text-zinc-400">Branch • Plan</div>
+                </div>
+                <p class="text-[11px] text-rose-300/90">This will remove their member profile and portal login access from both local storage and Firebase Cloud. Past payment & attendance audit logs will remain intact.</p>
+            </div>
+
+            <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                <button type="button" onclick="app.closeModal('deleteMemberModal')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
+                <button type="button" onclick="app.confirmDeleteMember()" class="bg-rose-500 hover:bg-rose-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Confirm Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Member Password Modal (Staff & Admin) -->
     <div id="memberPasswordModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
                 <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-key text-brand-400"></i>
+                    <i class="fa-solid fa-key text-amber-400"></i>
                     <span>Change Member Portal Password</span>
                 </h3>
                 <button onclick="app.closeModal('memberPasswordModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -972,24 +944,25 @@
                 <input type="hidden" id="mpMemberId">
 
                 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs space-y-1">
-                    <div class="text-zinc-400">Member Account:</div>
-                    <div id="mpMemberDisplay" class="font-bold text-white">Member Name (ID)</div>
-                    <div id="mpPortalStatusNote" class="text-[11px] text-brand-400"></div>
+                    <div class="text-zinc-400">Member Profile:</div>
+                    <div id="mpMemberDisplay" class="font-bold text-white">Member Name (XG-2026-0000)</div>
+                    <div id="mpPortalStatusNote" class="text-[11px] text-amber-400 font-semibold">Portal Account Status</div>
                 </div>
 
-                <div id="mpCreateUsernameSection" class="hidden">
-                    <div class="flex justify-between items-center mb-1">
+                <!-- Shown only if the walk-in/desk member does not yet have a portal login -->
+                <div id="mpCreateUsernameSection" class="hidden space-y-1">
+                    <div class="flex justify-between items-center">
                         <label class="block text-xs font-semibold text-zinc-300">Assign Portal Username <span class="text-rose-400">*</span></label>
                         <span id="mpUsernameCounter" class="text-[10px] text-zinc-500 font-mono">0/24</span>
                     </div>
-                    <input type="text" id="mpNewUsername" minlength="3" maxlength="24" placeholder="3–24 chars (letters, numbers, . or _)" oninput="app.validateUsernameInput(this, 'mpUserErr', 'mpUsernameCounter')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                    <span id="mpUserErr" class="text-[10px] text-rose-400 hidden block mt-0.5">3–24 chars: letters, numbers, . or _ only</span>
+                    <input type="text" id="mpNewUsername" maxlength="24" placeholder="3–24 chars (letters, numbers, . or _)" oninput="app.validateUsernameInput(this, 'mpUserErr', 'mpUsernameCounter')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <span id="mpUserErr" class="text-[10px] text-rose-400 hidden block">3–24 chars: letters, numbers, . or _ only</span>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">New Password <span class="text-rose-400">*</span></label>
                     <div class="relative">
-                        <input type="password" id="mpNewPassword" required minlength="6" maxlength="64" placeholder="6–64 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white focus:outline-none focus:border-brand-400">
+                        <input type="password" id="mpNewPassword" required minlength="6" maxlength="64" placeholder="6–64 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white">
                         <button type="button" onclick="app.togglePasswordVisibility('mpNewPassword', 'mpNewPassIcon')" class="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-xs p-1">
                             <i id="mpNewPassIcon" class="fa-solid fa-eye"></i>
                         </button>
@@ -999,7 +972,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">Confirm New Password <span class="text-rose-400">*</span></label>
                     <div class="relative">
-                        <input type="password" id="mpConfirmPassword" required minlength="6" maxlength="64" placeholder="Re-enter new password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white focus:outline-none focus:border-brand-400">
+                        <input type="password" id="mpConfirmPassword" required minlength="6" maxlength="64" placeholder="Re-enter new password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white">
                         <button type="button" onclick="app.togglePasswordVisibility('mpConfirmPassword', 'mpConfirmPassIcon')" class="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-xs p-1">
                             <i id="mpConfirmPassIcon" class="fa-solid fa-eye"></i>
                         </button>
@@ -1008,13 +981,13 @@
 
                 <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
                     <button type="button" onclick="app.closeModal('memberPasswordModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
-                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Update Member Password</button>
+                    <button type="submit" class="bg-amber-400 hover:bg-amber-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Password</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Add / Edit Xtreme Gym Branch Modal (Admin Only) -->
+    <!-- Add/Edit Branch Modal (Admin Only) -->
     <div id="branchModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -1026,30 +999,30 @@
                 <input type="hidden" id="editBranchId">
 
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Branch Name (3–60 chars) <span class="text-rose-400">*</span></label>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Branch Name <span class="text-rose-400">*</span></label>
                     <input type="text" id="bName" required minlength="3" maxlength="60" placeholder="e.g. Xtreme Gym World - Bocaue" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Full Branch Address (5–140 chars) <span class="text-rose-400">*</span></label>
-                    <input type="text" id="bAddress" required minlength="5" maxlength="140" placeholder="Street, Barangay, City/Municipality, Province" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Full Street Address <span class="text-rose-400">*</span></label>
+                    <input type="text" id="bAddress" required minlength="5" maxlength="140" placeholder="Building, Street, Barangay, City/Municipality, Province" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Operating Hours <span class="text-rose-400">*</span></label>
-                        <input type="text" id="bHours" required minlength="3" maxlength="50" placeholder="Mon-Sat: 6:00 AM - 10:00 PM" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Operating Hours</label>
+                        <input type="text" id="bHours" maxlength="50" placeholder="Mon-Sat: 6:00 AM - 10:00 PM" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1">Contact Number</label>
-                        <input type="tel" id="bContact" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" placeholder="0917XXXXXXX" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="tel" id="bContact" maxlength="11" placeholder="09171234567" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">Branch Status</label>
                     <select id="bStatus" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <option value="Active">Active (Open for Members)</option>
+                        <option value="Active">Active / Open</option>
                         <option value="Inactive">Inactive / Temporarily Closed</option>
                     </select>
                 </div>
@@ -1062,6 +1035,7 @@
         </div>
     </div>
 
+    <!-- Create Staff / Admin Account Modal -->
     <div id="accountModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -1247,6 +1221,7 @@
         </div>
     </div>
 
+    <!-- Add/Edit Membership Plan Modal -->
     <div id="planModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -1290,6 +1265,7 @@
         </div>
     </div>
 
+    <!-- View Member QR Pass Modal -->
     <div id="viewQrModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-darkcard border border-darkborder rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
             <button onclick="app.closeModal('viewQrModal')" class="absolute right-4 top-4 text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -1297,7 +1273,7 @@
             <div id="modalQrContainer" class="bg-white p-4 rounded-xl flex justify-center items-center shadow-inner"></div>
             <div>
                 <p id="modalQrName" class="text-base font-bold text-white">Member Name</p>
-                <p id="modalQrId" class="text-xs text-brand-400 font-mono">EG-2026-0000</p>
+                <p id="modalQrId" class="text-xs text-brand-400 font-mono">XG-2026-0000</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="app.printModalMemberPass()" class="flex-1 bg-brand-400 hover:bg-brand-500 text-black py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 shadow">
@@ -1309,6 +1285,7 @@
         </div>
     </div>
 
+    <!-- Member Self-Renewal Modal -->
     <div id="renewalModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -1701,7 +1678,7 @@
                             (snapshot) => {
                                 const docs = [];
                                 snapshot.forEach(doc => docs.push(doc.data()));
-                                if (docs.length > 0) {
+                                if (docs.length > 0 || col.prop === 'members') {
                                     const sorted = this.sortCollectionChronologically(docs);
                                     this[col.prop] = sorted;
                                     localStorage.setItem(col.localKey, JSON.stringify(sorted));
@@ -1790,6 +1767,17 @@
                 }
             }
 
+            async deleteRecordFromCloud(collectionName, docId) {
+                if (!db || !docId) return;
+                try {
+                    await db.collection(collectionName).doc(String(docId)).delete();
+                    this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore (extremegym-53eed)');
+                } catch (err) {
+                    console.warn(`Cloud delete error (${collectionName}/${docId}):`, err);
+                    this.setCloudStatus('warning', 'Cloud Sync Pending', 'Check Firestore rules or internet connection');
+                }
+            }
+
             async pushFullCollectionToCloud(collectionName, items) {
                 if (!db || !Array.isArray(items)) return;
                 try {
@@ -1833,7 +1821,6 @@
                 this.payments = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_payments')));
                 this.attendance = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_attendance')));
 
-                // Migrate legacy default branch name if untouched
                 const defaultBranch = this.branches.find(b => b.id === 'branch_1');
                 if (defaultBranch && defaultBranch.name.startsWith('Extreme Gym')) {
                     defaultBranch.name = 'Xtreme Gym World - Sta. Maria';
@@ -3008,8 +2995,8 @@
                     paySel.appendChild(opt2);
                 });
 
-                if (prevScan) sel.value = prevScan;
-                if (prevPay) paySel.value = prevPay;
+                if (prevScan && this.members.some(m => m.id === prevScan)) sel.value = prevScan;
+                if (prevPay && this.members.some(m => m.id === prevPay)) paySel.value = prevPay;
             }
 
             onPayMemberSelectChange() {
@@ -3247,10 +3234,66 @@
                             <button onclick="app.quickRenewMember('${m.id}')" class="bg-brand-400/20 hover:bg-brand-400/30 text-brand-300 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-brand-500/30" title="Renew Plan">
                                 <i class="fa-solid fa-arrows-rotate"></i>
                             </button>
+                            <button onclick="app.openDeleteMemberModal('${m.id}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-rose-500/30" title="Delete Member">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
+            }
+
+            openDeleteMemberModal(memberId) {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) return;
+
+                const branchLabel = this.resolveRecordBranchName(member);
+                document.getElementById('delMemberId').value = member.id;
+                document.getElementById('delMemberDisplay').textContent = `${member.firstName} ${member.lastName} (${member.id})`;
+                document.getElementById('delMemberBranchDisplay').textContent = `${branchLabel} • ${member.planName}`;
+                this.openModal('deleteMemberModal');
+            }
+
+            async confirmDeleteMember() {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+
+                const memberId = document.getElementById('delMemberId').value;
+                const memberIndex = this.members.findIndex(m => m.id === memberId);
+                if (memberIndex === -1) {
+                    this.closeModal('deleteMemberModal');
+                    return;
+                }
+
+                const member = this.members[memberIndex];
+                const fullName = `${member.firstName} ${member.lastName}`;
+
+                this.members.splice(memberIndex, 1);
+                this.saveData('members');
+
+                const linkedUsers = this.users.filter(u =>
+                    u.role === 'member' && (u.id === member.userId || u.memberId === member.id)
+                );
+                if (linkedUsers.length > 0) {
+                    const linkedIds = new Set(linkedUsers.map(u => u.id));
+                    this.users = this.users.filter(u => !linkedIds.has(u.id));
+                    this.saveData('users');
+                }
+
+                await Promise.all([
+                    this.deleteRecordFromCloud('eg_members', member.id),
+                    ...linkedUsers.map(u => this.deleteRecordFromCloud('eg_users', u.id))
+                ]);
+
+                this.closeModal('deleteMemberModal');
+                this.renderAdminDashboard();
+                this.showToast(`Member ${fullName} (${member.id}) deleted & synced to cloud.`, 'success');
             }
 
             openAddMemberModal() {
@@ -3621,7 +3664,6 @@
                 if (!tbody) return;
                 tbody.innerHTML = '';
 
-                const todayISO = getLocalISODate(0);
                 let grandMembers = 0;
                 let grandActive = 0;
                 let grandStaff = 0;
@@ -4054,7 +4096,6 @@
                 this.showToast('New membership plan saved & synced to cloud.', 'success');
             }
 
-            // Branches Management (Add & Edit Xtreme Gym World Branches with Revenue & Staff Stats)
             renderBranchesList() {
                 const container = document.getElementById('branchesContainer');
                 if (!container) return;
@@ -4487,42 +4528,56 @@
                 const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
                 if (!targetUser) return;
 
-                targetUser.password = await hashPasswordSHA256(newPass);
+                const hashed = await hashPasswordSHA256(newPass);
+                targetUser.password = hashed;
                 this.saveData('users');
                 await this.pushRecordToCloud('eg_users', targetUser.id, targetUser);
 
                 if (this.currentUser.id === targetUser.id) {
-                    this.currentUser.password = targetUser.password;
-                    sessionStorage.setItem('eg_session', JSON.stringify(this.currentUser));
+                    this.currentUser = targetUser;
+                    sessionStorage.setItem('eg_session', JSON.stringify(targetUser));
                 }
 
                 this.closeModal('changePasswordModal');
-                this.showToast(`Password updated & synced to cloud for ${targetUser.username}.`, 'success');
+                this.showToast(`Password updated for ${targetUser.username} & synced to cloud!`, 'success');
             }
 
             exportDatabaseBackup() {
-                if (this.currentUser?.role !== 'admin') return;
-                const payload = {
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Administrator access required.', 'error');
+                    return;
+                }
+
+                const backupPayload = {
+                    system: 'Xtreme Gym World QR Membership & Revenue System',
                     exportedAt: new Date().toISOString(),
-                    branches: this.branches,
-                    plans: this.plans,
-                    users: this.users,
-                    members: this.members,
-                    payments: this.payments,
-                    attendance: this.attendance
+                    version: 3,
+                    data: {
+                        branches: this.branches,
+                        plans: this.plans,
+                        users: this.users,
+                        members: this.members,
+                        payments: this.payments,
+                        attendance: this.attendance
+                    }
                 };
-                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+
+                const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `Xtreme_Gym_Backup_${getLocalISODate(0)}.json`;
                 a.click();
                 window.URL.revokeObjectURL(url);
-                this.showToast('Full system backup downloaded.', 'success');
+                this.showToast('System backup JSON downloaded!', 'success');
             }
 
             importDatabaseBackup(event) {
-                if (this.currentUser?.role !== 'admin') return;
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Administrator access required.', 'error');
+                    return;
+                }
+
                 const file = event.target.files?.[0];
                 if (!file) return;
                 event.target.value = '';
@@ -4530,25 +4585,25 @@
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     try {
-                        const data = JSON.parse(e.target.result);
-                        if (!Array.isArray(data.users) || !Array.isArray(data.members) || !Array.isArray(data.plans)) {
+                        const parsed = JSON.parse(e.target.result);
+                        const d = parsed.data || parsed;
+
+                        if (!Array.isArray(d.plans) || !Array.isArray(d.users) || !Array.isArray(d.members) || !Array.isArray(d.payments) || !Array.isArray(d.attendance)) {
                             this.showToast('Invalid backup file format.', 'error');
                             return;
                         }
-                        if (!data.users.some(u => u && u.role === 'admin' && u.id && u.username)) {
-                            this.showToast('Backup rejected: missing valid administrator account.', 'error');
-                            return;
-                        }
-                        if (Array.isArray(data.branches) && data.branches.length > 0) {
-                            this.branches = this.sortCollectionChronologically(data.branches);
-                        }
-                        this.plans = this.sortCollectionChronologically(data.plans);
-                        this.users = this.sortCollectionChronologically(data.users);
-                        this.members = this.sortCollectionChronologically(data.members);
-                        this.payments = this.sortCollectionChronologically(data.payments || []);
-                        this.attendance = this.sortCollectionChronologically(data.attendance || []);
 
-                        this.saveData('branches');
+                        if (Array.isArray(d.branches) && d.branches.length > 0) {
+                            this.branches = this.sortCollectionChronologically(d.branches);
+                            this.saveData('branches');
+                        }
+
+                        this.plans = this.sortCollectionChronologically(d.plans);
+                        this.users = this.sortCollectionChronologically(d.users);
+                        this.members = this.sortCollectionChronologically(d.members);
+                        this.payments = this.sortCollectionChronologically(d.payments);
+                        this.attendance = this.sortCollectionChronologically(d.attendance);
+
                         this.saveData('plans');
                         this.saveData('users');
                         this.saveData('members');
@@ -4568,55 +4623,66 @@
                         this.updateHeaderBranchInfo();
                         this.populatePlanSelects();
                         this.renderAdminDashboard();
-                        this.showToast('System backup restored & synced to cloud.', 'success');
+                        this.showToast('Database backup restored & synced to cloud!', 'success');
                     } catch (err) {
-                        this.showToast('Failed to read backup file.', 'error');
+                        this.showToast('Failed to read JSON backup file.', 'error');
                     }
                 };
                 reader.readAsText(file);
             }
 
             openModal(modalId) {
-                const el = document.getElementById(modalId);
-                if (el) el.classList.remove('hidden');
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.remove('hidden');
             }
 
             closeModal(modalId) {
-                const el = document.getElementById(modalId);
-                if (el) el.classList.add('hidden');
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.add('hidden');
             }
 
             showToast(message, type = 'info') {
                 const container = document.getElementById('toastContainer');
                 if (!container) return;
 
-                const colors = {
-                    success: 'bg-emerald-950 border-emerald-500/50 text-emerald-300',
-                    error: 'bg-rose-950 border-rose-500/50 text-rose-300',
-                    warning: 'bg-amber-950 border-amber-500/50 text-amber-300',
-                    info: 'bg-zinc-900 border-zinc-700 text-zinc-200'
-                };
-                const icons = {
-                    success: 'fa-circle-check text-emerald-400',
-                    error: 'fa-circle-exclamation text-rose-400',
-                    warning: 'fa-triangle-exclamation text-amber-400',
-                    info: 'fa-circle-info text-brand-400'
-                };
-
                 const toast = document.createElement('div');
-                toast.className = `pointer-events-auto border px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2.5 max-w-sm ${colors[type] || colors.info}`;
-                toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-sm"></i><span>${escapeHTML(message)}</span>`;
+                let icon = 'fa-circle-info';
+                let bgClass = 'bg-zinc-900 border-zinc-700 text-zinc-200';
+
+                if (type === 'success') {
+                    icon = 'fa-circle-check';
+                    bgClass = 'bg-emerald-950/90 border-emerald-500/40 text-emerald-300';
+                } else if (type === 'error') {
+                    icon = 'fa-circle-exclamation';
+                    bgClass = 'bg-rose-950/90 border-rose-500/40 text-rose-300';
+                } else if (type === 'warning') {
+                    icon = 'fa-triangle-exclamation';
+                    bgClass = 'bg-amber-950/90 border-amber-500/40 text-amber-300';
+                }
+
+                toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md text-xs font-semibold transition-all duration-300 translate-y-2 opacity-0 ${bgClass}`;
+                toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span>${escapeHTML(message)}</span>`;
 
                 container.appendChild(toast);
+
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-y-2', 'opacity-0');
+                });
+
                 setTimeout(() => {
-                    toast.style.opacity = '0';
-                    toast.style.transition = 'opacity 0.3s ease';
+                    toast.classList.add('translate-y-2', 'opacity-0');
                     setTimeout(() => toast.remove(), 300);
                 }, 4000);
             }
         }
 
         const app = new GymApp();
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+            }
+        });
     </script>
 </body>
 </html>
