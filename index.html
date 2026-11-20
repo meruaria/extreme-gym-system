@@ -4757,15 +4757,30 @@
     return `XG-2026-${String(max + 1).padStart(4, '0')}`;
   };
   A.migrateLegacyIds = function () {
-    this.users.forEach(u => {
-      if (/^EG-/.test(u.memberId || '')) {
-        u.memberId = u.memberId.replace(/^EG-/, 'XG-');
-        this.saveData('users'); this.pushRecordToCloud('eg_users', u.id, u);
-      }
+    const fix = v => (typeof v === 'string' && /^EG-/.test(v)) ? v.replace(/^EG-/, 'XG-') : v;
+    const taken = new Set(this.members.map(m => m.id));
+    // members: re-key (the id is also the Firestore doc id)
+    [...this.members].forEach(m => {
+      if (!/^EG-/.test(m.id || '')) return;
+      const oldId = m.id, newId = fix(oldId);
+      if (taken.has(newId)) return;
+      m.id = newId; taken.add(newId);
+      this.saveData('members');
+      this.deleteRecordFromCloud('eg_members', oldId);
+      this.pushRecordToCloud('eg_members', m.id, m);
+    });
+    // linked records that point at a member id
+    [['users', 'eg_users', 'memberId'], ['payments', 'eg_payments', 'memberId'], ['attendance', 'eg_attendance', 'memberId']].forEach(([prop, col, field]) => {
+      this[prop].forEach(r => {
+        if (/^EG-/.test(r[field] || '')) {
+          r[field] = fix(r[field]);
+          this.saveData(prop); this.pushRecordToCloud(col, r.id, r);
+        }
+      });
     });
   };
   const oCloud = A.onCloudDataUpdated;
-  A.onCloudDataUpdated = function (prop) { if (prop === 'users') this.migrateLegacyIds(); return oCloud.call(this, prop); };
+  A.onCloudDataUpdated = function (prop) { if (['users', 'members', 'payments', 'attendance'].includes(prop)) this.migrateLegacyIds(); return oCloud.call(this, prop); };
 
   // ---------- 2. Daily walk-in helpers ----------
   A.isDailyPlan = p => !!p && (p.category === 'Walk-in' || +p.durationDays === 1);
