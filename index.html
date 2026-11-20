@@ -124,9 +124,7 @@
                     </div>
                 </div>
 
-                <div id="navTabsContainer" class="hidden md:flex items-center gap-1"></div>
-
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 sm:gap-3">
                     <div id="cloudStatusBadge" class="bg-zinc-900 border border-zinc-700 text-zinc-400 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5" title="Firebase Cloud Database Status">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                         <span>Connecting Cloud...</span>
@@ -137,6 +135,11 @@
                         <div id="userRoleBadge" class="text-[11px] text-brand-400 font-medium">Role</div>
                     </div>
 
+                    <button id="selfChangePassBtn" onclick="app.openSelfChangePasswordModal()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-zinc-700" title="Change Your Password">
+                        <i class="fa-solid fa-key"></i>
+                        <span class="hidden sm:inline">Password</span>
+                    </button>
+
                     <button id="logoutBtn" onclick="app.logout()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-zinc-700">
                         <i class="fa-solid fa-right-from-bracket"></i>
                         <span>Logout</span>
@@ -144,7 +147,6 @@
                 </div>
             </div>
         </div>
-        <div id="mobileNavTabs" class="md:hidden border-t border-zinc-800 px-4 py-2 flex overflow-x-auto gap-2 custom-scrollbar"></div>
     </nav>
 
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
@@ -183,7 +185,7 @@
                         <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Username or Email</label>
                         <div class="relative">
                             <i class="fa-solid fa-user absolute left-3.5 top-3 text-zinc-500 text-xs"></i>
-                            <input type="text" id="loginUsername" required autocomplete="username" placeholder="Enter username or email" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition">
+                            <input type="text" id="loginUsername" required maxlength="80" autocomplete="username" placeholder="Enter username or email" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition">
                         </div>
                     </div>
 
@@ -191,17 +193,11 @@
                         <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Password</label>
                         <div class="relative">
                             <i class="fa-solid fa-lock absolute left-3.5 top-3 text-zinc-500 text-xs"></i>
-                            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Enter password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-10 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition">
+                            <input type="password" id="loginPassword" required maxlength="64" autocomplete="current-password" placeholder="Enter password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-10 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition">
                             <button type="button" onclick="app.togglePasswordVisibility('loginPassword', 'loginPassIcon')" class="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300 text-xs p-1">
                                 <i id="loginPassIcon" class="fa-solid fa-eye"></i>
                             </button>
                         </div>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1">
-                        <label class="flex items-center gap-2 text-zinc-400 cursor-pointer">
-                            <input type="checkbox" class="rounded bg-zinc-900 border-zinc-700 text-brand-400 focus:ring-0"> Remember me
-                        </label>
                     </div>
 
                     <button type="submit" id="loginSubmitBtn" class="w-full bg-brand-400 hover:bg-brand-500 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2 mt-2">
@@ -218,30 +214,40 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name <span class="text-rose-400">*</span></label>
-                            <input type="text" id="regFirstName" required placeholder="e.g. Juan" oninput="app.validateNameInput(this, 'regFnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                            <span id="regFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters &amp; hyphens only</span>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-semibold text-zinc-300">First Name <span class="text-rose-400">*</span></label>
+                                <span class="text-[10px] text-zinc-500">2–40 chars</span>
+                            </div>
+                            <input type="text" id="regFirstName" required minlength="2" maxlength="40" placeholder="e.g. Juan" oninput="app.validateNameInput(this, 'regFnErr', 40)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                            <span id="regFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters, spaces &amp; hyphens only (max 40)</span>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name <span class="text-rose-400">*</span></label>
-                            <input type="text" id="regLastName" required placeholder="e.g. Dela Cruz" oninput="app.validateNameInput(this, 'regLnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
-                            <span id="regLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters &amp; hyphens only</span>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-semibold text-zinc-300">Last Name <span class="text-rose-400">*</span></label>
+                                <span class="text-[10px] text-zinc-500">2–35 chars</span>
+                            </div>
+                            <input type="text" id="regLastName" required minlength="2" maxlength="35" placeholder="e.g. Dela Cruz" oninput="app.validateNameInput(this, 'regLnErr', 35)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                            <span id="regLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters, spaces &amp; hyphens only (max 35)</span>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Username <span class="text-rose-400">*</span></label>
-                        <input type="text" id="regUsername" required placeholder="Choose a unique username" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-zinc-300">Username <span class="text-rose-400">*</span></label>
+                            <span id="regUsernameCounter" class="text-[10px] text-zinc-500 font-mono">0/24</span>
+                        </div>
+                        <input type="text" id="regUsername" required minlength="3" maxlength="24" placeholder="3–24 chars (letters, numbers, . or _)" oninput="app.validateUsernameInput(this, 'regUserErr', 'regUsernameCounter')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                        <span id="regUserErr" class="text-[10px] text-rose-400 hidden block mt-0.5">3–24 chars: letters, numbers, dots (.) or underscores (_) only</span>
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1">Email Address <span class="text-rose-400">*</span></label>
-                        <input type="email" id="regEmail" required placeholder="juan@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                        <input type="email" id="regEmail" required maxlength="80" placeholder="juan@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
-                        <input type="tel" id="regPhone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                        <input type="tel" id="regPhone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
                     </div>
 
                     <div>
@@ -250,9 +256,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Password <span class="text-rose-400">*</span></label>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-zinc-300">Password <span class="text-rose-400">*</span></label>
+                            <span class="text-[10px] text-zinc-500">6–64 chars</span>
+                        </div>
                         <div class="relative">
-                            <input type="password" id="regPassword" required minlength="6" placeholder="At least 6 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                            <input type="password" id="regPassword" required minlength="6" maxlength="64" placeholder="At least 6 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
                             <button type="button" onclick="app.togglePasswordVisibility('regPassword', 'regPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
                                 <i id="regPassIcon" class="fa-solid fa-eye"></i>
                             </button>
@@ -487,6 +496,7 @@
                         </div>
 
                         <div id="qrCameraReader" class="hidden bg-black rounded-xl border border-brand-500/40 overflow-hidden min-h-[250px]"></div>
+                        <div id="qrFileScanTarget" class="hidden"></div>
 
                         <div class="mt-6 space-y-3">
                             <label class="block text-xs font-bold text-zinc-300">Select Member Pass:</label>
@@ -505,7 +515,7 @@
                             <div class="relative pt-2">
                                 <label class="block text-xs font-semibold text-zinc-400 mb-1">Optical Scanner / Manual Member ID Input:</label>
                                 <div class="flex gap-2">
-                                    <input type="text" id="manualScanInput" onkeydown="if(event.key==='Enter'){event.preventDefault();app.simScanFromInput();}" placeholder="Scan QR or enter ID (e.g. EG-2026-0001)" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-brand-400">
+                                    <input type="text" id="manualScanInput" maxlength="30" onkeydown="if(event.key==='Enter'){event.preventDefault();app.simScanFromInput();}" placeholder="Scan QR or enter ID (e.g. EG-2026-0001)" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-brand-400">
                                     <button onclick="app.simScanFromInput()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold px-4 py-2 rounded-xl text-xs transition border border-zinc-700">
                                         Verify ID
                                     </button>
@@ -544,7 +554,7 @@
                     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         <div class="relative flex-1 sm:w-64">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-zinc-500 text-xs"></i>
-                            <input type="text" id="memberSearchInput" onkeyup="app.renderMembersTable()" placeholder="Search name, ID, email..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
+                            <input type="text" id="memberSearchInput" maxlength="60" onkeyup="app.renderMembersTable()" placeholder="Search name, ID, email..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-400">
                         </div>
                         <select id="memberStatusFilter" onchange="app.renderMembersTable()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
                             <option value="ALL">All Statuses</option>
@@ -645,7 +655,7 @@
 
                             <div>
                                 <label class="block text-[11px] text-zinc-300 mb-1">Reference / Receipt No.</label>
-                                <input type="text" id="payRefNo" placeholder="Optional ref #" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                                <input type="text" id="payRefNo" maxlength="40" oninput="this.value = this.value.replace(/[^A-Za-z0-9-_]/g, '')" placeholder="Optional ref #" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                             </div>
 
                             <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2">
@@ -721,7 +731,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-darkcard border border-darkborder p-4 rounded-2xl">
                     <div>
                         <h3 class="text-xs font-extrabold text-white">Staff &amp; Admin Accounts Management</h3>
-                        <p class="text-[10px] text-zinc-400">Only the Administrator account can create accounts or change Admin/Staff passwords</p>
+                        <p class="text-[10px] text-zinc-400">Create staff/admin accounts or reset passwords for any team member</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <button onclick="app.exportDatabaseBackup()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5" title="Download full backup file">
@@ -797,25 +807,31 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name <span class="text-rose-400">*</span></label>
-                        <input type="text" id="mFirstName" required placeholder="e.g. Kian" oninput="app.validateNameInput(this, 'mFnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <span id="mFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">No numbers or special symbols</span>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-zinc-300">First Name <span class="text-rose-400">*</span></label>
+                            <span class="text-[10px] text-zinc-500">2–40</span>
+                        </div>
+                        <input type="text" id="mFirstName" required minlength="2" maxlength="40" placeholder="e.g. Kian" oninput="app.validateNameInput(this, 'mFnErr', 40)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="mFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters, spaces &amp; hyphens only (max 40)</span>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name <span class="text-rose-400">*</span></label>
-                        <input type="text" id="mLastName" required placeholder="e.g. Puente" oninput="app.validateNameInput(this, 'mLnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <span id="mLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">No numbers or special symbols</span>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-zinc-300">Last Name <span class="text-rose-400">*</span></label>
+                            <span class="text-[10px] text-zinc-500">2–35</span>
+                        </div>
+                        <input type="text" id="mLastName" required minlength="2" maxlength="35" placeholder="e.g. Puente" oninput="app.validateNameInput(this, 'mLnErr', 35)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="mLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters, spaces &amp; hyphens only (max 35)</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1">Email Address</label>
-                        <input type="email" id="mEmail" placeholder="member@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="email" id="mEmail" maxlength="80" placeholder="member@example.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
-                        <input type="tel" id="mPhone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="tel" id="mPhone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                     </div>
                 </div>
 
@@ -842,20 +858,24 @@
             <form onsubmit="app.handleSaveStaffAccount(event)" class="space-y-3">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name</label>
-                        <input type="text" id="accFn" required oninput="app.validateNameInput(this, 'accFnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <span id="accFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters only</span>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name (2–40)</label>
+                        <input type="text" id="accFn" required minlength="2" maxlength="40" oninput="app.validateNameInput(this, 'accFnErr', 40)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="accFnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters only (max 40)</span>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name</label>
-                        <input type="text" id="accLn" required oninput="app.validateNameInput(this, 'accLnErr')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <span id="accLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters only</span>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name (2–35)</label>
+                        <input type="text" id="accLn" required minlength="2" maxlength="35" oninput="app.validateNameInput(this, 'accLnErr', 35)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <span id="accLnErr" class="text-[10px] text-rose-400 hidden block mt-0.5">Letters only (max 35)</span>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Username</label>
-                    <input type="text" id="accUsername" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-semibold text-zinc-300">Username</label>
+                        <span id="accUsernameCounter" class="text-[10px] text-zinc-500 font-mono">0/24</span>
+                    </div>
+                    <input type="text" id="accUsername" required minlength="3" maxlength="24" placeholder="3–24 chars (letters, numbers, . or _)" oninput="app.validateUsernameInput(this, 'accUserErr', 'accUsernameCounter')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <span id="accUserErr" class="text-[10px] text-rose-400 hidden block mt-0.5">3–24 chars: letters, numbers, . or _ only</span>
                 </div>
 
                 <div>
@@ -867,8 +887,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Password</label>
-                    <input type="password" id="accPassword" required minlength="6" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Password (6–64 chars)</label>
+                    <input type="password" id="accPassword" required minlength="6" maxlength="64" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
                 <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
@@ -879,10 +899,66 @@
         </div>
     </div>
 
+    <!-- Self-Service Change Password Modal (Staff & Admin) -->
+    <div id="selfChangePasswordModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-key text-brand-400"></i>
+                    <span>Change Your Password</span>
+                </h3>
+                <button onclick="app.closeModal('selfChangePasswordModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="app.handleSelfChangePassword(event)" class="space-y-3">
+                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs space-y-0.5">
+                    <div class="text-zinc-400">Signed-in Account:</div>
+                    <div id="selfCpAccountDisplay" class="font-bold text-white">Name (username)</div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Current Password <span class="text-rose-400">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="selfCpCurrentPassword" required maxlength="64" autocomplete="current-password" placeholder="Enter current password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white focus:outline-none focus:border-brand-400">
+                        <button type="button" onclick="app.togglePasswordVisibility('selfCpCurrentPassword', 'selfCpCurrIcon')" class="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-xs p-1">
+                            <i id="selfCpCurrIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">New Password <span class="text-rose-400">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="selfCpNewPassword" required minlength="6" maxlength="64" autocomplete="new-password" placeholder="6–64 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white focus:outline-none focus:border-brand-400">
+                        <button type="button" onclick="app.togglePasswordVisibility('selfCpNewPassword', 'selfCpNewIcon')" class="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-xs p-1">
+                            <i id="selfCpNewIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Confirm New Password <span class="text-rose-400">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="selfCpConfirmPassword" required minlength="6" maxlength="64" autocomplete="new-password" placeholder="Re-enter new password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white focus:outline-none focus:border-brand-400">
+                        <button type="button" onclick="app.togglePasswordVisibility('selfCpConfirmPassword', 'selfCpConfIcon')" class="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-xs p-1">
+                            <i id="selfCpConfIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('selfChangePasswordModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save New Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Reset Staff/Admin Password Modal -->
     <div id="changePasswordModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                <h3 class="text-sm font-extrabold text-white">Change Account Password</h3>
+                <h3 class="text-sm font-extrabold text-white">Reset Account Password</h3>
                 <button onclick="app.closeModal('changePasswordModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
@@ -897,7 +973,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">New Password <span class="text-rose-400">*</span></label>
                     <div class="relative">
-                        <input type="password" id="cpNewPassword" required minlength="6" placeholder="At least 6 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="password" id="cpNewPassword" required minlength="6" maxlength="64" placeholder="6–64 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                         <button type="button" onclick="app.togglePasswordVisibility('cpNewPassword', 'cpNewPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
                             <i id="cpNewPassIcon" class="fa-solid fa-eye"></i>
                         </button>
@@ -907,7 +983,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">Confirm New Password <span class="text-rose-400">*</span></label>
                     <div class="relative">
-                        <input type="password" id="cpConfirmPassword" required minlength="6" placeholder="Re-enter new password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="password" id="cpConfirmPassword" required minlength="6" maxlength="64" placeholder="Re-enter new password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                         <button type="button" onclick="app.togglePasswordVisibility('cpConfirmPassword', 'cpConfirmPassIcon')" class="absolute right-3 top-2 text-zinc-500 text-xs p-1">
                             <i id="cpConfirmPassIcon" class="fa-solid fa-eye"></i>
                         </button>
@@ -931,8 +1007,8 @@
 
             <form onsubmit="app.handleSavePlan(event)" class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Plan Name</label>
-                    <input type="text" id="pName" required placeholder="e.g. Student Monthly Special" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Plan Name (3–50 chars)</label>
+                    <input type="text" id="pName" required minlength="3" maxlength="50" placeholder="e.g. Student Monthly Special" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -1014,7 +1090,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">GCash / Payment Reference No.</label>
-                    <input type="text" id="renewRefNo" placeholder="Optional reference number" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <input type="text" id="renewRefNo" maxlength="40" oninput="this.value = this.value.replace(/[^A-Za-z0-9-_]/g, '')" placeholder="Optional reference number" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
                 <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
@@ -1026,7 +1102,6 @@
     </div>
 
     <script>
-        // Firebase Configuration for Extreme Gym
         const firebaseConfig = {
             apiKey: "AIzaSyC0unjeJ3e8-Te0pE25PH8xTHaYz_D-BQM",
             authDomain: "extremegym-53eed.firebaseapp.com",
@@ -1062,6 +1137,51 @@
             return Math.min(Math.max(val, min), max);
         }
 
+        function normalizeCleanText(str, maxLen) {
+            return String(str || '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, maxLen);
+        }
+
+        const RESERVED_USERNAMES = new Set([
+            'admin', 'administrator', 'root', 'staff', 'staff1', 'staff2',
+            'moderator', 'mod', 'support', 'helpdesk', 'owner', 'manager',
+            'extremegym', 'extreme_gym', 'system', 'null', 'undefined', 'guest'
+        ]);
+
+        function isValidHumanName(str, minLen, maxLen) {
+            const cleaned = normalizeCleanText(str, maxLen + 5);
+            if (cleaned.length < minLen || cleaned.length > maxLen) return false;
+            if (!/^[A-Za-zÀ-ÿ]+(?:[ '\-][A-Za-zÀ-ÿ]+)*$/.test(cleaned)) return false;
+            if (/(.)\1{4,}/i.test(cleaned)) return false;
+            return true;
+        }
+
+        function isValidAccountUsername(str) {
+            const val = String(str || '').trim();
+            if (val.length < 3 || val.length > 24) return false;
+            if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9._]{1,22}[a-zA-Z0-9])$/.test(val)) return false;
+            if (/(\.\.|__|._|_.)/.test(val)) return false;
+            if (/(.)\1{4,}/i.test(val)) return false;
+            if (RESERVED_USERNAMES.has(val.toLowerCase())) return false;
+            return true;
+        }
+
+        function isValidEmailAddress(email) {
+            const val = String(email || '').trim();
+            if (val.length < 5 || val.length > 80) return false;
+            return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
+        }
+
+        function isValidOptionalPhone(phone) {
+            const val = String(phone || '').trim();
+            if (!val) return true;
+            if (!/^09\d{9}$/.test(val)) return false;
+            if (/^09(\d)\1{8}$/.test(val)) return false;
+            return true;
+        }
+
         function getLocalISODate(offsetDays = 0) {
             const d = new Date();
             d.setDate(d.getDate() + offsetDays);
@@ -1071,18 +1191,47 @@
             return `${year}-${month}-${day}`;
         }
 
+        function isMemberExpired(member) {
+            if (!member || !member.expiryDate) return true;
+            return new Date(member.expiryDate + 'T23:59:59') < new Date();
+        }
+
+        async function hashPasswordSHA256(plainText) {
+            if (!plainText) return '';
+            if (String(plainText).startsWith('sha256:')) return plainText;
+            try {
+                if (window.crypto && window.crypto.subtle) {
+                    const msgUint8 = new TextEncoder().encode(plainText);
+                    const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    return `sha256:${hashHex}`;
+                }
+            } catch (e) {}
+            return plainText;
+        }
+
+        async function verifyPassword(storedPassword, inputPassword) {
+            if (!storedPassword || !inputPassword) return false;
+            if (String(storedPassword).startsWith('sha256:')) {
+                const hashedInput = await hashPasswordSHA256(inputPassword);
+                return storedPassword === hashedInput;
+            }
+            return storedPassword === inputPassword;
+        }
+
         const INITIAL_PLANS = [
-            { id: 'plan_1', name: 'Daily Walk-in Pass', price: 60, durationDays: 1, category: 'Walk-in' },
-            { id: 'plan_2', name: 'Monthly Basic Membership', price: 800, durationDays: 30, category: 'Membership' },
-            { id: 'plan_3', name: 'Quarterly Pro Membership', price: 2100, durationDays: 90, category: 'Membership' },
-            { id: 'plan_4', name: 'Annual VIP Membership', price: 7500, durationDays: 365, category: 'VIP' },
+            { id: 'plan_1', name: 'Daily Walk-in Pass', price: 60, durationDays: 1, category: 'Walk-in', createdAtMs: 1 },
+            { id: 'plan_2', name: 'Monthly Basic Membership', price: 800, durationDays: 30, category: 'Membership', createdAtMs: 2 },
+            { id: 'plan_3', name: 'Quarterly Pro Membership', price: 2100, durationDays: 90, category: 'Membership', createdAtMs: 3 },
+            { id: 'plan_4', name: 'Annual VIP Membership', price: 7500, durationDays: 365, category: 'VIP', createdAtMs: 4 },
         ];
 
         const INITIAL_USERS = [
-            { id: 'usr_1', username: 'admin', password: 'Admin123!', role: 'admin', firstName: 'Kian Edward', lastName: 'Puente', createdAt: '2026-01-01' },
-            { id: 'usr_2', username: 'staff1', password: 'Staff123!', role: 'staff', firstName: 'Staff', lastName: 'Member', createdAt: '2026-01-05' },
-            { id: 'usr_3', username: 'juan', password: 'Member123!', role: 'member', memberId: 'EG-2026-0001', firstName: 'Juan', lastName: 'Dela Cruz', createdAt: '2026-02-01' },
-            { id: 'usr_4', username: 'maria', password: 'Member123!', role: 'member', memberId: 'EG-2026-0002', firstName: 'Maria', lastName: 'Santos', createdAt: '2026-02-10' },
+            { id: 'usr_1', username: 'admin', password: 'Admin123!', role: 'admin', firstName: 'Kian Edward', lastName: 'Puente', createdAt: '2026-01-01', createdAtMs: 1 },
+            { id: 'usr_2', username: 'staff1', password: 'Staff123!', role: 'staff', firstName: 'Staff', lastName: 'Member', createdAt: '2026-01-05', createdAtMs: 2 },
+            { id: 'usr_3', username: 'juan', password: 'Member123!', role: 'member', memberId: 'EG-2026-0001', firstName: 'Juan', lastName: 'Dela Cruz', createdAt: '2026-02-01', createdAtMs: 3 },
+            { id: 'usr_4', username: 'maria', password: 'Member123!', role: 'member', memberId: 'EG-2026-0002', firstName: 'Maria', lastName: 'Santos', createdAt: '2026-02-10', createdAtMs: 4 },
         ];
 
         const INITIAL_MEMBERS = [
@@ -1098,7 +1247,8 @@
                 status: 'Active',
                 startDate: '2026-11-15',
                 expiryDate: '2026-12-15',
-                totalPaid: 800
+                totalPaid: 800,
+                createdAtMs: 1
             },
             {
                 id: 'EG-2026-0002',
@@ -1112,7 +1262,8 @@
                 status: 'Expired',
                 startDate: '2026-11-01',
                 expiryDate: '2026-11-01',
-                totalPaid: 60
+                totalPaid: 60,
+                createdAtMs: 2
             },
             {
                 id: 'EG-2026-0003',
@@ -1126,7 +1277,8 @@
                 status: 'Active',
                 startDate: '2026-10-01',
                 expiryDate: '2026-12-30',
-                totalPaid: 2100
+                totalPaid: 2100,
+                createdAtMs: 3
             },
             {
                 id: 'EG-2026-0004',
@@ -1140,7 +1292,8 @@
                 status: 'Active',
                 startDate: '2026-05-20',
                 expiryDate: '2027-05-20',
-                totalPaid: 7500
+                totalPaid: 7500,
+                createdAtMs: 4
             },
             {
                 id: 'EG-2026-0005',
@@ -1154,28 +1307,30 @@
                 status: 'Active',
                 startDate: '2026-11-05',
                 expiryDate: '2026-12-05',
-                totalPaid: 800
+                totalPaid: 800,
+                createdAtMs: 5
             }
         ];
 
         const INITIAL_PAYMENTS = [
-            { id: 'TXN-1001', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash', date: '2026-11-15 10:30 AM', recordedBy: 'staff1' },
-            { id: 'TXN-1002', memberId: 'EG-2026-0002', memberName: 'Maria Santos', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-01 08:15 AM', recordedBy: 'admin' },
-            { id: 'TXN-1003', memberId: 'EG-2026-0003', memberName: 'Kian Puente', planName: 'Quarterly Pro Membership', amount: 2100, method: 'Card', date: '2026-10-01 02:00 PM', recordedBy: 'admin' },
+            { id: 'TXN-1001', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash', date: '2026-11-15 10:30 AM', recordedBy: 'staff1', createdAtMs: 1763173800000 },
+            { id: 'TXN-1002', memberId: 'EG-2026-0002', memberName: 'Maria Santos', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-01 08:15 AM', recordedBy: 'admin', createdAtMs: 1761956100000 },
+            { id: 'TXN-1003', memberId: 'EG-2026-0003', memberName: 'Kian Puente', planName: 'Quarterly Pro Membership', amount: 2100, method: 'Card', date: '2026-10-01 02:00 PM', recordedBy: 'admin', createdAtMs: 1759298400000 },
         ];
 
         const INITIAL_ATTENDANCE = [
-            { id: 'ATT-901', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', operator: 'desk_scanner' },
-            { id: 'ATT-902', memberId: 'EG-2026-0003', memberName: 'Kian Puente', planName: 'Quarterly Pro Membership', status: 'Verified Active', timestamp: '2026-11-19 06:15 AM', operator: 'desk_scanner' },
-            { id: 'ATT-903', memberId: 'EG-2026-0002', memberName: 'Maria Santos', planName: 'Daily Walk-in Pass', status: 'Denied (Expired)', timestamp: '2026-11-19 09:30 AM', operator: 'desk_scanner' }
+            { id: 'ATT-901', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', dateISO: '2026-11-18', operator: 'desk_scanner', createdAtMs: 1763423100000 },
+            { id: 'ATT-902', memberId: 'EG-2026-0003', memberName: 'Kian Puente', planName: 'Quarterly Pro Membership', status: 'Verified Active', timestamp: '2026-11-19 06:15 AM', dateISO: '2026-11-19', operator: 'desk_scanner', createdAtMs: 1763504100000 },
+            { id: 'ATT-903', memberId: 'EG-2026-0002', memberName: 'Maria Santos', planName: 'Daily Walk-in Pass', status: 'Denied (Expired)', timestamp: '2026-11-19 09:30 AM', dateISO: '2026-11-19', operator: 'desk_scanner', createdAtMs: 1763515800000 }
         ];
 
         class GymApp {
             constructor() {
                 this.currentUser = null;
                 this.currentSubTab = 'scanner';
-                this.failedLoginCount = {};
+                this.failedLoginState = this.loadSecurityState();
                 this.lockoutTimer = null;
+                this.lastLoginAttemptMs = 0;
                 this.scanCooldowns = {};
                 this.activeModalMemberId = null;
                 this.html5QrScanner = null;
@@ -1187,6 +1342,24 @@
                 this.loadData();
                 this.initUI();
                 this.initCloudSync();
+            }
+
+            loadSecurityState() {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem('eg_security_state') || '{}');
+                    return {
+                        byUser: parsed.byUser || {},
+                        globalFails: parsed.globalFails || 0,
+                        lockoutUntil: parsed.lockoutUntil || 0,
+                        regTimestamps: Array.isArray(parsed.regTimestamps) ? parsed.regTimestamps : []
+                    };
+                } catch (e) {
+                    return { byUser: {}, globalFails: 0, lockoutUntil: 0, regTimestamps: [] };
+                }
+            }
+
+            saveSecurityState() {
+                localStorage.setItem('eg_security_state', JSON.stringify(this.failedLoginState));
             }
 
             setCloudStatus(state, label, title = '') {
@@ -1207,6 +1380,10 @@
                     badge.className = 'bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5';
                     badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400"></span><span>${escapeHTML(label)}</span>`;
                 }
+            }
+
+            sortCollectionChronologically(items) {
+                return items.slice().sort((a, b) => (a.createdAtMs || 0) - (b.createdAtMs || 0));
             }
 
             async initCloudSync() {
@@ -1243,9 +1420,10 @@
                             (snapshot) => {
                                 const docs = [];
                                 snapshot.forEach(doc => docs.push(doc.data()));
-                                if (docs.length > 0 || metaSnap.exists) {
-                                    this[col.prop] = docs;
-                                    localStorage.setItem(col.localKey, JSON.stringify(docs));
+                                if (docs.length > 0) {
+                                    const sorted = this.sortCollectionChronologically(docs);
+                                    this[col.prop] = sorted;
+                                    localStorage.setItem(col.localKey, JSON.stringify(sorted));
                                     this.onCloudDataUpdated(col.prop);
                                 }
                                 this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore (extremegym-53eed)');
@@ -1272,6 +1450,11 @@
                     if (updatedSelf) {
                         this.currentUser = updatedSelf;
                         sessionStorage.setItem('eg_session', JSON.stringify(updatedSelf));
+                    } else {
+                        this.currentUser = null;
+                        sessionStorage.removeItem('eg_session');
+                        this.renderAppView();
+                        return;
                     }
                 }
 
@@ -1340,11 +1523,11 @@
                     localStorage.setItem('eg_attendance', JSON.stringify(INITIAL_ATTENDANCE));
                 }
 
-                this.plans = JSON.parse(localStorage.getItem('eg_plans'));
-                this.users = JSON.parse(localStorage.getItem('eg_users'));
-                this.members = JSON.parse(localStorage.getItem('eg_members'));
-                this.payments = JSON.parse(localStorage.getItem('eg_payments'));
-                this.attendance = JSON.parse(localStorage.getItem('eg_attendance'));
+                this.plans = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_plans')));
+                this.users = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_users')));
+                this.members = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_members')));
+                this.payments = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_payments')));
+                this.attendance = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_attendance')));
 
                 const mainAdmin = this.users.find(u => u.id === 'usr_1' || u.username === 'admin');
                 if (mainAdmin && mainAdmin.firstName === 'Emmanuel') {
@@ -1365,23 +1548,60 @@
             initUI() {
                 this.populatePlanSelects();
                 this.checkSession();
+                if (this.failedLoginState.lockoutUntil > Date.now()) {
+                    this.resumeLockoutCountdown();
+                }
             }
 
-            validateNameInput(inputElem, errorSpanId) {
-                const nameRegex = /^[A-Za-zÀ-ÿ\s'-]*$/;
-                const errorSpan = document.getElementById(errorSpanId);
+            validateNameInput(inputElem, errorSpanId, maxLen = 40) {
+                const raw = inputElem.value;
+                const sanitized = raw
+                    .replace(/[^A-Za-zÀ-ÿ\s'-]/g, '')
+                    .replace(/\s{2,}/g, ' ')
+                    .replace(/^[\s'-]+/, '')
+                    .slice(0, maxLen);
 
-                if (!nameRegex.test(inputElem.value)) {
-                    inputElem.value = inputElem.value.replace(/[^A-Za-zÀ-ÿ\s'-]/g, '');
-                    if (errorSpan) errorSpan.classList.remove('hidden');
-                } else {
-                    if (errorSpan) errorSpan.classList.add('hidden');
+                const hadInvalid = raw !== sanitized;
+                inputElem.value = sanitized;
+
+                const errorSpan = document.getElementById(errorSpanId);
+                if (errorSpan) {
+                    if (hadInvalid || /(.)\1{4,}/i.test(sanitized)) {
+                        errorSpan.classList.remove('hidden');
+                    } else {
+                        errorSpan.classList.add('hidden');
+                    }
+                }
+            }
+
+            validateUsernameInput(inputElem, errorSpanId, counterSpanId) {
+                const raw = inputElem.value;
+                const sanitized = raw
+                    .replace(/[^a-zA-Z0-9._]/g, '')
+                    .slice(0, 24);
+
+                const hadInvalid = raw !== sanitized;
+                inputElem.value = sanitized;
+
+                const counterSpan = document.getElementById(counterSpanId);
+                if (counterSpan) {
+                    counterSpan.textContent = `${sanitized.length}/24`;
+                }
+
+                const errorSpan = document.getElementById(errorSpanId);
+                if (errorSpan) {
+                    if (hadInvalid || (sanitized.length > 0 && sanitized.length < 3)) {
+                        errorSpan.classList.remove('hidden');
+                    } else {
+                        errorSpan.classList.add('hidden');
+                    }
                 }
             }
 
             togglePasswordVisibility(inputId, iconId) {
                 const input = document.getElementById(inputId);
                 const icon = document.getElementById(iconId);
+                if (!input || !icon) return;
                 if (input.type === 'password') {
                     input.type = 'text';
                     icon.className = 'fa-solid fa-eye-slash';
@@ -1389,6 +1609,13 @@
                     input.type = 'password';
                     icon.className = 'fa-solid fa-eye';
                 }
+            }
+
+            resetPasswordFieldState(inputId, iconId) {
+                const input = document.getElementById(inputId);
+                const icon = document.getElementById(iconId);
+                if (input) input.type = 'password';
+                if (icon) icon.className = 'fa-solid fa-eye';
             }
 
             populatePlanSelects() {
@@ -1431,38 +1658,76 @@
                 }
             }
 
-            handleLogin(e) {
+            async handleLogin(e) {
                 e.preventDefault();
-                const usernameInput = document.getElementById('loginUsername').value.trim();
-                const passwordInput = document.getElementById('loginPassword').value;
+                const now = Date.now();
 
-                const failedCount = this.failedLoginCount[usernameInput] || 0;
-                if (failedCount >= 5) {
-                    this.startLockoutCountdown(usernameInput);
+                if (this.failedLoginState.lockoutUntil > now) {
+                    this.resumeLockoutCountdown();
                     return;
                 }
 
-                const user = this.users.find(u => (u.username.toLowerCase() === usernameInput.toLowerCase() || u.email?.toLowerCase() === usernameInput.toLowerCase()) && u.password === passwordInput);
+                // Throttle rapid-fire script submissions (minimum 700ms between attempts)
+                if (now - this.lastLoginAttemptMs < 700) {
+                    return;
+                }
+                this.lastLoginAttemptMs = now;
 
-                if (user) {
-                    delete this.failedLoginCount[usernameInput];
-                    this.currentUser = user;
-                    sessionStorage.setItem('eg_session', JSON.stringify(user));
-                    this.showToast(`Welcome back, ${user.firstName}!`, 'success');
+                const usernameInput = document.getElementById('loginUsername').value.trim().slice(0, 80);
+                const passwordInput = document.getElementById('loginPassword').value.slice(0, 64);
+                const key = usernameInput.toLowerCase();
+
+                if (!usernameInput || !passwordInput) {
+                    this.showToast('Enter both username/email and password.', 'error');
+                    return;
+                }
+
+                const matchedUser = this.users.find(u =>
+                    u.username.toLowerCase() === key || (u.email && u.email.toLowerCase() === key)
+                );
+
+                const passwordOk = matchedUser ? await verifyPassword(matchedUser.password, passwordInput) : false;
+
+                if (matchedUser && passwordOk) {
+                    delete this.failedLoginState.byUser[key];
+                    this.failedLoginState.globalFails = 0;
+                    this.failedLoginState.lockoutUntil = 0;
+                    this.saveSecurityState();
+
+                    if (!String(matchedUser.password).startsWith('sha256:')) {
+                        matchedUser.password = await hashPasswordSHA256(passwordInput);
+                        this.saveData('users');
+                        this.pushRecordToCloud('eg_users', matchedUser.id, matchedUser);
+                    }
+
+                    this.currentUser = matchedUser;
+                    sessionStorage.setItem('eg_session', JSON.stringify(matchedUser));
+                    e.target.reset();
+                    this.resetPasswordFieldState('loginPassword', 'loginPassIcon');
+                    this.showToast(`Welcome back, ${matchedUser.firstName}!`, 'success');
                     this.renderAppView();
                 } else {
-                    this.failedLoginCount[usernameInput] = failedCount + 1;
-                    const remaining = 5 - this.failedLoginCount[usernameInput];
+                    const userFails = (this.failedLoginState.byUser[key] || 0) + 1;
+                    const globalFails = (this.failedLoginState.globalFails || 0) + 1;
+                    this.failedLoginState.byUser[key] = userFails;
+                    this.failedLoginState.globalFails = globalFails;
+
+                    const remainingUser = 5 - userFails;
+                    const remainingGlobal = 8 - globalFails;
+                    const remaining = Math.min(remainingUser, remainingGlobal);
 
                     if (remaining <= 0) {
-                        this.startLockoutCountdown(usernameInput);
+                        this.failedLoginState.lockoutUntil = Date.now() + 60000;
+                        this.saveSecurityState();
+                        this.resumeLockoutCountdown();
                     } else {
+                        this.saveSecurityState();
                         this.showToast(`Invalid credentials! ${remaining} attempt(s) remaining before security lockout.`, 'error');
                     }
                 }
             }
 
-            startLockoutCountdown(username) {
+            resumeLockoutCountdown() {
                 const lockoutNotice = document.getElementById('lockoutNotice');
                 const timerText = document.getElementById('lockoutTimerText');
                 const submitBtn = document.getElementById('loginSubmitBtn');
@@ -1471,23 +1736,26 @@
                 submitBtn.disabled = true;
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-                let secondsLeft = 60;
-                timerText.textContent = `Security lockout active due to 5 failed attempts. Please wait ${secondsLeft}s.`;
-
-                if (this.lockoutTimer) clearInterval(this.lockoutTimer);
-                this.lockoutTimer = setInterval(() => {
-                    secondsLeft--;
-                    if (secondsLeft <= 0) {
+                const updateTimer = () => {
+                    const secsLeft = Math.ceil((this.failedLoginState.lockoutUntil - Date.now()) / 1000);
+                    if (secsLeft <= 0) {
                         clearInterval(this.lockoutTimer);
-                        delete this.failedLoginCount[username];
+                        this.failedLoginState.byUser = {};
+                        this.failedLoginState.globalFails = 0;
+                        this.failedLoginState.lockoutUntil = 0;
+                        this.saveSecurityState();
                         lockoutNotice.classList.add('hidden');
                         submitBtn.disabled = false;
                         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                         this.showToast('Lockout expired. You may attempt login again.', 'info');
                     } else {
-                        timerText.textContent = `Security lockout active due to 5 failed attempts. Please wait ${secondsLeft}s.`;
+                        timerText.textContent = `Security lockout active due to repeated failed attempts. Please wait ${secsLeft}s.`;
                     }
-                }, 1000);
+                };
+
+                updateTimer();
+                if (this.lockoutTimer) clearInterval(this.lockoutTimer);
+                this.lockoutTimer = setInterval(updateTimer, 1000);
             }
 
             generateNextMemberId() {
@@ -1504,17 +1772,52 @@
 
             async handleCustomerSelfRegister(e) {
                 e.preventDefault();
-                const fn = document.getElementById('regFirstName').value.trim();
-                const ln = document.getElementById('regLastName').value.trim();
+
+                // Anti-spam rate limit: max 3 self-registrations per 10 minutes per browser
+                const nowMs = Date.now();
+                const windowMs = 10 * 60 * 1000;
+                this.failedLoginState.regTimestamps = (this.failedLoginState.regTimestamps || []).filter(ts => nowMs - ts < windowMs);
+                if (this.failedLoginState.regTimestamps.length >= 3) {
+                    const waitMins = Math.ceil((windowMs - (nowMs - this.failedLoginState.regTimestamps[0])) / 60000);
+                    this.showToast(`Registration rate limit reached. Please wait ${waitMins} minute(s) before creating another account.`, 'warning');
+                    return;
+                }
+
+                const fn = normalizeCleanText(document.getElementById('regFirstName').value, 40);
+                const ln = normalizeCleanText(document.getElementById('regLastName').value, 35);
                 const username = document.getElementById('regUsername').value.trim();
-                const email = document.getElementById('regEmail').value.trim();
+                const email = document.getElementById('regEmail').value.trim().toLowerCase();
                 const phone = document.getElementById('regPhone').value.trim();
                 const planId = document.getElementById('regPlanSelect').value;
-                const password = document.getElementById('regPassword').value;
+                const rawPassword = document.getElementById('regPassword').value;
 
-                const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,40}$/;
-                if (!nameRegex.test(fn) || !nameRegex.test(ln)) {
-                    this.showToast('Invalid name! First and Last name must contain letters only (no numbers/symbols).', 'error');
+                if (!isValidHumanName(fn, 2, 40)) {
+                    this.showToast('First Name must be 2–40 letters (spaces/hyphens allowed, no repeated spam characters).', 'error');
+                    return;
+                }
+
+                if (!isValidHumanName(ln, 2, 35)) {
+                    this.showToast('Last Name must be 2–35 letters (spaces/hyphens allowed, no repeated spam characters).', 'error');
+                    return;
+                }
+
+                if (!isValidAccountUsername(username)) {
+                    this.showToast('Username must be 3–24 characters using letters, numbers, dots, or underscores (no reserved/system words).', 'error');
+                    return;
+                }
+
+                if (!isValidEmailAddress(email)) {
+                    this.showToast('Please enter a valid email address (max 80 characters).', 'error');
+                    return;
+                }
+
+                if (!isValidOptionalPhone(phone)) {
+                    this.showToast('Phone number must be a valid 11-digit PH mobile number starting with 09 (or left blank).', 'error');
+                    return;
+                }
+
+                if (rawPassword.length < 6 || rawPassword.length > 64) {
+                    this.showToast('Password must be between 6 and 64 characters.', 'error');
                     return;
                 }
 
@@ -1523,23 +1826,35 @@
                     return;
                 }
 
-                const memberId = this.generateNextMemberId();
-                const userId = `usr_${Date.now()}`;
+                if (this.users.some(u => u.email && u.email.toLowerCase() === email)) {
+                    this.showToast('An account with this email already exists.', 'error');
+                    return;
+                }
 
-                const selectedPlan = this.plans.find(p => p.id === planId) || this.plans[0];
+                const selectedPlan = this.plans.find(p => p.id === planId);
+                if (!selectedPlan) {
+                    this.showToast('Selected membership plan is invalid.', 'error');
+                    return;
+                }
+
+                const memberId = this.generateNextMemberId();
+                const userId = `usr_${nowMs}`;
+                const hashedPassword = await hashPasswordSHA256(rawPassword);
+
                 const startDate = getLocalISODate(0);
                 const expiryDate = getLocalISODate(selectedPlan.durationDays);
 
                 const newUser = {
                     id: userId,
                     username,
-                    password,
+                    password: hashedPassword,
                     role: 'member',
                     memberId,
                     firstName: fn,
                     lastName: ln,
                     email,
-                    createdAt: startDate
+                    createdAt: startDate,
+                    createdAtMs: nowMs
                 };
 
                 const newMember = {
@@ -1554,18 +1869,20 @@
                     status: 'Active',
                     startDate,
                     expiryDate,
-                    totalPaid: selectedPlan.price
+                    totalPaid: selectedPlan.price,
+                    createdAtMs: nowMs
                 };
 
                 const newPayment = {
-                    id: `TXN-${Date.now().toString().slice(-6)}`,
+                    id: `TXN-${String(nowMs).slice(-6)}`,
                     memberId,
                     memberName: `${fn} ${ln}`,
                     planName: selectedPlan.name,
                     amount: selectedPlan.price,
                     method: 'Cash (Self-Registration)',
                     date: new Date().toLocaleString(),
-                    recordedBy: 'Self Registered'
+                    recordedBy: 'Self Registered',
+                    createdAtMs: nowMs
                 };
 
                 this.users.push(newUser);
@@ -1576,12 +1893,19 @@
                 this.saveData('members');
                 this.saveData('payments');
 
+                this.failedLoginState.regTimestamps.push(nowMs);
+                this.saveSecurityState();
+
                 await Promise.all([
                     this.pushRecordToCloud('eg_users', newUser.id, newUser),
                     this.pushRecordToCloud('eg_members', newMember.id, newMember),
                     this.pushRecordToCloud('eg_payments', newPayment.id, newPayment)
                 ]);
 
+                e.target.reset();
+                const counterSpan = document.getElementById('regUsernameCounter');
+                if (counterSpan) counterSpan.textContent = '0/24';
+                this.resetPasswordFieldState('regPassword', 'regPassIcon');
                 this.showToast('Registration successful & synced to cloud! Logging you in...', 'success');
 
                 this.currentUser = newUser;
@@ -1600,13 +1924,20 @@
             checkSession() {
                 const sess = sessionStorage.getItem('eg_session');
                 if (sess) {
-                    const parsed = JSON.parse(sess);
-                    const freshUser = this.users.find(u => u.id === parsed.id);
-                    if (freshUser) {
-                        this.currentUser = freshUser;
-                        sessionStorage.setItem('eg_session', JSON.stringify(freshUser));
-                    } else {
-                        this.currentUser = parsed;
+                    try {
+                        const parsed = JSON.parse(sess);
+                        // Anti-bypass: always resolve user & role from verified users store, never trust raw sessionStorage
+                        const freshUser = this.users.find(u => u.id === parsed.id && u.username === parsed.username);
+                        if (freshUser) {
+                            this.currentUser = freshUser;
+                            sessionStorage.setItem('eg_session', JSON.stringify(freshUser));
+                        } else {
+                            this.currentUser = null;
+                            sessionStorage.removeItem('eg_session');
+                        }
+                    } catch (e) {
+                        this.currentUser = null;
+                        sessionStorage.removeItem('eg_session');
                     }
                 }
                 this.renderAppView();
@@ -1620,18 +1951,16 @@
                 const userInfoHeader = document.getElementById('userInfoHeader');
                 const userNameDisplay = document.getElementById('userNameDisplay');
                 const userRoleBadge = document.getElementById('userRoleBadge');
+                const selfChangePassBtn = document.getElementById('selfChangePassBtn');
                 const logoutBtn = document.getElementById('logoutBtn');
-                const navTabsContainer = document.getElementById('navTabsContainer');
-                const mobileNavTabs = document.getElementById('mobileNavTabs');
 
                 if (!this.currentUser) {
                     authView.classList.remove('hidden');
                     memberPortalView.classList.add('hidden');
                     adminDashboardView.classList.add('hidden');
                     userInfoHeader.classList.add('hidden');
+                    if (selfChangePassBtn) selfChangePassBtn.classList.add('hidden');
                     logoutBtn.classList.add('hidden');
-                    navTabsContainer.innerHTML = '';
-                    mobileNavTabs.innerHTML = '';
                     return;
                 }
 
@@ -1641,11 +1970,17 @@
                 userNameDisplay.textContent = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
                 userRoleBadge.textContent = this.currentUser.role.toUpperCase();
 
+                if (this.currentUser.role === 'admin' || this.currentUser.role === 'staff') {
+                    if (selfChangePassBtn) selfChangePassBtn.classList.remove('hidden');
+                } else {
+                    if (selfChangePassBtn) selfChangePassBtn.classList.add('hidden');
+                }
+
                 if (this.currentUser.role === 'member') {
                     memberPortalView.classList.remove('hidden');
                     adminDashboardView.classList.add('hidden');
                     this.renderMemberPortal();
-                } else {
+                } else if (this.currentUser.role === 'admin' || this.currentUser.role === 'staff') {
                     memberPortalView.classList.add('hidden');
                     adminDashboardView.classList.remove('hidden');
 
@@ -1660,11 +1995,79 @@
 
                     this.switchAdminSubTab('scanner');
                     this.renderAdminDashboard();
+                } else {
+                    this.logout();
                 }
             }
 
+            openSelfChangePasswordModal() {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Only Staff and Admin accounts can use this option.', 'error');
+                    return;
+                }
+
+                document.getElementById('selfCpAccountDisplay').textContent = `${this.currentUser.firstName} ${this.currentUser.lastName} (${this.currentUser.username} - ${this.currentUser.role.toUpperCase()})`;
+                document.getElementById('selfCpCurrentPassword').value = '';
+                document.getElementById('selfCpNewPassword').value = '';
+                document.getElementById('selfCpConfirmPassword').value = '';
+
+                this.resetPasswordFieldState('selfCpCurrentPassword', 'selfCpCurrIcon');
+                this.resetPasswordFieldState('selfCpNewPassword', 'selfCpNewIcon');
+                this.resetPasswordFieldState('selfCpConfirmPassword', 'selfCpConfIcon');
+
+                this.openModal('selfChangePasswordModal');
+            }
+
+            async handleSelfChangePassword(e) {
+                e.preventDefault();
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+
+                const currentPass = document.getElementById('selfCpCurrentPassword').value;
+                const newPass = document.getElementById('selfCpNewPassword').value;
+                const confirmPass = document.getElementById('selfCpConfirmPassword').value;
+
+                const targetUser = this.users.find(u => u.id === this.currentUser.id);
+                if (!targetUser) return;
+
+                const currentOk = await verifyPassword(targetUser.password, currentPass);
+                if (!currentOk) {
+                    this.showToast('Current password is incorrect.', 'error');
+                    return;
+                }
+
+                if (newPass.length < 6 || newPass.length > 64) {
+                    this.showToast('New password must be between 6 and 64 characters.', 'error');
+                    return;
+                }
+
+                if (newPass === currentPass) {
+                    this.showToast('New password must be different from your current password.', 'warning');
+                    return;
+                }
+
+                if (newPass !== confirmPass) {
+                    this.showToast('New passwords do not match. Please try again.', 'error');
+                    return;
+                }
+
+                const hashed = await hashPasswordSHA256(newPass);
+                targetUser.password = hashed;
+                this.currentUser = targetUser;
+
+                this.saveData('users');
+                sessionStorage.setItem('eg_session', JSON.stringify(this.currentUser));
+                await this.pushRecordToCloud('eg_users', targetUser.id, targetUser);
+
+                this.closeModal('selfChangePasswordModal');
+                this.showToast('Your password has been updated & synced to cloud!', 'success');
+            }
+
             getCurrentMemberRecord() {
-                return this.members.find(m => m.id === this.currentUser.memberId || m.userId === this.currentUser.id) || this.members[0];
+                if (!this.currentUser || this.currentUser.role !== 'member') return null;
+                return this.members.find(m => m.id === this.currentUser.memberId || m.userId === this.currentUser.id) || null;
             }
 
             renderMemberPortal() {
@@ -1676,11 +2079,11 @@
                 document.getElementById('memberPlanSub').textContent = `Plan: ${member.planName}`;
                 document.getElementById('memberAvatar').textContent = `${member.firstName[0] || ''}${member.lastName[0] || ''}`.toUpperCase();
 
-                const isExpired = new Date(member.expiryDate + 'T23:59:59') < new Date();
+                const expired = isMemberExpired(member);
                 const statusBadge = document.getElementById('memberStatusBadge');
                 const cardStatusChip = document.getElementById('cardStatusChip');
 
-                if (isExpired || member.status === 'Expired') {
+                if (expired) {
                     statusBadge.className = 'bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-0.5 rounded-full text-xs font-bold';
                     statusBadge.textContent = 'Expired Member';
                     cardStatusChip.className = 'bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider';
@@ -1705,7 +2108,9 @@
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 document.getElementById('memberDaysLeft').textContent = diffDays > 0 ? `${diffDays} Days` : '0 Days';
 
-                const myAttendance = this.attendance.filter(a => a.memberId === member.id);
+                const myAttendance = this.sortCollectionChronologically(
+                    this.attendance.filter(a => a.memberId === member.id)
+                );
                 document.getElementById('memberTotalCheckins').textContent = myAttendance.length;
                 document.getElementById('memberTotalPaid').textContent = `₱${(member.totalPaid || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -1732,6 +2137,7 @@
 
             showRenewalModal() {
                 const member = this.getCurrentMemberRecord();
+                if (!member) return;
                 const sel = document.getElementById('renewPlanSelect');
                 if (sel && member.planId) {
                     sel.value = member.planId;
@@ -1754,10 +2160,23 @@
             async handleMemberRenewalSubmit(e) {
                 e.preventDefault();
                 const member = this.getCurrentMemberRecord();
+                if (!member) return;
+
                 const planId = document.getElementById('renewPlanSelect').value;
                 const method = document.getElementById('renewMethod').value;
-                const refNo = document.getElementById('renewRefNo').value.trim();
-                const plan = this.plans.find(p => p.id === planId) || this.plans[0];
+                const refNo = document.getElementById('renewRefNo').value.replace(/[^A-Za-z0-9-_]/g, '').slice(0, 40);
+
+                const allowedMethods = ['GCash', 'Cash', 'Card'];
+                if (!allowedMethods.includes(method)) {
+                    this.showToast('Invalid payment method.', 'error');
+                    return;
+                }
+
+                const plan = this.plans.find(p => p.id === planId);
+                if (!plan) {
+                    this.showToast('Invalid membership plan selected.', 'error');
+                    return;
+                }
 
                 let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
                 const currentExp = new Date(member.expiryDate + 'T00:00:00');
@@ -1776,15 +2195,17 @@
                 member.status = 'Active';
                 member.totalPaid = (member.totalPaid || 0) + plan.price;
 
+                const nowMs = Date.now();
                 const paymentRec = {
-                    id: `TXN-${Date.now().toString().slice(-6)}`,
+                    id: `TXN-${String(nowMs).slice(-6)}`,
                     memberId: member.id,
                     memberName: `${member.firstName} ${member.lastName}`,
                     planName: plan.name,
                     amount: plan.price,
                     method: method + (refNo ? ` (${refNo})` : ''),
                     date: new Date().toLocaleString(),
-                    recordedBy: this.currentUser.username
+                    recordedBy: this.currentUser.username,
+                    createdAtMs: nowMs
                 };
 
                 this.payments.push(paymentRec);
@@ -1947,7 +2368,7 @@
                         }
                         this.lastCameraDecodeText = decodedText;
                         this.lastCameraDecodeTime = now;
-                        this.processQRScan(decodedText.trim());
+                        this.processQRScan(decodedText.trim().slice(0, 30));
                     };
 
                     if (cameraConfig) {
@@ -2013,16 +2434,16 @@
                     return;
                 }
 
-                if (this.isCameraScanning) {
-                    await this.stopCameraScanner();
-                }
-
+                const fileScanner = new Html5Qrcode('qrFileScanTarget');
                 try {
-                    const fileScanner = new Html5Qrcode('qrCameraReader');
                     const decodedText = await fileScanner.scanFile(file, false);
-                    this.processQRScan(decodedText.trim());
+                    this.processQRScan(decodedText.trim().slice(0, 30));
                 } catch (err) {
                     this.showToast('No readable QR code found in that image.', 'error');
+                } finally {
+                    try {
+                        fileScanner.clear();
+                    } catch (e) {}
                 }
             }
 
@@ -2038,10 +2459,13 @@
 
             renderStatsSummary() {
                 const totalM = this.members.length;
-                const activeM = this.members.filter(m => m.status === 'Active' && new Date(m.expiryDate + 'T23:59:59') >= new Date()).length;
+                const activeM = this.members.filter(m => !isMemberExpired(m)).length;
 
-                const todayStr = new Date().toLocaleDateString();
-                const todayAtt = this.attendance.filter(a => new Date(a.timestamp).toLocaleDateString() === todayStr).length;
+                const todayISO = getLocalISODate(0);
+                const todayAtt = this.attendance.filter(a => {
+                    if (a.dateISO) return a.dateISO === todayISO;
+                    return String(a.timestamp || '').startsWith(todayISO);
+                }).length;
 
                 const totalRev = this.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
@@ -2052,7 +2476,10 @@
             }
 
             async switchAdminSubTab(subTab) {
-                if (this.currentUser?.role === 'staff' && (subTab === 'plans' || subTab === 'accounts')) {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    return;
+                }
+                if (this.currentUser.role === 'staff' && (subTab === 'plans' || subTab === 'accounts')) {
                     this.showToast('Access restricted to Administrator accounts only.', 'error');
                     return;
                 }
@@ -2090,9 +2517,10 @@
                 paySel.innerHTML = '<option value="">-- Select Member to Record Payment --</option>';
 
                 this.members.forEach(m => {
+                    const liveStatus = isMemberExpired(m) ? 'Expired' : 'Active';
                     const opt1 = document.createElement('option');
                     opt1.value = m.id;
-                    opt1.textContent = `${m.firstName} ${m.lastName} (${m.id}) - ${m.status}`;
+                    opt1.textContent = `${m.firstName} ${m.lastName} (${m.id}) - ${liveStatus}`;
                     sel.appendChild(opt1);
 
                     const opt2 = document.createElement('option');
@@ -2116,7 +2544,7 @@
 
             simScanFromInput() {
                 const input = document.getElementById('manualScanInput');
-                const inputVal = input.value.trim();
+                const inputVal = input.value.trim().slice(0, 30);
                 if (!inputVal) {
                     this.showToast('Please enter or scan a Member ID.', 'error');
                     return;
@@ -2151,7 +2579,13 @@
             }
 
             async processQRScan(scannedCode) {
-                const member = this.members.find(m => m.id.toUpperCase() === scannedCode.toUpperCase() || m.id === scannedCode);
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Unauthorized scan attempt.', 'error');
+                    return;
+                }
+
+                const cleanCode = String(scannedCode || '').trim().slice(0, 30);
+                const member = this.members.find(m => m.id.toUpperCase() === cleanCode.toUpperCase() || m.id === cleanCode);
                 const resultCard = document.getElementById('scanResultCard');
 
                 if (!member) {
@@ -2162,7 +2596,7 @@
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
                         <h4 class="text-lg font-black text-white">INVALID QR CODE / UNKNOWN MEMBER</h4>
-                        <p class="text-xs text-rose-300">No member record found for ID: <span class="font-mono">${escapeHTML(scannedCode)}</span></p>
+                        <p class="text-xs text-rose-300">No member record found for ID: <span class="font-mono">${escapeHTML(cleanCode)}</span></p>
                     `;
                     this.showToast('Scan Rejected: Member ID not found!', 'error');
                     return;
@@ -2185,9 +2619,9 @@
                     return;
                 }
 
-                const isExpired = new Date(member.expiryDate + 'T23:59:59') < new Date() || member.status === 'Expired';
+                const expired = isMemberExpired(member);
 
-                if (isExpired) {
+                if (expired) {
                     this.playAudioBeep('error');
                     resultCard.className = 'bg-rose-950/60 border border-rose-600/50 rounded-xl p-6 text-center space-y-3';
                     resultCard.innerHTML = `
@@ -2201,13 +2635,15 @@
                     `;
 
                     const attLog = {
-                        id: `ATT-${Date.now().toString().slice(-6)}`,
+                        id: `ATT-${String(now).slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
                         planName: member.planName,
                         status: 'Denied (Expired)',
                         timestamp: new Date().toLocaleString(),
-                        operator: this.currentUser ? this.currentUser.username : 'desk_scanner'
+                        dateISO: getLocalISODate(0),
+                        operator: this.currentUser.username,
+                        createdAtMs: now
                     };
                     this.attendance.push(attLog);
                     this.saveData('attendance');
@@ -2231,13 +2667,15 @@
                     `;
 
                     const attLog = {
-                        id: `ATT-${Date.now().toString().slice(-6)}`,
+                        id: `ATT-${String(now).slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
                         planName: member.planName,
                         status: 'Verified Active',
                         timestamp: new Date().toLocaleString(),
-                        operator: this.currentUser ? this.currentUser.username : 'desk_scanner'
+                        dateISO: getLocalISODate(0),
+                        operator: this.currentUser.username,
+                        createdAtMs: now
                     };
                     this.attendance.push(attLog);
                     this.saveData('attendance');
@@ -2249,7 +2687,7 @@
             }
 
             renderMembersTable() {
-                const searchVal = (document.getElementById('memberSearchInput')?.value || '').toLowerCase();
+                const searchVal = (document.getElementById('memberSearchInput')?.value || '').toLowerCase().slice(0, 60);
                 const statusFilter = document.getElementById('memberStatusFilter')?.value || 'ALL';
                 const tbody = document.getElementById('membersTableBody');
                 if (!tbody) return;
@@ -2262,9 +2700,7 @@
                                         m.id.toLowerCase().includes(searchVal) ||
                                         (m.email && m.email.toLowerCase().includes(searchVal));
 
-                    const isExp = new Date(m.expiryDate + 'T23:59:59') < new Date();
-                    const computedStatus = isExp ? 'Expired' : 'Active';
-
+                    const computedStatus = isMemberExpired(m) ? 'Expired' : 'Active';
                     const matchStatus = statusFilter === 'ALL' || computedStatus === statusFilter;
                     return matchSearch && matchStatus;
                 });
@@ -2275,9 +2711,9 @@
                 }
 
                 filtered.forEach(m => {
-                    const isExp = new Date(m.expiryDate + 'T23:59:59') < new Date();
-                    const statusText = isExp ? 'Expired' : 'Active';
-                    const statusBadgeClass = isExp ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+                    const expired = isMemberExpired(m);
+                    const statusText = expired ? 'Expired' : 'Active';
+                    const statusBadgeClass = expired ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
 
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-zinc-900/50 transition';
@@ -2314,6 +2750,7 @@
             }
 
             openAddMemberModal() {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
                 document.getElementById('memberModalTitle').textContent = 'Register New Gym Member';
                 document.getElementById('editMemberId').value = '';
                 document.getElementById('mFirstName').value = '';
@@ -2324,6 +2761,7 @@
             }
 
             openEditMemberModal(memberId) {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) return;
                 const member = this.members.find(m => m.id === memberId);
                 if (!member) return;
 
@@ -2340,20 +2778,38 @@
 
             async handleSaveMember(e) {
                 e.preventDefault();
-                const editId = document.getElementById('editMemberId').value;
-                const fn = document.getElementById('mFirstName').value.trim();
-                const ln = document.getElementById('mLastName').value.trim();
-                const email = document.getElementById('mEmail').value.trim();
-                const phone = document.getElementById('mPhone').value.trim();
-                const planId = document.getElementById('mPlanSelect').value;
-
-                const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,40}$/;
-                if (!nameRegex.test(fn) || !nameRegex.test(ln)) {
-                    this.showToast('Validation Error: Names must contain letters only (no numbers/symbols).', 'error');
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Unauthorized action.', 'error');
                     return;
                 }
 
-                const selectedPlan = this.plans.find(p => p.id === planId) || this.plans[0];
+                const editId = document.getElementById('editMemberId').value;
+                const fn = normalizeCleanText(document.getElementById('mFirstName').value, 40);
+                const ln = normalizeCleanText(document.getElementById('mLastName').value, 35);
+                const email = document.getElementById('mEmail').value.trim().toLowerCase();
+                const phone = document.getElementById('mPhone').value.trim();
+                const planId = document.getElementById('mPlanSelect').value;
+
+                if (!isValidHumanName(fn, 2, 40) || !isValidHumanName(ln, 2, 35)) {
+                    this.showToast('Validation Error: First Name (2–40) and Last Name (2–35) must contain valid letters only.', 'error');
+                    return;
+                }
+
+                if (email && !isValidEmailAddress(email)) {
+                    this.showToast('Please enter a valid email address.', 'error');
+                    return;
+                }
+
+                if (!isValidOptionalPhone(phone)) {
+                    this.showToast('Phone number must be 11 digits starting with 09 (or left blank).', 'error');
+                    return;
+                }
+
+                const selectedPlan = this.plans.find(p => p.id === planId);
+                if (!selectedPlan) {
+                    this.showToast('Selected plan is invalid.', 'error');
+                    return;
+                }
 
                 if (editId) {
                     const m = this.members.find(m => m.id === editId);
@@ -2373,6 +2829,7 @@
                     }
                     this.showToast('Member updated & synced to cloud.', 'success');
                 } else {
+                    const nowMs = Date.now();
                     const newId = this.generateNextMemberId();
                     const startDate = getLocalISODate(0);
                     const expiryDate = getLocalISODate(selectedPlan.durationDays);
@@ -2389,18 +2846,20 @@
                         status: 'Active',
                         startDate,
                         expiryDate,
-                        totalPaid: selectedPlan.price
+                        totalPaid: selectedPlan.price,
+                        createdAtMs: nowMs
                     };
 
                     const newPayment = {
-                        id: `TXN-${Date.now().toString().slice(-6)}`,
+                        id: `TXN-${String(nowMs).slice(-6)}`,
                         memberId: newId,
                         memberName: `${fn} ${ln}`,
                         planName: selectedPlan.name,
                         amount: selectedPlan.price,
                         method: 'Cash',
                         date: new Date().toLocaleString(),
-                        recordedBy: this.currentUser ? this.currentUser.username : 'admin'
+                        recordedBy: this.currentUser.username,
+                        createdAtMs: nowMs
                     };
 
                     this.members.push(newMember);
@@ -2422,6 +2881,10 @@
             }
 
             async quickRenewMember(memberId) {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
                 const member = this.members.find(m => m.id === memberId);
                 if (!member) return;
 
@@ -2442,15 +2905,17 @@
                 member.status = 'Active';
                 member.totalPaid = (member.totalPaid || 0) + selectedPlan.price;
 
+                const nowMs = Date.now();
                 const newPayment = {
-                    id: `TXN-${Date.now().toString().slice(-6)}`,
+                    id: `TXN-${String(nowMs).slice(-6)}`,
                     memberId: member.id,
                     memberName: `${member.firstName} ${member.lastName}`,
                     planName: selectedPlan.name,
                     amount: selectedPlan.price,
                     method: 'Cash',
                     date: new Date().toLocaleString(),
-                    recordedBy: this.currentUser ? this.currentUser.username : 'staff'
+                    recordedBy: this.currentUser.username,
+                    createdAtMs: nowMs
                 };
 
                 this.payments.push(newPayment);
@@ -2483,7 +2948,8 @@
                 if (!tbody) return;
 
                 tbody.innerHTML = '';
-                const filtered = this.payments.filter(p => methodFilter === 'ALL' || p.method.startsWith(methodFilter));
+                const sorted = this.sortCollectionChronologically(this.payments);
+                const filtered = sorted.filter(p => methodFilter === 'ALL' || p.method.startsWith(methodFilter));
 
                 if (filtered.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-zinc-500">No payment transactions recorded.</td></tr>`;
@@ -2491,7 +2957,7 @@
                     filtered.slice().reverse().forEach(p => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td class="p-3 font-mono text-brand-400 font-bold">${p.id}</td>
+                            <td class="p-3 font-mono text-brand-400 font-bold">${escapeHTML(p.id)}</td>
                             <td class="p-3 text-white font-medium">${escapeHTML(p.memberName)}</td>
                             <td class="p-3 text-zinc-300">${escapeHTML(p.planName)}</td>
                             <td class="p-3 font-bold text-white">₱${(parseFloat(p.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
@@ -2518,23 +2984,33 @@
 
             async handleManualPaymentSubmit(e) {
                 e.preventDefault();
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+
                 const memberId = document.getElementById('payMemberSelect').value;
                 const planId = document.getElementById('payPlanSelect').value;
                 const rawAmount = document.getElementById('payAmount').value;
                 const method = document.getElementById('payMethod').value;
-                const refNo = document.getElementById('payRefNo').value.trim();
+                const refNo = document.getElementById('payRefNo').value.replace(/[^A-Za-z0-9-_]/g, '').slice(0, 40);
 
                 if (!memberId) {
                     this.showToast('Please select a member.', 'error');
                     return;
                 }
 
+                const allowedMethods = ['Cash', 'GCash', 'Card'];
+                if (!allowedMethods.includes(method)) {
+                    this.showToast('Invalid payment method.', 'error');
+                    return;
+                }
+
                 const amount = clamp(rawAmount, 1, 50000);
-
                 const member = this.members.find(m => m.id === memberId);
-                const plan = this.plans.find(p => p.id === planId) || this.plans[0];
+                const plan = this.plans.find(p => p.id === planId);
 
-                if (member) {
+                if (member && plan) {
                     let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
                     const currentExp = new Date(member.expiryDate + 'T00:00:00');
                     if (currentExp > baseDate) {
@@ -2552,15 +3028,17 @@
                     member.status = 'Active';
                     member.totalPaid = (member.totalPaid || 0) + amount;
 
+                    const nowMs = Date.now();
                     const newPayment = {
-                        id: `TXN-${Date.now().toString().slice(-6)}`,
+                        id: `TXN-${String(nowMs).slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
                         planName: plan.name,
                         amount: amount,
                         method: method + (refNo ? ` (${refNo})` : ''),
                         date: new Date().toLocaleString(),
-                        recordedBy: this.currentUser ? this.currentUser.username : 'staff'
+                        recordedBy: this.currentUser.username,
+                        createdAtMs: nowMs
                     };
 
                     this.payments.push(newPayment);
@@ -2573,6 +3051,7 @@
                         this.pushRecordToCloud('eg_payments', newPayment.id, newPayment)
                     ]);
 
+                    document.getElementById('payRefNo').value = '';
                     this.renderAdminDashboard();
                     this.showToast(`Payment of ₱${amount} recorded & synced to cloud!`, 'success');
                 }
@@ -2629,7 +3108,7 @@
 
             exportRevenueCSV() {
                 let csv = 'Transaction ID,Member ID,Member Name,Plan Name,Amount (PHP),Method,Date,Recorded By\n';
-                this.payments.forEach(p => {
+                this.sortCollectionChronologically(this.payments).forEach(p => {
                     csv += `"${p.id}","${p.memberId}","${p.memberName.replace(/"/g, '""')}","${p.planName.replace(/"/g, '""')}",${p.amount},"${p.method.replace(/"/g, '""')}","${p.date}","${p.recordedBy}"\n`;
                 });
 
@@ -2648,12 +3127,13 @@
                 if (!tbody) return;
 
                 tbody.innerHTML = '';
-                if (this.attendance.length === 0) {
+                const sorted = this.sortCollectionChronologically(this.attendance);
+                if (sorted.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No check-in logs recorded today.</td></tr>`;
                     return;
                 }
 
-                this.attendance.slice().reverse().forEach(att => {
+                sorted.slice().reverse().forEach(att => {
                     const tr = document.createElement('tr');
                     const isOk = att.status.includes('Verified');
                     tr.innerHTML = `
@@ -2674,7 +3154,7 @@
 
             exportAttendanceCSV() {
                 let csv = 'Log ID,Timestamp,Member ID,Member Name,Plan Validated,Status,Operator\n';
-                this.attendance.forEach(a => {
+                this.sortCollectionChronologically(this.attendance).forEach(a => {
                     csv += `"${a.id}","${a.timestamp}","${a.memberId}","${a.memberName.replace(/"/g, '""')}","${a.planName.replace(/"/g, '""')}","${a.status}","${a.operator}"\n`;
                 });
 
@@ -2712,6 +3192,10 @@
             }
 
             openAddPlanModal() {
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Administrator access required.', 'error');
+                    return;
+                }
                 document.getElementById('pName').value = '';
                 document.getElementById('pPrice').value = '';
                 document.getElementById('pDays').value = '';
@@ -2720,17 +3204,34 @@
 
             async handleSavePlan(e) {
                 e.preventDefault();
-                const name = document.getElementById('pName').value.trim();
-                const price = clamp(document.getElementById('pPrice').value, 1, 50000);
-                const days = clamp(document.getElementById('pDays').value, 1, 365);
-                const category = document.getElementById('pCategory').value;
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
 
+                const name = normalizeCleanText(document.getElementById('pName').value, 50);
+                if (name.length < 3 || name.length > 50) {
+                    this.showToast('Plan name must be between 3 and 50 characters.', 'error');
+                    return;
+                }
+
+                const price = clamp(document.getElementById('pPrice').value, 1, 50000);
+                const days = Math.round(clamp(document.getElementById('pDays').value, 1, 365));
+                const category = document.getElementById('pCategory').value;
+                const allowedCategories = ['Walk-in', 'Membership', 'VIP'];
+                if (!allowedCategories.includes(category)) {
+                    this.showToast('Invalid plan category.', 'error');
+                    return;
+                }
+
+                const nowMs = Date.now();
                 const newPlan = {
-                    id: `plan_${Date.now()}`,
+                    id: `plan_${nowMs}`,
                     name,
                     price,
                     durationDays: days,
-                    category
+                    category,
+                    createdAtMs: nowMs
                 };
 
                 this.plans.push(newPlan);
@@ -2763,9 +3264,9 @@
                         </td>
                         <td class="p-3.5 text-zinc-500 font-mono text-xs">${u.createdAt || '2026-01-01'}</td>
                         <td class="p-3.5 text-right">
-                            <button onclick="app.openChangePasswordModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition" title="Change Password">
+                            <button onclick="app.openChangePasswordModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition" title="Reset Password">
                                 <i class="fa-solid fa-key"></i>
-                                <span>Change Password</span>
+                                <span>Reset Password</span>
                             </button>
                         </td>
                     `;
@@ -2782,6 +3283,8 @@
                 document.getElementById('accLn').value = '';
                 document.getElementById('accUsername').value = '';
                 document.getElementById('accPassword').value = '';
+                const counterSpan = document.getElementById('accUsernameCounter');
+                if (counterSpan) counterSpan.textContent = '0/24';
                 this.openModal('accountModal');
             }
 
@@ -2791,15 +3294,29 @@
                     this.showToast('Unauthorized action.', 'error');
                     return;
                 }
-                const fn = document.getElementById('accFn').value.trim();
-                const ln = document.getElementById('accLn').value.trim();
+                const fn = normalizeCleanText(document.getElementById('accFn').value, 40);
+                const ln = normalizeCleanText(document.getElementById('accLn').value, 35);
                 const username = document.getElementById('accUsername').value.trim();
                 const role = document.getElementById('accRole').value;
-                const password = document.getElementById('accPassword').value;
+                const rawPassword = document.getElementById('accPassword').value;
 
-                const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,40}$/;
-                if (!nameRegex.test(fn) || !nameRegex.test(ln)) {
-                    this.showToast('Name must contain letters only.', 'error');
+                if (!isValidHumanName(fn, 2, 40) || !isValidHumanName(ln, 2, 35)) {
+                    this.showToast('First Name (2–40) and Last Name (2–35) must contain valid letters only.', 'error');
+                    return;
+                }
+
+                if (!isValidAccountUsername(username)) {
+                    this.showToast('Username must be 3–24 characters using letters, numbers, dots, or underscores.', 'error');
+                    return;
+                }
+
+                if (role !== 'staff' && role !== 'admin') {
+                    this.showToast('Invalid role selected.', 'error');
+                    return;
+                }
+
+                if (rawPassword.length < 6 || rawPassword.length > 64) {
+                    this.showToast('Password must be between 6 and 64 characters.', 'error');
                     return;
                 }
 
@@ -2808,14 +3325,18 @@
                     return;
                 }
 
+                const nowMs = Date.now();
+                const hashedPassword = await hashPasswordSHA256(rawPassword);
+
                 const newStaff = {
-                    id: `usr_${Date.now()}`,
+                    id: `usr_${nowMs}`,
                     username,
-                    password,
+                    password: hashedPassword,
                     role,
                     firstName: fn,
                     lastName: ln,
-                    createdAt: getLocalISODate(0)
+                    createdAt: getLocalISODate(0),
+                    createdAtMs: nowMs
                 };
 
                 this.users.push(newStaff);
@@ -2829,7 +3350,7 @@
 
             openChangePasswordModal(userId) {
                 if (this.currentUser?.role !== 'admin') {
-                    this.showToast('Only an Administrator can change Admin/Staff passwords.', 'error');
+                    this.showToast('Only an Administrator can reset other Admin/Staff passwords.', 'error');
                     return;
                 }
                 const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
@@ -2839,6 +3360,8 @@
                 document.getElementById('cpTargetDisplay').textContent = `${targetUser.firstName} ${targetUser.lastName} (${targetUser.username} - ${targetUser.role.toUpperCase()})`;
                 document.getElementById('cpNewPassword').value = '';
                 document.getElementById('cpConfirmPassword').value = '';
+                this.resetPasswordFieldState('cpNewPassword', 'cpNewPassIcon');
+                this.resetPasswordFieldState('cpConfirmPassword', 'cpConfirmPassIcon');
                 this.openModal('changePasswordModal');
             }
 
@@ -2853,8 +3376,8 @@
                 const newPass = document.getElementById('cpNewPassword').value;
                 const confirmPass = document.getElementById('cpConfirmPassword').value;
 
-                if (newPass.length < 6) {
-                    this.showToast('Password must be at least 6 characters.', 'error');
+                if (newPass.length < 6 || newPass.length > 64) {
+                    this.showToast('Password must be between 6 and 64 characters.', 'error');
                     return;
                 }
 
@@ -2866,12 +3389,12 @@
                 const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
                 if (!targetUser) return;
 
-                targetUser.password = newPass;
+                targetUser.password = await hashPasswordSHA256(newPass);
                 this.saveData('users');
                 await this.pushRecordToCloud('eg_users', targetUser.id, targetUser);
 
                 if (this.currentUser.id === targetUser.id) {
-                    this.currentUser.password = newPass;
+                    this.currentUser.password = targetUser.password;
                     sessionStorage.setItem('eg_session', JSON.stringify(this.currentUser));
                 }
 
@@ -2880,6 +3403,7 @@
             }
 
             exportDatabaseBackup() {
+                if (this.currentUser?.role !== 'admin') return;
                 const payload = {
                     exportedAt: new Date().toISOString(),
                     plans: this.plans,
@@ -2899,6 +3423,7 @@
             }
 
             importDatabaseBackup(event) {
+                if (this.currentUser?.role !== 'admin') return;
                 const file = event.target.files?.[0];
                 if (!file) return;
                 event.target.value = '';
@@ -2911,11 +3436,15 @@
                             this.showToast('Invalid backup file format.', 'error');
                             return;
                         }
-                        this.plans = data.plans;
-                        this.users = data.users;
-                        this.members = data.members;
-                        this.payments = data.payments || [];
-                        this.attendance = data.attendance || [];
+                        if (!data.users.some(u => u && u.role === 'admin' && u.id && u.username)) {
+                            this.showToast('Backup rejected: missing valid administrator account.', 'error');
+                            return;
+                        }
+                        this.plans = this.sortCollectionChronologically(data.plans);
+                        this.users = this.sortCollectionChronologically(data.users);
+                        this.members = this.sortCollectionChronologically(data.members);
+                        this.payments = this.sortCollectionChronologically(data.payments || []);
+                        this.attendance = this.sortCollectionChronologically(data.attendance || []);
 
                         this.saveData('plans');
                         this.saveData('users');
