@@ -106,7 +106,7 @@
             <div class="flex flex-wrap items-center gap-3 text-zinc-400">
                 <span><i class="fa-solid fa-clock text-zinc-500 mr-1"></i> <span id="headerBranchHours">Mon-Sat: 6:00 AM - 10:00 PM</span></span>
                 <div class="flex items-center gap-1.5">
-                    <label for="headerBranchSelect" class="text-[11px] text-zinc-500">Branch:</label>
+                    <label for="headerBranchSelect" class="text-[11px] text-zinc-500">Active Terminal Branch:</label>
                     <select id="headerBranchSelect" onchange="app.onHeaderBranchChange()" class="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-0.5 text-[11px] text-brand-400 font-semibold focus:outline-none focus:border-brand-400"></select>
                 </div>
             </div>
@@ -384,6 +384,7 @@
                                 <thead>
                                     <tr class="border-b border-zinc-800 text-zinc-400">
                                         <th class="pb-2">Date &amp; Time</th>
+                                        <th class="pb-2">Branch</th>
                                         <th class="pb-2">Plan Validated</th>
                                         <th class="pb-2">Status</th>
                                     </tr>
@@ -409,8 +410,8 @@
                         <span>Members</span>
                     </button>
                     <button onclick="app.switchAdminSubTab('payments')" id="subTabPayments" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-receipt"></i>
-                        <span>Payments &amp; Revenue</span>
+                        <i class="fa-solid fa-chart-column"></i>
+                        <span>Analytics &amp; Revenue</span>
                     </button>
                     <button onclick="app.switchAdminSubTab('attendance')" id="subTabAttendance" class="admin-subtab bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
                         <i class="fa-solid fa-list-check"></i>
@@ -429,24 +430,41 @@
                         <span>Staff Accounts</span>
                     </button>
                 </div>
+
+                <!-- Global Analytics & Directory Branch Filter -->
+                <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl">
+                    <i class="fa-solid fa-filter text-brand-400 text-xs"></i>
+                    <label for="analyticsBranchFilter" class="text-[11px] font-semibold text-zinc-400 whitespace-nowrap">Analytics Scope:</label>
+                    <select id="analyticsBranchFilter" onchange="app.onAnalyticsBranchFilterChange()" class="bg-zinc-950 border border-zinc-700 rounded-lg px-2.5 py-1 text-xs text-white font-semibold focus:outline-none focus:border-brand-400">
+                        <option value="ALL">All Xtreme Branches</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
                     <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
-                        <span>Total Registered Members</span>
+                        <span>Registered Members</span>
                         <i class="fa-solid fa-users text-brand-400"></i>
                     </div>
                     <div id="statTotalMembers" class="text-2xl font-black text-white">0</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Xtreme Gym World Database</div>
+                    <div id="statBranchScopeLabel1" class="text-[10px] text-zinc-500 mt-1 truncate">All Xtreme Branches</div>
                 </div>
                 <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
                     <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
-                        <span>Active Subscriptions</span>
+                        <span>Active Passes</span>
                         <i class="fa-solid fa-user-check text-emerald-400"></i>
                     </div>
                     <div id="statActiveMembers" class="text-2xl font-black text-emerald-400">0</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Valid passes</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Valid subscriptions</div>
+                </div>
+                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
+                    <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
+                        <span>Staff &amp; Admins</span>
+                        <i class="fa-solid fa-user-shield text-purple-400"></i>
+                    </div>
+                    <div id="statTotalStaff" class="text-2xl font-black text-purple-400">0</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Assigned team</div>
                 </div>
                 <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
                     <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
@@ -456,13 +474,13 @@
                     <div id="statTodayCheckins" class="text-2xl font-black text-white">0</div>
                     <div class="text-[10px] text-zinc-500 mt-1">Attended today</div>
                 </div>
-                <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
+                <div class="bg-darkcard border border-darkborder p-4 rounded-xl col-span-2 sm:col-span-1">
                     <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
                         <span>Total Revenue</span>
                         <i class="fa-solid fa-peso-sign text-brand-400"></i>
                     </div>
                     <div id="statTotalRevenue" class="text-2xl font-black text-brand-400">₱0.00</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Cumulative recorded</div>
+                    <div id="statBranchScopeLabel2" class="text-[10px] text-zinc-500 mt-1 truncate">All Xtreme Branches</div>
                 </div>
             </div>
 
@@ -556,7 +574,7 @@
 
                         <div class="mt-4 pt-4 border-t border-zinc-800 text-[11px] text-zinc-500 flex items-center gap-2">
                             <i class="fa-solid fa-shield-halved text-brand-400"></i>
-                            <span>15-second duplicate check-in cooldown active per member.</span>
+                            <span>Check-ins are logged under your active terminal branch (<span id="scannerActiveBranchBadge" class="text-zinc-300 font-semibold">Xtreme Gym World - Sta. Maria</span>).</span>
                         </div>
                     </div>
                 </div>
@@ -605,7 +623,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-darkcard border border-darkborder p-4 rounded-2xl">
                     <div class="flex flex-wrap items-center gap-3">
                         <div>
-                            <label class="block text-[10px] text-zinc-400 mb-1">Filter Method</label>
+                            <label class="block text-[10px] text-zinc-400 mb-1">Filter Payment Method</label>
                             <select id="paymentMethodFilter" onchange="app.renderPaymentsModule()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white">
                                 <option value="ALL">All Methods</option>
                                 <option value="Cash">Cash</option>
@@ -622,18 +640,59 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-darkcard border border-darkborder rounded-2xl p-5">
+                <!-- Branch-by-Branch Analytics Overview Table -->
+                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-zinc-800 flex flex-wrap justify-between items-center gap-2">
+                        <h3 class="text-xs font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-building-columns text-brand-400"></i>
+                            <span>Branch Performance &amp; Revenue Breakdown</span>
+                        </h3>
+                        <span class="text-[11px] text-zinc-400">Live revenue, members, staff &amp; attendance per Xtreme branch</span>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-900 text-zinc-400 font-bold">
+                                <tr>
+                                    <th class="p-3.5">Branch Name</th>
+                                    <th class="p-3.5">Status</th>
+                                    <th class="p-3.5 text-right">Total Members</th>
+                                    <th class="p-3.5 text-right">Active Passes</th>
+                                    <th class="p-3.5 text-right">Assigned Staff</th>
+                                    <th class="p-3.5 text-right">Total Check-ins</th>
+                                    <th class="p-3.5 text-right">Total Revenue Gained</th>
+                                </tr>
+                            </thead>
+                            <tbody id="branchAnalyticsTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Dual Charts: Revenue by Branch + Revenue by Plan -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-5">
                         <h3 class="text-xs font-bold text-white mb-4 flex items-center justify-between">
-                            <span>Revenue Trend Analytics</span>
-                            <span class="text-zinc-500 font-normal">Xtreme Gym World Financial Summary</span>
+                            <span>Money Gained by Branch (₱)</span>
+                            <span class="text-zinc-500 font-normal">Branch Revenue Comparison</span>
+                        </h3>
+                        <div class="h-64 relative">
+                            <canvas id="branchRevenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-5">
+                        <h3 class="text-xs font-bold text-white mb-4 flex items-center justify-between">
+                            <span>Revenue by Membership Plan (₱)</span>
+                            <span id="planChartScopeBadge" class="text-zinc-500 font-normal">All Xtreme Branches</span>
                         </h3>
                         <div class="h-64 relative">
                             <canvas id="revenueChart"></canvas>
                         </div>
                     </div>
+                </div>
 
-                    <div class="bg-darkcard border border-darkborder rounded-2xl p-5 space-y-3">
+                <!-- Record Direct Payment + Recent Transactions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 bg-darkcard border border-darkborder rounded-2xl p-5 space-y-3">
                         <h3 class="text-xs font-extrabold text-white flex items-center gap-2 border-b border-zinc-800 pb-2">
                             <i class="fa-solid fa-cash-register text-brand-400"></i>
                             <span>Record Direct Payment / Renewal</span>
@@ -642,7 +701,12 @@
                         <form onsubmit="app.handleManualPaymentSubmit(event)" class="space-y-3">
                             <div>
                                 <label class="block text-[11px] text-zinc-300 mb-1">Select Member</label>
-                                <select id="payMemberSelect" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                                <select id="payMemberSelect" onchange="app.onPayMemberSelectChange()" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] text-zinc-300 mb-1">Credited Branch</label>
+                                <select id="payBranchSelect" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
                             </div>
 
                             <div>
@@ -677,25 +741,26 @@
                             </button>
                         </form>
                     </div>
-                </div>
 
-                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
-                    <div class="p-4 border-b border-zinc-800 font-bold text-xs text-white">Recent Transactions History</div>
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-zinc-900 text-zinc-400">
-                                <tr>
-                                    <th class="p-3">Txn ID</th>
-                                    <th class="p-3">Member Name</th>
-                                    <th class="p-3">Plan Paid</th>
-                                    <th class="p-3">Amount</th>
-                                    <th class="p-3">Method</th>
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">Recorded By</th>
-                                </tr>
-                            </thead>
-                            <tbody id="paymentsTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
-                        </table>
+                    <div class="lg:col-span-2 bg-darkcard border border-darkborder rounded-2xl overflow-hidden">
+                        <div class="p-4 border-b border-zinc-800 font-bold text-xs text-white">Transactions History</div>
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-zinc-900 text-zinc-400">
+                                    <tr>
+                                        <th class="p-3">Txn ID</th>
+                                        <th class="p-3">Member Name</th>
+                                        <th class="p-3">Branch</th>
+                                        <th class="p-3">Plan Paid</th>
+                                        <th class="p-3">Amount</th>
+                                        <th class="p-3">Method</th>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3">Recorded By</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentsTableBody" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -717,6 +782,7 @@
                                     <th class="p-3.5">Timestamp</th>
                                     <th class="p-3.5">Member Name</th>
                                     <th class="p-3.5">Member ID</th>
+                                    <th class="p-3.5">Branch</th>
                                     <th class="p-3.5">Plan Validated</th>
                                     <th class="p-3.5">Validation Result</th>
                                     <th class="p-3.5">Operator</th>
@@ -745,7 +811,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-darkcard border border-darkborder p-4 rounded-2xl">
                     <div>
                         <h3 class="text-xs font-extrabold text-white">Xtreme Gym World Branches Management</h3>
-                        <p class="text-[10px] text-zinc-400">Add new Xtreme Gym World branches or edit existing branch locations &amp; operating hours</p>
+                        <p class="text-[10px] text-zinc-400">Add new Xtreme Gym World branches or edit existing branch locations, operating hours &amp; revenue stats</p>
                     </div>
                     <button onclick="app.openAddBranchModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-plus"></i>
@@ -760,7 +826,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-darkcard border border-darkborder p-4 rounded-2xl">
                     <div>
                         <h3 class="text-xs font-extrabold text-white">Staff &amp; Admin Accounts Management</h3>
-                        <p class="text-[10px] text-zinc-400">Create staff/admin accounts or reset passwords for any team member</p>
+                        <p class="text-[10px] text-zinc-400">Create staff/admin accounts, assign branches, or reset passwords for any team member</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <button onclick="app.exportDatabaseBackup()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5" title="Download full backup file">
@@ -787,6 +853,7 @@
                                     <th class="p-3.5">Full Name</th>
                                     <th class="p-3.5">Username</th>
                                     <th class="p-3.5">Role</th>
+                                    <th class="p-3.5">Assigned Branch</th>
                                     <th class="p-3.5">Created Date</th>
                                     <th class="p-3.5 text-right">Actions</th>
                                 </tr>
@@ -1025,12 +1092,18 @@
                     <span id="accUserErr" class="text-[10px] text-rose-400 hidden block mt-0.5">3–24 chars: letters, numbers, . or _ only</span>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Role Type</label>
-                    <select id="accRole" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
-                        <option value="staff">Gym Staff / Cashier</option>
-                        <option value="admin">Administrator / Manager</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Role Type</label>
+                        <select id="accRole" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                            <option value="staff">Gym Staff / Cashier</option>
+                            <option value="admin">Administrator / Manager</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Assigned Branch</label>
+                        <select id="accBranchSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                    </div>
                 </div>
 
                 <div>
@@ -1041,6 +1114,35 @@
                 <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
                     <button type="button" onclick="app.closeModal('accountModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
                     <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Staff/Admin Branch Modal (Admin Only) -->
+    <div id="editAccountBranchModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-white">Assign Staff / Admin Branch</h3>
+                <button onclick="app.closeModal('editAccountBranchModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="app.handleSaveAccountBranch(event)" class="space-y-3">
+                <input type="hidden" id="eabUserId">
+
+                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs space-y-0.5">
+                    <div class="text-zinc-400">Team Member:</div>
+                    <div id="eabTargetDisplay" class="font-bold text-white">Name (username)</div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Assigned Xtreme Gym Branch</label>
+                    <select id="eabBranchSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('editAccountBranchModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Assignment</button>
                 </div>
             </form>
         </div>
@@ -1388,8 +1490,8 @@
         ];
 
         const INITIAL_USERS = [
-            { id: 'usr_1', username: 'admin', password: 'Admin123!', role: 'admin', firstName: 'Kian Edward', lastName: 'Puente', createdAt: '2026-01-01', createdAtMs: 1 },
-            { id: 'usr_2', username: 'staff1', password: 'Staff123!', role: 'staff', firstName: 'Staff', lastName: 'Member', createdAt: '2026-01-05', createdAtMs: 2 },
+            { id: 'usr_1', username: 'admin', password: 'Admin123!', role: 'admin', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', firstName: 'Kian Edward', lastName: 'Puente', createdAt: '2026-01-01', createdAtMs: 1 },
+            { id: 'usr_2', username: 'staff1', password: 'Staff123!', role: 'staff', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', firstName: 'Staff', lastName: 'Member', createdAt: '2026-01-05', createdAtMs: 2 },
             { id: 'usr_3', username: 'juan', password: 'Member123!', role: 'member', memberId: 'EG-2026-0001', firstName: 'Juan', lastName: 'Dela Cruz', createdAt: '2026-02-01', createdAtMs: 3 },
             { id: 'usr_4', username: 'maria', password: 'Member123!', role: 'member', memberId: 'EG-2026-0002', firstName: 'Maria', lastName: 'Santos', createdAt: '2026-02-10', createdAtMs: 4 },
         ];
@@ -1483,15 +1585,15 @@
         ];
 
         const INITIAL_PAYMENTS = [
-            { id: 'TXN-1001', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash', date: '2026-11-15 10:30 AM', recordedBy: 'staff1', createdAtMs: 1763173800000 },
-            { id: 'TXN-1002', memberId: 'EG-2026-0002', memberName: 'Maria Santos', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-01 08:15 AM', recordedBy: 'admin', createdAtMs: 1761956100000 },
-            { id: 'TXN-1003', memberId: 'EG-2026-0003', memberName: 'Kian Puente', planName: 'Quarterly Pro Membership', amount: 2100, method: 'Card', date: '2026-10-01 02:00 PM', recordedBy: 'admin', createdAtMs: 1759298400000 },
+            { id: 'TXN-1001', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash', date: '2026-11-15 10:30 AM', recordedBy: 'staff1', createdAtMs: 1763173800000 },
+            { id: 'TXN-1002', memberId: 'EG-2026-0002', memberName: 'Maria Santos', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-01 08:15 AM', recordedBy: 'admin', createdAtMs: 1761956100000 },
+            { id: 'TXN-1003', memberId: 'EG-2026-0003', memberName: 'Kian Puente', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Quarterly Pro Membership', amount: 2100, method: 'Card', date: '2026-10-01 02:00 PM', recordedBy: 'admin', createdAtMs: 1759298400000 },
         ];
 
         const INITIAL_ATTENDANCE = [
-            { id: 'ATT-901', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', dateISO: '2026-11-18', operator: 'desk_scanner', createdAtMs: 1763423100000 },
-            { id: 'ATT-902', memberId: 'EG-2026-0003', memberName: 'Kian Puente', planName: 'Quarterly Pro Membership', status: 'Verified Active', timestamp: '2026-11-19 06:15 AM', dateISO: '2026-11-19', operator: 'desk_scanner', createdAtMs: 1763504100000 },
-            { id: 'ATT-903', memberId: 'EG-2026-0002', memberName: 'Maria Santos', planName: 'Daily Walk-in Pass', status: 'Denied (Expired)', timestamp: '2026-11-19 09:30 AM', dateISO: '2026-11-19', operator: 'desk_scanner', createdAtMs: 1763515800000 }
+            { id: 'ATT-901', memberId: 'EG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', dateISO: '2026-11-18', operator: 'desk_scanner', createdAtMs: 1763423100000 },
+            { id: 'ATT-902', memberId: 'EG-2026-0003', memberName: 'Kian Puente', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Quarterly Pro Membership', status: 'Verified Active', timestamp: '2026-11-19 06:15 AM', dateISO: '2026-11-19', operator: 'desk_scanner', createdAtMs: 1763504100000 },
+            { id: 'ATT-903', memberId: 'EG-2026-0002', memberName: 'Maria Santos', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Daily Walk-in Pass', status: 'Denied (Expired)', timestamp: '2026-11-19 09:30 AM', dateISO: '2026-11-19', operator: 'desk_scanner', createdAtMs: 1763515800000 }
         ];
 
         class GymApp {
@@ -1499,6 +1601,7 @@
                 this.currentUser = null;
                 this.currentSubTab = 'scanner';
                 this.selectedBranchId = localStorage.getItem('eg_selected_branch') || 'branch_1';
+                this.analyticsBranchScope = 'ALL';
                 this.failedLoginState = this.loadSecurityState();
                 this.lockoutTimer = null;
                 this.lastLoginAttemptMs = 0;
@@ -1650,19 +1753,28 @@
                     if (prop === 'members') {
                         this.populateScannerSelect();
                         this.renderMembersTable();
+                        this.renderPaymentsModule();
                         this.renderBranchesList();
                     } else if (prop === 'payments') {
                         this.renderPaymentsModule();
+                        this.renderBranchesList();
                     } else if (prop === 'attendance') {
                         this.renderAttendanceLogTable();
+                        this.renderPaymentsModule();
+                        this.renderBranchesList();
                     } else if (prop === 'plans') {
                         this.renderPlansList();
+                        this.renderPaymentsModule();
                     } else if (prop === 'branches') {
                         this.renderBranchesList();
                         this.renderMembersTable();
+                        this.renderPaymentsModule();
+                        this.renderAccountsTable();
                     } else if (prop === 'users') {
                         this.renderAccountsTable();
                         this.renderMembersTable();
+                        this.renderPaymentsModule();
+                        this.renderBranchesList();
                     }
                 }
             }
@@ -1721,7 +1833,7 @@
                 this.payments = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_payments')));
                 this.attendance = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_attendance')));
 
-                // Migrate default branch name from Extreme to Xtreme if untouched
+                // Migrate legacy default branch name if untouched
                 const defaultBranch = this.branches.find(b => b.id === 'branch_1');
                 if (defaultBranch && defaultBranch.name.startsWith('Extreme Gym')) {
                     defaultBranch.name = 'Xtreme Gym World - Sta. Maria';
@@ -1759,11 +1871,30 @@
                 return this.branches.find(b => b.id === branchId) || this.branches[0] || INITIAL_BRANCHES[0];
             }
 
+            resolveRecordBranchId(record, fallbackMemberId = null) {
+                if (record && record.branchId && this.branches.some(b => b.id === record.branchId)) {
+                    return record.branchId;
+                }
+                if (fallbackMemberId) {
+                    const member = this.members.find(m => m.id === fallbackMemberId);
+                    if (member && member.branchId && this.branches.some(b => b.id === member.branchId)) {
+                        return member.branchId;
+                    }
+                }
+                return this.branches[0]?.id || 'branch_1';
+            }
+
+            resolveRecordBranchName(record, fallbackMemberId = null) {
+                const bId = this.resolveRecordBranchId(record, fallbackMemberId);
+                const branch = this.getBranchById(bId);
+                return branch ? branch.name : (record?.branchName || 'Xtreme Gym World - Sta. Maria');
+            }
+
             populateBranchSelects() {
                 const activeBranches = this.branches.filter(b => b.status !== 'Inactive');
                 const listForForms = activeBranches.length > 0 ? activeBranches : this.branches;
 
-                ['regBranchSelect', 'mBranchSelect'].forEach(selectId => {
+                ['regBranchSelect', 'mBranchSelect', 'payBranchSelect', 'accBranchSelect', 'eabBranchSelect'].forEach(selectId => {
                     const el = document.getElementById(selectId);
                     if (!el) return;
                     const prevVal = el.value;
@@ -1776,6 +1907,8 @@
                     });
                     if (prevVal && listForForms.some(b => b.id === prevVal)) {
                         el.value = prevVal;
+                    } else if (listForForms.some(b => b.id === this.selectedBranchId)) {
+                        el.value = this.selectedBranchId;
                     }
                 });
 
@@ -1795,6 +1928,23 @@
                         headerSel.value = this.selectedBranchId;
                     }
                 }
+
+                const scopeSel = document.getElementById('analyticsBranchFilter');
+                if (scopeSel) {
+                    scopeSel.innerHTML = '<option value="ALL">All Xtreme Branches</option>';
+                    this.branches.forEach(branch => {
+                        const opt = document.createElement('option');
+                        opt.value = branch.id;
+                        opt.textContent = branch.name;
+                        scopeSel.appendChild(opt);
+                    });
+                    if (this.analyticsBranchScope !== 'ALL' && this.branches.some(b => b.id === this.analyticsBranchScope)) {
+                        scopeSel.value = this.analyticsBranchScope;
+                    } else {
+                        this.analyticsBranchScope = 'ALL';
+                        scopeSel.value = 'ALL';
+                    }
+                }
             }
 
             onHeaderBranchChange() {
@@ -1805,16 +1955,31 @@
                 this.updateHeaderBranchInfo();
             }
 
+            onAnalyticsBranchFilterChange() {
+                const scopeSel = document.getElementById('analyticsBranchFilter');
+                if (!scopeSel) return;
+                this.analyticsBranchScope = scopeSel.value || 'ALL';
+                this.renderAdminDashboard();
+            }
+
+            getAnalyticsScopeName() {
+                if (this.analyticsBranchScope === 'ALL') return 'All Xtreme Branches';
+                const branch = this.getBranchById(this.analyticsBranchScope);
+                return branch ? branch.name : 'All Xtreme Branches';
+            }
+
             updateHeaderBranchInfo() {
                 const branch = this.getBranchById(this.selectedBranchId);
                 if (!branch) return;
                 const titleEl = document.getElementById('headerBranchTitle');
                 const addrEl = document.getElementById('headerBranchAddress');
                 const hoursEl = document.getElementById('headerBranchHours');
+                const scannerBadge = document.getElementById('scannerActiveBranchBadge');
 
                 if (titleEl) titleEl.textContent = `${branch.name.toUpperCase()}:`;
                 if (addrEl) addrEl.textContent = branch.address;
                 if (hoursEl) hoursEl.textContent = branch.hours || 'Mon-Sat: 6:00 AM - 10:00 PM';
+                if (scannerBadge) scannerBadge.textContent = branch.name;
             }
 
             validateNameInput(inputElem, errorSpanId, maxLen = 40) {
@@ -1961,6 +2126,13 @@
                         matchedUser.password = await hashPasswordSHA256(passwordInput);
                         this.saveData('users');
                         this.pushRecordToCloud('eg_users', matchedUser.id, matchedUser);
+                    }
+
+                    if (matchedUser.branchId && this.branches.some(b => b.id === matchedUser.branchId)) {
+                        this.selectedBranchId = matchedUser.branchId;
+                        localStorage.setItem('eg_selected_branch', this.selectedBranchId);
+                        this.populateBranchSelects();
+                        this.updateHeaderBranchInfo();
                     }
 
                     this.currentUser = matchedUser;
@@ -2143,6 +2315,8 @@
                     id: `TXN-${String(nowMs).slice(-6)}`,
                     memberId,
                     memberName: `${fn} ${ln}`,
+                    branchId: selectedBranch.id,
+                    branchName: selectedBranch.name,
                     planName: selectedPlan.name,
                     amount: selectedPlan.price,
                     method: 'Cash (Self-Registration)',
@@ -2385,12 +2559,14 @@
                 const attBody = document.getElementById('memberAttendanceTableBody');
                 attBody.innerHTML = '';
                 if (myAttendance.length === 0) {
-                    attBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-zinc-500">No attendance logs yet. Present your QR code at the gym desk!</td></tr>`;
+                    attBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-zinc-500">No attendance logs yet. Present your QR code at the gym desk!</td></tr>`;
                 } else {
                     myAttendance.slice().reverse().forEach(att => {
+                        const branchLabel = this.resolveRecordBranchName(att, member.id);
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td class="py-2.5">${escapeHTML(att.timestamp)}</td>
+                            <td class="py-2.5 text-zinc-400">${escapeHTML(branchLabel)}</td>
                             <td class="py-2.5 font-medium text-white">${escapeHTML(att.planName)}</td>
                             <td class="py-2.5">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${att.status.includes('Verified') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
@@ -2457,8 +2633,13 @@
                 const month = String(baseDate.getMonth() + 1).padStart(2, '0');
                 const day = String(baseDate.getDate()).padStart(2, '0');
 
+                const branchId = this.resolveRecordBranchId(member);
+                const branchName = this.resolveRecordBranchName(member);
+
                 member.planId = plan.id;
                 member.planName = plan.name;
+                member.branchId = branchId;
+                member.branchName = branchName;
                 member.expiryDate = `${year}-${month}-${day}`;
                 member.status = 'Active';
                 member.totalPaid = (member.totalPaid || 0) + plan.price;
@@ -2468,6 +2649,8 @@
                     id: `TXN-${String(nowMs).slice(-6)}`,
                     memberId: member.id,
                     memberName: `${member.firstName} ${member.lastName}`,
+                    branchId,
+                    branchName,
                     planName: plan.name,
                     amount: plan.price,
                     method: method + (refNo ? ` (${refNo})` : ''),
@@ -2729,22 +2912,46 @@
                 this.renderAccountsTable();
             }
 
+            filterRecordsByAnalyticsScope(items, fallbackMemberResolver = null) {
+                if (this.analyticsBranchScope === 'ALL') return items;
+                return items.filter(item => {
+                    const fallbackId = fallbackMemberResolver ? fallbackMemberResolver(item) : null;
+                    return this.resolveRecordBranchId(item, fallbackId) === this.analyticsBranchScope;
+                });
+            }
+
             renderStatsSummary() {
-                const totalM = this.members.length;
-                const activeM = this.members.filter(m => !isMemberExpired(m)).length;
+                const scopedMembers = this.filterRecordsByAnalyticsScope(this.members);
+                const scopedPayments = this.filterRecordsByAnalyticsScope(this.payments, p => p.memberId);
+                const scopedAttendance = this.filterRecordsByAnalyticsScope(this.attendance, a => a.memberId);
+                const scopedStaff = this.users.filter(u => {
+                    if (u.role !== 'admin' && u.role !== 'staff') return false;
+                    if (this.analyticsBranchScope === 'ALL') return true;
+                    return this.resolveRecordBranchId(u) === this.analyticsBranchScope;
+                });
+
+                const totalM = scopedMembers.length;
+                const activeM = scopedMembers.filter(m => !isMemberExpired(m)).length;
 
                 const todayISO = getLocalISODate(0);
-                const todayAtt = this.attendance.filter(a => {
+                const todayAtt = scopedAttendance.filter(a => {
                     if (a.dateISO) return a.dateISO === todayISO;
                     return String(a.timestamp || '').startsWith(todayISO);
                 }).length;
 
-                const totalRev = this.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const totalRev = scopedPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const scopeName = this.getAnalyticsScopeName();
 
                 document.getElementById('statTotalMembers').textContent = totalM;
                 document.getElementById('statActiveMembers').textContent = activeM;
+                document.getElementById('statTotalStaff').textContent = scopedStaff.length;
                 document.getElementById('statTodayCheckins').textContent = todayAtt;
                 document.getElementById('statTotalRevenue').textContent = `₱${totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                const lbl1 = document.getElementById('statBranchScopeLabel1');
+                const lbl2 = document.getElementById('statBranchScopeLabel2');
+                if (lbl1) lbl1.textContent = scopeName;
+                if (lbl2) lbl2.textContent = scopeName;
             }
 
             async switchAdminSubTab(subTab) {
@@ -2803,6 +3010,19 @@
 
                 if (prevScan) sel.value = prevScan;
                 if (prevPay) paySel.value = prevPay;
+            }
+
+            onPayMemberSelectChange() {
+                const paySel = document.getElementById('payMemberSelect');
+                const payBranchSel = document.getElementById('payBranchSelect');
+                if (!paySel || !payBranchSel || !paySel.value) return;
+                const member = this.members.find(m => m.id === paySel.value);
+                if (member) {
+                    const branchId = this.resolveRecordBranchId(member);
+                    if (Array.from(payBranchSel.options).some(o => o.value === branchId)) {
+                        payBranchSel.value = branchId;
+                    }
+                }
             }
 
             simScanFromSelect() {
@@ -2891,6 +3111,7 @@
                     return;
                 }
 
+                const activeBranch = this.getBranchById(this.selectedBranchId);
                 const expired = isMemberExpired(member);
 
                 if (expired) {
@@ -2910,6 +3131,8 @@
                         id: `ATT-${String(now).slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
+                        branchId: activeBranch.id,
+                        branchName: activeBranch.name,
                         planName: member.planName,
                         status: 'Denied (Expired)',
                         timestamp: new Date().toLocaleString(),
@@ -2922,6 +3145,7 @@
                     await this.pushRecordToCloud('eg_attendance', attLog.id, attLog);
                     this.renderStatsSummary();
                     this.renderAttendanceLogTable();
+                    this.renderPaymentsModule();
                     this.showToast('ENTRY DENIED: Member plan is expired.', 'error');
                 } else {
                     this.scanCooldowns[member.id] = now;
@@ -2935,13 +3159,15 @@
                         <h4 class="text-xl font-black text-emerald-400">ACCESS GRANTED</h4>
                         <p class="text-lg font-extrabold text-white">${escapeHTML(member.firstName)} ${escapeHTML(member.lastName)}</p>
                         <p class="text-xs text-zinc-300">ID: <span class="font-mono text-brand-400">${member.id}</span> | Plan: <span class="text-white">${escapeHTML(member.planName)}</span></p>
-                        <p class="text-xs text-emerald-300">Valid Until: ${member.expiryDate}</p>
+                        <p class="text-xs text-emerald-300">Branch: ${escapeHTML(activeBranch.name)} • Valid Until: ${member.expiryDate}</p>
                     `;
 
                     const attLog = {
                         id: `ATT-${String(now).slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
+                        branchId: activeBranch.id,
+                        branchName: activeBranch.name,
                         planName: member.planName,
                         status: 'Verified Active',
                         timestamp: new Date().toLocaleString(),
@@ -2954,6 +3180,7 @@
                     await this.pushRecordToCloud('eg_attendance', attLog.id, attLog);
                     this.renderStatsSummary();
                     this.renderAttendanceLogTable();
+                    this.renderPaymentsModule();
                     this.showToast(`Check-in verified for ${member.firstName} ${member.lastName}!`, 'success');
                 }
             }
@@ -2966,7 +3193,8 @@
 
                 tbody.innerHTML = '';
 
-                const filtered = this.members.filter(m => {
+                const scopedMembers = this.filterRecordsByAnalyticsScope(this.members);
+                const filtered = scopedMembers.filter(m => {
                     const matchSearch = m.firstName.toLowerCase().includes(searchVal) ||
                                         m.lastName.toLowerCase().includes(searchVal) ||
                                         m.id.toLowerCase().includes(searchVal) ||
@@ -2978,7 +3206,7 @@
                 });
 
                 if (filtered.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No member records match search filter.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No member records match the selected branch/search filter.</td></tr>`;
                     return;
                 }
 
@@ -2986,8 +3214,7 @@
                     const expired = isMemberExpired(m);
                     const statusText = expired ? 'Expired' : 'Active';
                     const statusBadgeClass = expired ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
-                    const memberBranch = this.getBranchById(m.branchId);
-                    const branchLabel = memberBranch ? memberBranch.name : (m.branchName || 'Xtreme Gym World - Sta. Maria');
+                    const branchLabel = this.resolveRecordBranchName(m);
 
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-zinc-900/50 transition';
@@ -3034,6 +3261,9 @@
                 document.getElementById('mLastName').value = '';
                 document.getElementById('mEmail').value = '';
                 document.getElementById('mPhone').value = '';
+                if (this.selectedBranchId) {
+                    document.getElementById('mBranchSelect').value = this.selectedBranchId;
+                }
                 const changePassBtn = document.getElementById('editMemberChangePassBtn');
                 if (changePassBtn) changePassBtn.classList.add('hidden');
                 this.openModal('memberModal');
@@ -3143,7 +3373,6 @@
                     return;
                 }
 
-                // Prevent modifying non-member accounts via this modal
                 const nonMemberConflict = this.users.find(u =>
                     (u.id === member.userId || u.memberId === member.id) && u.role !== 'member'
                 );
@@ -3290,6 +3519,8 @@
                         id: `TXN-${String(nowMs).slice(-6)}`,
                         memberId: newId,
                         memberName: `${fn} ${ln}`,
+                        branchId: selectedBranch.id,
+                        branchName: selectedBranch.name,
                         planName: selectedPlan.name,
                         amount: selectedPlan.price,
                         method: 'Cash',
@@ -3337,6 +3568,11 @@
                 const month = String(baseDate.getMonth() + 1).padStart(2, '0');
                 const day = String(baseDate.getDate()).padStart(2, '0');
 
+                const branchId = this.resolveRecordBranchId(member);
+                const branchName = this.resolveRecordBranchName(member);
+
+                member.branchId = branchId;
+                member.branchName = branchName;
                 member.expiryDate = `${year}-${month}-${day}`;
                 member.status = 'Active';
                 member.totalPaid = (member.totalPaid || 0) + selectedPlan.price;
@@ -3346,6 +3582,8 @@
                     id: `TXN-${String(nowMs).slice(-6)}`,
                     memberId: member.id,
                     memberName: `${member.firstName} ${member.lastName}`,
+                    branchId,
+                    branchName,
                     planName: selectedPlan.name,
                     amount: selectedPlan.price,
                     method: 'Cash',
@@ -3378,23 +3616,92 @@
                 this.openModal('viewQrModal');
             }
 
+            renderBranchAnalyticsTable() {
+                const tbody = document.getElementById('branchAnalyticsTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                const todayISO = getLocalISODate(0);
+                let grandMembers = 0;
+                let grandActive = 0;
+                let grandStaff = 0;
+                let grandCheckins = 0;
+                let grandRevenue = 0;
+
+                this.branches.forEach(branch => {
+                    const isActive = branch.status !== 'Inactive';
+                    const bMembers = this.members.filter(m => this.resolveRecordBranchId(m) === branch.id);
+                    const bActiveMembers = bMembers.filter(m => !isMemberExpired(m));
+                    const bStaff = this.users.filter(u =>
+                        (u.role === 'admin' || u.role === 'staff') && this.resolveRecordBranchId(u) === branch.id
+                    );
+                    const bAttendance = this.attendance.filter(a => this.resolveRecordBranchId(a, a.memberId) === branch.id);
+                    const bPayments = this.payments.filter(p => this.resolveRecordBranchId(p, p.memberId) === branch.id);
+                    const bRevenue = bPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+
+                    grandMembers += bMembers.length;
+                    grandActive += bActiveMembers.length;
+                    grandStaff += bStaff.length;
+                    grandCheckins += bAttendance.length;
+                    grandRevenue += bRevenue;
+
+                    const isHighlighted = this.analyticsBranchScope === branch.id;
+                    const tr = document.createElement('tr');
+                    tr.className = isHighlighted ? 'bg-brand-500/10' : 'hover:bg-zinc-900/50 transition';
+                    tr.innerHTML = `
+                        <td class="p-3.5">
+                            <div class="font-bold text-white">${escapeHTML(branch.name)}</div>
+                            <div class="text-[10px] text-zinc-500 truncate max-w-xs">${escapeHTML(branch.address)}</div>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'}">
+                                ${isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-right font-semibold text-white">${bMembers.length}</td>
+                        <td class="p-3.5 text-right font-semibold text-emerald-400">${bActiveMembers.length}</td>
+                        <td class="p-3.5 text-right font-semibold text-purple-300">${bStaff.length}</td>
+                        <td class="p-3.5 text-right font-semibold text-blue-300">${bAttendance.length}</td>
+                        <td class="p-3.5 text-right font-extrabold text-brand-400">₱${bRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                const totalTr = document.createElement('tr');
+                totalTr.className = 'bg-zinc-900/90 font-extrabold text-white border-t border-zinc-700';
+                totalTr.innerHTML = `
+                    <td class="p-3.5" colspan="2">ALL XTREME GYM WORLD BRANCHES TOTAL</td>
+                    <td class="p-3.5 text-right">${grandMembers}</td>
+                    <td class="p-3.5 text-right text-emerald-400">${grandActive}</td>
+                    <td class="p-3.5 text-right text-purple-300">${grandStaff}</td>
+                    <td class="p-3.5 text-right text-blue-300">${grandCheckins}</td>
+                    <td class="p-3.5 text-right text-brand-400">₱${grandRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                `;
+                tbody.appendChild(totalTr);
+            }
+
             renderPaymentsModule() {
                 const methodFilter = document.getElementById('paymentMethodFilter')?.value || 'ALL';
                 const tbody = document.getElementById('paymentsTableBody');
                 if (!tbody) return;
 
+                this.renderBranchAnalyticsTable();
+
                 tbody.innerHTML = '';
-                const sorted = this.sortCollectionChronologically(this.payments);
+                const scopedPayments = this.filterRecordsByAnalyticsScope(this.payments, p => p.memberId);
+                const sorted = this.sortCollectionChronologically(scopedPayments);
                 const filtered = sorted.filter(p => methodFilter === 'ALL' || p.method.startsWith(methodFilter));
 
                 if (filtered.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-zinc-500">No payment transactions recorded.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-zinc-500">No payment transactions match the selected branch/method filter.</td></tr>`;
                 } else {
                     filtered.slice().reverse().forEach(p => {
+                        const branchLabel = this.resolveRecordBranchName(p, p.memberId);
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td class="p-3 font-mono text-brand-400 font-bold">${escapeHTML(p.id)}</td>
                             <td class="p-3 text-white font-medium">${escapeHTML(p.memberName)}</td>
+                            <td class="p-3 text-zinc-400 text-[11px]">${escapeHTML(branchLabel)}</td>
                             <td class="p-3 text-zinc-300">${escapeHTML(p.planName)}</td>
                             <td class="p-3 font-bold text-white">₱${(parseFloat(p.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                             <td class="p-3"><span class="bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded text-[10px]">${escapeHTML(p.method)}</span></td>
@@ -3405,7 +3712,8 @@
                     });
                 }
 
-                this.renderRevenueChart();
+                this.renderBranchRevenueChart();
+                this.renderRevenueChart(scopedPayments);
             }
 
             onPayPlanSelectChange() {
@@ -3426,6 +3734,7 @@
                 }
 
                 const memberId = document.getElementById('payMemberSelect').value;
+                const branchId = document.getElementById('payBranchSelect').value;
                 const planId = document.getElementById('payPlanSelect').value;
                 const rawAmount = document.getElementById('payAmount').value;
                 const method = document.getElementById('payMethod').value;
@@ -3445,8 +3754,9 @@
                 const amount = clamp(rawAmount, 1, 50000);
                 const member = this.members.find(m => m.id === memberId);
                 const plan = this.plans.find(p => p.id === planId);
+                const creditedBranch = this.getBranchById(branchId);
 
-                if (member && plan) {
+                if (member && plan && creditedBranch) {
                     let baseDate = new Date(getLocalISODate(0) + 'T00:00:00');
                     const currentExp = new Date(member.expiryDate + 'T00:00:00');
                     if (currentExp > baseDate) {
@@ -3469,6 +3779,8 @@
                         id: `TXN-${String(nowMs).slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
+                        branchId: creditedBranch.id,
+                        branchName: creditedBranch.name,
                         planName: plan.name,
                         amount: amount,
                         method: method + (refNo ? ` (${refNo})` : ''),
@@ -3489,21 +3801,76 @@
 
                     document.getElementById('payRefNo').value = '';
                     this.renderAdminDashboard();
-                    this.showToast(`Payment of ₱${amount} recorded & synced to cloud!`, 'success');
+                    this.showToast(`Payment of ₱${amount} recorded for ${creditedBranch.name}!`, 'success');
                 }
             }
 
-            renderRevenueChart() {
+            renderBranchRevenueChart() {
+                const ctx = document.getElementById('branchRevenueChart')?.getContext('2d');
+                if (!ctx) return;
+
+                if (window.myBranchRevenueChart) {
+                    window.myBranchRevenueChart.destroy();
+                }
+
+                const branchLabels = [];
+                const branchTotals = [];
+                const palette = ['#a3e635', '#38bdf8', '#f59e0b', '#c084fc', '#34d399', '#fb7185'];
+
+                this.branches.forEach(branch => {
+                    branchLabels.push(branch.name.replace(/^Xtreme Gym World\s*-\s*/i, ''));
+                    const total = this.payments
+                        .filter(p => this.resolveRecordBranchId(p, p.memberId) === branch.id)
+                        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                    branchTotals.push(total);
+                });
+
+                window.myBranchRevenueChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: branchLabels,
+                        datasets: [{
+                            label: 'Branch Revenue (₱)',
+                            data: branchTotals,
+                            backgroundColor: branchLabels.map((_, i) => palette[i % palette.length]),
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ticks: { color: '#a1a1aa' },
+                                grid: { color: '#27272a' }
+                            },
+                            x: {
+                                ticks: { color: '#a1a1aa' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderRevenueChart(scopedPayments = null) {
                 const ctx = document.getElementById('revenueChart')?.getContext('2d');
                 if (!ctx) return;
+
+                const scopeBadge = document.getElementById('planChartScopeBadge');
+                if (scopeBadge) scopeBadge.textContent = this.getAnalyticsScopeName();
 
                 if (window.myRevenueChart) {
                     window.myRevenueChart.destroy();
                 }
 
+                const sourcePayments = scopedPayments || this.filterRecordsByAnalyticsScope(this.payments, p => p.memberId);
                 const planTotals = {};
                 this.plans.forEach(p => planTotals[p.name] = 0);
-                this.payments.forEach(p => {
+                sourcePayments.forEach(p => {
                     if (planTotals[p.planName] !== undefined) {
                         planTotals[p.planName] += parseFloat(p.amount) || 0;
                     } else {
@@ -3543,9 +3910,11 @@
             }
 
             exportRevenueCSV() {
-                let csv = 'Transaction ID,Member ID,Member Name,Plan Name,Amount (PHP),Method,Date,Recorded By\n';
-                this.sortCollectionChronologically(this.payments).forEach(p => {
-                    csv += `"${p.id}","${p.memberId}","${p.memberName.replace(/"/g, '""')}","${p.planName.replace(/"/g, '""')}",${p.amount},"${p.method.replace(/"/g, '""')}","${p.date}","${p.recordedBy}"\n`;
+                let csv = 'Transaction ID,Member ID,Member Name,Branch,Plan Name,Amount (PHP),Method,Date,Recorded By\n';
+                const scopedPayments = this.filterRecordsByAnalyticsScope(this.payments, p => p.memberId);
+                this.sortCollectionChronologically(scopedPayments).forEach(p => {
+                    const branchLabel = this.resolveRecordBranchName(p, p.memberId);
+                    csv += `"${p.id}","${p.memberId}","${p.memberName.replace(/"/g, '""')}","${branchLabel.replace(/"/g, '""')}","${p.planName.replace(/"/g, '""')}",${p.amount},"${p.method.replace(/"/g, '""')}","${p.date}","${p.recordedBy}"\n`;
                 });
 
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -3563,19 +3932,22 @@
                 if (!tbody) return;
 
                 tbody.innerHTML = '';
-                const sorted = this.sortCollectionChronologically(this.attendance);
+                const scopedAttendance = this.filterRecordsByAnalyticsScope(this.attendance, a => a.memberId);
+                const sorted = this.sortCollectionChronologically(scopedAttendance);
                 if (sorted.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No check-in logs recorded today.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-zinc-500">No check-in logs recorded for selected branch.</td></tr>`;
                     return;
                 }
 
                 sorted.slice().reverse().forEach(att => {
                     const tr = document.createElement('tr');
                     const isOk = att.status.includes('Verified');
+                    const branchLabel = this.resolveRecordBranchName(att, att.memberId);
                     tr.innerHTML = `
                         <td class="p-3.5 text-zinc-400 font-mono text-[11px]">${escapeHTML(att.timestamp)}</td>
                         <td class="p-3.5 font-bold text-white">${escapeHTML(att.memberName)}</td>
                         <td class="p-3.5 font-mono text-brand-400">${escapeHTML(att.memberId)}</td>
+                        <td class="p-3.5 text-zinc-400">${escapeHTML(branchLabel)}</td>
                         <td class="p-3.5 text-zinc-300">${escapeHTML(att.planName)}</td>
                         <td class="p-3.5">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isOk ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'}">
@@ -3589,9 +3961,11 @@
             }
 
             exportAttendanceCSV() {
-                let csv = 'Log ID,Timestamp,Member ID,Member Name,Plan Validated,Status,Operator\n';
-                this.sortCollectionChronologically(this.attendance).forEach(a => {
-                    csv += `"${a.id}","${a.timestamp}","${a.memberId}","${a.memberName.replace(/"/g, '""')}","${a.planName.replace(/"/g, '""')}","${a.status}","${a.operator}"\n`;
+                let csv = 'Log ID,Timestamp,Member ID,Member Name,Branch,Plan Validated,Status,Operator\n';
+                const scopedAttendance = this.filterRecordsByAnalyticsScope(this.attendance, a => a.memberId);
+                this.sortCollectionChronologically(scopedAttendance).forEach(a => {
+                    const branchLabel = this.resolveRecordBranchName(a, a.memberId);
+                    csv += `"${a.id}","${a.timestamp}","${a.memberId}","${a.memberName.replace(/"/g, '""')}","${branchLabel.replace(/"/g, '""')}","${a.planName.replace(/"/g, '""')}","${a.status}","${a.operator}"\n`;
                 });
 
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -3680,7 +4054,7 @@
                 this.showToast('New membership plan saved & synced to cloud.', 'success');
             }
 
-            // Branches Management (Add & Edit Xtreme Gym World Branches)
+            // Branches Management (Add & Edit Xtreme Gym World Branches with Revenue & Staff Stats)
             renderBranchesList() {
                 const container = document.getElementById('branchesContainer');
                 if (!container) return;
@@ -3688,9 +4062,12 @@
 
                 this.branches.forEach(branch => {
                     const isActive = branch.status !== 'Inactive';
-                    const memberCount = this.members.filter(m =>
-                        m.branchId === branch.id || (!m.branchId && branch.id === 'branch_1')
-                    ).length;
+                    const bMembers = this.members.filter(m => this.resolveRecordBranchId(m) === branch.id);
+                    const bStaff = this.users.filter(u =>
+                        (u.role === 'admin' || u.role === 'staff') && this.resolveRecordBranchId(u) === branch.id
+                    );
+                    const bPayments = this.payments.filter(p => this.resolveRecordBranchId(p, p.memberId) === branch.id);
+                    const bRevenue = bPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
                     const card = document.createElement('div');
                     card.className = 'bg-darkcard border border-darkborder p-5 rounded-2xl flex flex-col justify-between space-y-4';
@@ -3720,10 +4097,28 @@
                                 <span><i class="fa-solid fa-clock text-zinc-500 mr-1"></i>${escapeHTML(branch.hours || 'Mon-Sat: 6:00 AM - 10:00 PM')}</span>
                                 ${branch.contact ? `<span><i class="fa-solid fa-phone text-zinc-500 mr-1"></i>${escapeHTML(branch.contact)}</span>` : ''}
                             </div>
+
+                            <div class="grid grid-cols-3 gap-2 pt-2">
+                                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
+                                    <div class="text-[10px] text-zinc-400">Revenue Gained</div>
+                                    <div class="text-xs font-extrabold text-brand-400">₱${bRevenue.toLocaleString()}</div>
+                                </div>
+                                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
+                                    <div class="text-[10px] text-zinc-400">Members</div>
+                                    <div class="text-xs font-extrabold text-white">${bMembers.length}</div>
+                                </div>
+                                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
+                                    <div class="text-[10px] text-zinc-400">Staff / Admins</div>
+                                    <div class="text-xs font-extrabold text-purple-300">${bStaff.length}</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="pt-3 border-t border-zinc-800 flex justify-between items-center text-xs">
-                            <span class="text-zinc-400"><strong class="text-white">${memberCount}</strong> assigned member(s)</span>
+                            <button onclick="app.inspectBranchAnalytics('${branch.id}')" class="text-brand-400 hover:underline text-[11px] font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>View Branch Analytics</span>
+                            </button>
                             <button onclick="app.openEditBranchModal('${branch.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition">
                                 <i class="fa-solid fa-pen"></i>
                                 <span>Edit Branch</span>
@@ -3732,6 +4127,14 @@
                     `;
                     container.appendChild(card);
                 });
+            }
+
+            inspectBranchAnalytics(branchId) {
+                this.analyticsBranchScope = branchId;
+                const scopeSel = document.getElementById('analyticsBranchFilter');
+                if (scopeSel) scopeSel.value = branchId;
+                this.renderAdminDashboard();
+                this.switchAdminSubTab('payments');
             }
 
             openAddBranchModal() {
@@ -3814,18 +4217,31 @@
                     branch.contact = contact;
                     branch.status = status;
 
-                    // Update cached branchName on assigned members
                     this.members.forEach(m => {
-                        if (m.branchId === branch.id) {
-                            m.branchName = branch.name;
-                        }
+                        if (m.branchId === branch.id) m.branchName = branch.name;
+                    });
+                    this.users.forEach(u => {
+                        if (u.branchId === branch.id) u.branchName = branch.name;
+                    });
+                    this.payments.forEach(p => {
+                        if (p.branchId === branch.id) p.branchName = branch.name;
+                    });
+                    this.attendance.forEach(a => {
+                        if (a.branchId === branch.id) a.branchName = branch.name;
                     });
 
                     this.saveData('branches');
                     this.saveData('members');
+                    this.saveData('users');
+                    this.saveData('payments');
+                    this.saveData('attendance');
+
                     await Promise.all([
                         this.pushRecordToCloud('eg_branches', branch.id, branch),
-                        this.pushFullCollectionToCloud('eg_members', this.members)
+                        this.pushFullCollectionToCloud('eg_members', this.members),
+                        this.pushFullCollectionToCloud('eg_users', this.users),
+                        this.pushFullCollectionToCloud('eg_payments', this.payments),
+                        this.pushFullCollectionToCloud('eg_attendance', this.attendance)
                     ]);
                     this.showToast(`Branch "${branch.name}" updated & synced to cloud!`, 'success');
                 } else {
@@ -3851,8 +4267,7 @@
 
                 this.populateBranchSelects();
                 this.updateHeaderBranchInfo();
-                this.renderBranchesList();
-                this.renderMembersTable();
+                this.renderAdminDashboard();
                 this.closeModal('branchModal');
             }
 
@@ -3861,9 +4276,19 @@
                 if (!tbody) return;
                 tbody.innerHTML = '';
 
-                const staffAndAdmins = this.users.filter(u => u.role === 'admin' || u.role === 'staff');
+                const staffAndAdmins = this.users.filter(u => {
+                    if (u.role !== 'admin' && u.role !== 'staff') return false;
+                    if (this.analyticsBranchScope === 'ALL') return true;
+                    return this.resolveRecordBranchId(u) === this.analyticsBranchScope;
+                });
+
+                if (staffAndAdmins.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No staff or admin accounts assigned to the selected branch.</td></tr>`;
+                    return;
+                }
 
                 staffAndAdmins.forEach(u => {
+                    const branchLabel = this.resolveRecordBranchName(u);
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-zinc-900/50 transition';
                     tr.innerHTML = `
@@ -3874,9 +4299,19 @@
                                 ${u.role.toUpperCase()}
                             </span>
                         </td>
+                        <td class="p-3.5 text-zinc-300">
+                            <span class="inline-flex items-center gap-1.5 text-xs">
+                                <i class="fa-solid fa-location-dot text-brand-400 text-[10px]"></i>
+                                <span>${escapeHTML(branchLabel)}</span>
+                            </span>
+                        </td>
                         <td class="p-3.5 text-zinc-500 font-mono text-xs">${u.createdAt || '2026-01-01'}</td>
-                        <td class="p-3.5 text-right">
-                            <button onclick="app.openChangePasswordModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition" title="Reset Password">
+                        <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="app.openEditAccountBranchModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition" title="Assign Branch">
+                                <i class="fa-solid fa-building text-brand-400"></i>
+                                <span>Branch</span>
+                            </button>
+                            <button onclick="app.openChangePasswordModal('${u.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition" title="Reset Password">
                                 <i class="fa-solid fa-key"></i>
                                 <span>Reset Password</span>
                             </button>
@@ -3895,6 +4330,9 @@
                 document.getElementById('accLn').value = '';
                 document.getElementById('accUsername').value = '';
                 document.getElementById('accPassword').value = '';
+                if (this.selectedBranchId) {
+                    document.getElementById('accBranchSelect').value = this.selectedBranchId;
+                }
                 const counterSpan = document.getElementById('accUsernameCounter');
                 if (counterSpan) counterSpan.textContent = '0/24';
                 this.openModal('accountModal');
@@ -3910,6 +4348,7 @@
                 const ln = normalizeCleanText(document.getElementById('accLn').value, 35);
                 const username = document.getElementById('accUsername').value.trim();
                 const role = document.getElementById('accRole').value;
+                const branchId = document.getElementById('accBranchSelect').value;
                 const rawPassword = document.getElementById('accPassword').value;
 
                 if (!isValidHumanName(fn, 2, 40) || !isValidHumanName(ln, 2, 35)) {
@@ -3937,6 +4376,7 @@
                     return;
                 }
 
+                const assignedBranch = this.getBranchById(branchId);
                 const nowMs = Date.now();
                 const hashedPassword = await hashPasswordSHA256(rawPassword);
 
@@ -3945,6 +4385,8 @@
                     username,
                     password: hashedPassword,
                     role,
+                    branchId: assignedBranch.id,
+                    branchName: assignedBranch.name,
                     firstName: fn,
                     lastName: ln,
                     createdAt: getLocalISODate(0),
@@ -3955,9 +4397,53 @@
 
                 this.saveData('users');
                 await this.pushRecordToCloud('eg_users', newStaff.id, newStaff);
-                this.renderAccountsTable();
+                this.renderAdminDashboard();
                 this.closeModal('accountModal');
-                this.showToast(`New ${role.toUpperCase()} account created & synced to cloud!`, 'success');
+                this.showToast(`New ${role.toUpperCase()} account created for ${assignedBranch.name}!`, 'success');
+            }
+
+            openEditAccountBranchModal(userId) {
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Only an Administrator can reassign staff branches.', 'error');
+                    return;
+                }
+                const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
+                if (!targetUser) return;
+
+                document.getElementById('eabUserId').value = targetUser.id;
+                document.getElementById('eabTargetDisplay').textContent = `${targetUser.firstName} ${targetUser.lastName} (${targetUser.username} - ${targetUser.role.toUpperCase()})`;
+                const currentBranchId = this.resolveRecordBranchId(targetUser);
+                document.getElementById('eabBranchSelect').value = currentBranchId;
+                this.openModal('editAccountBranchModal');
+            }
+
+            async handleSaveAccountBranch(e) {
+                e.preventDefault();
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+                const userId = document.getElementById('eabUserId').value;
+                const branchId = document.getElementById('eabBranchSelect').value;
+
+                const targetUser = this.users.find(u => u.id === userId && (u.role === 'admin' || u.role === 'staff'));
+                if (!targetUser) return;
+
+                const assignedBranch = this.getBranchById(branchId);
+                targetUser.branchId = assignedBranch.id;
+                targetUser.branchName = assignedBranch.name;
+
+                this.saveData('users');
+                await this.pushRecordToCloud('eg_users', targetUser.id, targetUser);
+
+                if (this.currentUser.id === targetUser.id) {
+                    this.currentUser = targetUser;
+                    sessionStorage.setItem('eg_session', JSON.stringify(targetUser));
+                }
+
+                this.closeModal('editAccountBranchModal');
+                this.renderAdminDashboard();
+                this.showToast(`${targetUser.firstName} assigned to ${assignedBranch.name}!`, 'success');
             }
 
             openChangePasswordModal(userId) {
@@ -4104,40 +4590,33 @@
                 const container = document.getElementById('toastContainer');
                 if (!container) return;
 
-                const toast = document.createElement('div');
-                toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border text-xs font-bold transition transform translate-y-2 opacity-0';
+                const colors = {
+                    success: 'bg-emerald-950 border-emerald-500/50 text-emerald-300',
+                    error: 'bg-rose-950 border-rose-500/50 text-rose-300',
+                    warning: 'bg-amber-950 border-amber-500/50 text-amber-300',
+                    info: 'bg-zinc-900 border-zinc-700 text-zinc-200'
+                };
+                const icons = {
+                    success: 'fa-circle-check text-emerald-400',
+                    error: 'fa-circle-exclamation text-rose-400',
+                    warning: 'fa-triangle-exclamation text-amber-400',
+                    info: 'fa-circle-info text-brand-400'
+                };
 
-                if (type === 'success') {
-                    toast.className += ' bg-emerald-950 border-emerald-500/60 text-emerald-300';
-                    toast.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> <span>${escapeHTML(message)}</span>`;
-                } else if (type === 'error') {
-                    toast.className += ' bg-rose-950 border-rose-500/60 text-rose-300';
-                    toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base"></i> <span>${escapeHTML(message)}</span>`;
-                } else if (type === 'warning') {
-                    toast.className += ' bg-amber-950 border-amber-500/60 text-amber-300';
-                    toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base"></i> <span>${escapeHTML(message)}</span>`;
-                } else {
-                    toast.className += ' bg-zinc-900 border-zinc-700 text-zinc-200';
-                    toast.innerHTML = `<i class="fa-solid fa-circle-info text-base text-brand-400"></i> <span>${escapeHTML(message)}</span>`;
-                }
+                const toast = document.createElement('div');
+                toast.className = `pointer-events-auto border px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2.5 max-w-sm ${colors[type] || colors.info}`;
+                toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-sm"></i><span>${escapeHTML(message)}</span>`;
 
                 container.appendChild(toast);
-
                 setTimeout(() => {
-                    toast.classList.remove('translate-y-2', 'opacity-0');
-                }, 50);
-
-                setTimeout(() => {
-                    toast.classList.add('opacity-0', 'translate-y-2');
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.3s ease';
                     setTimeout(() => toast.remove(), 300);
-                }, 3500);
+                }, 4000);
             }
         }
 
-        let app;
-        window.onload = function() {
-            app = new GymApp();
-        };
+        const app = new GymApp();
     </script>
 </body>
 </html>
