@@ -800,6 +800,21 @@
                     </button>
                 </div>
                 <div id="plansContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+                <!-- PROMOTIONS (ADMIN ONLY) -->
+                <div class="pt-4 mt-2 border-t border-zinc-800 space-y-3">
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white flex items-center gap-2"><i class="fa-solid fa-tags text-rose-400"></i> Promotions &amp; Discounts</h3>
+                            <p class="text-[11px] text-zinc-500 mt-0.5">Seasonal deals (e.g. Christmas 20% off) are applied automatically to plan prices while active.</p>
+                        </div>
+                        <button onclick="app.openPromoModal()" class="bg-rose-500 hover:bg-rose-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Add Promo</span>
+                        </button>
+                    </div>
+                    <div id="promosContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
             </div>
 
             <!-- SUB-TAB 6: GYM BRANCHES (ADMIN ONLY) -->
@@ -1297,6 +1312,117 @@
                 <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
                     <button type="button" onclick="app.closeModal('planModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
                     <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Staff/Admin Account Modal (name, username, role) -->
+    <div id="editAccountModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-white">Edit Staff / Admin Account</h3>
+                <button onclick="app.closeModal('editAccountModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="app.handleSaveAccountEdit(event)" class="space-y-3">
+                <input type="hidden" id="eaId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">First Name</label>
+                        <input type="text" id="eaFn" required maxlength="40" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Last Name</label>
+                        <input type="text" id="eaLn" required maxlength="35" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Username</label>
+                    <input type="text" id="eaUsername" required minlength="3" maxlength="24" placeholder="3–24 chars (letters, numbers, . or _)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono">
+                    <span class="text-[9px] text-zinc-500">They will sign in with the new username. Their password stays the same.</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Role</label>
+                    <select id="eaRole" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="admin">Administrator / Manager</option>
+                        <option value="staff">Front Desk Staff</option>
+                    </select>
+                    <span id="eaRoleNote" class="text-[9px] text-zinc-500">Choose Front Desk Staff to remove this person's admin rights without deleting the account.</span>
+                </div>
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('editAccountModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
+                    <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Generic Confirm Modal -->
+    <div id="confirmActionModal" class="modal-overlay hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-rose-500/40 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <h3 id="cfmTitle" class="text-sm font-extrabold text-white"></h3>
+            <p id="cfmMsg" class="text-xs text-zinc-300 leading-relaxed"></p>
+            <div class="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                <button type="button" onclick="app.closeModal('confirmActionModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
+                <button type="button" id="cfmYes" class="bg-rose-500 hover:bg-rose-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Promo Modal -->
+    <div id="promoModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 id="promoModalTitle" class="text-sm font-extrabold text-white">Add Promo</h3>
+                <button onclick="app.closeModal('promoModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="app.handleSavePromo(event)" class="space-y-3">
+                <input type="hidden" id="prId">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Promo Name (3–40 chars)</label>
+                    <input type="text" id="prName" required minlength="3" maxlength="40" placeholder="e.g. Christmas Promo" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Details (optional)</label>
+                    <textarea id="prDesc" maxlength="140" rows="2" placeholder="e.g. Merry Christmas! 20% off all memberships this December." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white resize-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Discount Type</label>
+                        <select id="prType" onchange="app.updatePromoPreview()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                            <option value="percent">Percent off (%)</option>
+                            <option value="fixed">Fixed amount off (₱)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Value</label>
+                        <input type="number" id="prValue" required min="1" max="50000" step="1" oninput="app.updatePromoPreview()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Starts (optional)</label>
+                        <input type="date" id="prStart" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Ends (optional)</label>
+                        <input type="date" id="prEnd" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Applies To</label>
+                    <label class="flex items-center gap-2 text-xs text-zinc-200 mb-1.5">
+                        <input type="checkbox" id="prAllPlans" checked onchange="app.togglePromoAllPlans()" class="accent-rose-500"> All plans
+                    </label>
+                    <div id="prPlansList" class="hidden space-y-1 bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 max-h-36 overflow-y-auto"></div>
+                </div>
+                <label class="flex items-center gap-2 text-xs text-zinc-200">
+                    <input type="checkbox" id="prActive" checked class="accent-rose-500"> Promo is turned on
+                </label>
+                <div id="prPreview" class="text-[11px] text-zinc-400 bg-zinc-900/70 border border-zinc-800 rounded-xl px-3 py-2"></div>
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('promoModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs">Cancel</button>
+                    <button type="submit" class="bg-rose-500 hover:bg-rose-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Promo</button>
                 </div>
             </form>
         </div>
@@ -4798,6 +4924,551 @@
   app.migrateLegacyIds(); app.onPayPlanSelectChange(); app.onRenewPlanChange();
   if (app.currentUser && app.currentUser.role !== 'member') app.renderMembersTable();
   setTimeout(() => app.seedBocaue(), 4000);
+})();
+</script>
+<!-- Patch: admin account edit/remove, plan edit/delete, promos -->
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const A = GymApp.prototype;
+  const esc = s => escapeHTML(String(s == null ? '' : s));
+  const peso = n => '₱' + Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const isAdmin = self => self.currentUser && self.currentUser.role === 'admin';
+
+  // ---------- generic confirm modal ----------
+  A.confirmAction = function (title, msg, yesLabel, fn) {
+    $('cfmTitle').textContent = title;
+    $('cfmMsg').textContent = msg;
+    const yes = $('cfmYes');
+    yes.textContent = yesLabel || 'Confirm';
+    yes.onclick = async () => { this.closeModal('confirmActionModal'); await fn(); };
+    this.openModal('confirmActionModal');
+  };
+
+  // =====================================================================
+  // 1. STAFF / ADMIN ACCOUNTS: edit name + username (+role), remove
+  // =====================================================================
+  A.renderAccountsTable = function () {
+    const tbody = $('accountsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const list = this.users.filter(u => {
+      if (u.role !== 'admin' && u.role !== 'staff') return false;
+      if (this.analyticsBranchScope === 'ALL') return true;
+      return this.resolveRecordBranchId(u) === this.analyticsBranchScope;
+    });
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-zinc-500">No staff accounts.</td></tr>`;
+      return;
+    }
+    const btn = 'bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700';
+    list.forEach(u => {
+      const isSelf = this.currentUser && u.id === this.currentUser.id;
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-zinc-900/50 transition';
+      tr.innerHTML = `
+        <td class="p-3.5 font-bold text-white">${esc(u.firstName)} ${esc(u.lastName)}${isSelf ? ' <span class="text-[9px] text-brand-400 font-bold">(you)</span>' : ''}</td>
+        <td class="p-3.5 font-mono text-zinc-300">${esc(u.username)}</td>
+        <td class="p-3.5">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'}">${u.role.toUpperCase()}</span>
+        </td>
+        <td class="p-3.5 text-zinc-300"><i class="fa-solid fa-location-dot text-brand-400 text-[10px] mr-1"></i>${esc(this.resolveRecordBranchName(u))}</td>
+        <td class="p-3.5 text-zinc-500 font-mono text-xs">${esc(u.createdAt || '2026-01-01')}</td>
+        <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
+          <button onclick="app.openEditAccountModal('${u.id}')" class="${btn} text-emerald-400"><i class="fa-solid fa-pen"></i> Edit</button>
+          <button onclick="app.openEditAccountBranchModal('${u.id}')" class="${btn} text-zinc-200"><i class="fa-solid fa-building text-brand-400"></i> Branch</button>
+          <button onclick="app.openChangePasswordModal('${u.id}')" class="${btn} text-brand-400"><i class="fa-solid fa-key"></i> Reset Pass</button>
+          <button onclick="app.removeAccount('${u.id}')" ${isSelf ? 'disabled title="You cannot remove your own account"' : ''} class="${btn} text-rose-400 ${isSelf ? 'opacity-40 cursor-not-allowed' : ''}"><i class="fa-solid fa-user-xmark"></i> Remove</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  };
+
+  A.openEditAccountModal = function (userId) {
+    if (!isAdmin(this)) return;
+    const u = this.users.find(x => x.id === userId);
+    if (!u) return;
+    $('eaId').value = u.id;
+    $('eaFn').value = u.firstName || '';
+    $('eaLn').value = u.lastName || '';
+    $('eaUsername').value = u.username || '';
+    $('eaRole').value = u.role;
+    const self = u.id === this.currentUser.id;
+    $('eaRole').disabled = self;
+    $('eaRoleNote').textContent = self
+      ? 'You cannot change your own role while signed in.'
+      : "Choose Front Desk Staff to remove this person's admin rights without deleting the account.";
+    this.openModal('editAccountModal');
+  };
+
+  A.handleSaveAccountEdit = async function (e) {
+    e.preventDefault();
+    if (!isAdmin(this)) return;
+    const u = this.users.find(x => x.id === $('eaId').value);
+    if (!u) return;
+
+    const fn = normalizeCleanText($('eaFn').value, 40);
+    const ln = normalizeCleanText($('eaLn').value, 35);
+    const username = $('eaUsername').value.trim();
+    const role = $('eaRole').disabled ? u.role : $('eaRole').value;
+
+    if (!fn || !ln) { this.showToast('First and last name are required.', 'error'); return; }
+    if (username !== u.username) {
+      if (!isValidAccountUsername(username)) { this.showToast('Invalid username format.', 'error'); return; }
+      if (this.users.some(x => x.id !== u.id && String(x.username).toLowerCase() === username.toLowerCase())) {
+        this.showToast('That username is already taken.', 'error'); return;
+      }
+    }
+    if (u.role === 'admin' && role !== 'admin' && this.users.filter(x => x.role === 'admin').length <= 1) {
+      this.showToast('At least one administrator must remain.', 'error'); return;
+    }
+
+    u.firstName = fn; u.lastName = ln; u.username = username; u.role = role;
+    if (u.id === this.currentUser.id) {
+      this.currentUser = u;
+      sessionStorage.setItem('eg_session', JSON.stringify(u));
+      const nm = $('userNameDisplay');
+      if (nm) nm.textContent = `${fn} ${ln}`;
+    }
+    this.saveData('users');
+    await this.pushRecordToCloud('eg_users', u.id, u);
+    this.closeModal('editAccountModal');
+    this.renderAdminDashboard();
+    this.showToast('Account updated!', 'success');
+  };
+
+  A.removeAccount = function (userId) {
+    if (!isAdmin(this)) return;
+    const u = this.users.find(x => x.id === userId);
+    if (!u || (u.role !== 'admin' && u.role !== 'staff')) return;
+    if (u.id === this.currentUser.id) { this.showToast('You cannot remove your own account while signed in.', 'error'); return; }
+    if (u.role === 'admin' && this.users.filter(x => x.role === 'admin').length <= 1) {
+      this.showToast('At least one administrator must remain.', 'error'); return;
+    }
+    this.confirmAction(
+      `Remove ${u.role === 'admin' ? 'administrator' : 'staff'} account?`,
+      `${u.firstName} ${u.lastName} (${u.username}) will lose access immediately. This cannot be undone.`,
+      'Remove',
+      async () => {
+        this.users = this.users.filter(x => x.id !== u.id);
+        this.saveData('users');
+        await this.deleteRecordFromCloud('eg_users', u.id);
+        this.renderAdminDashboard();
+        this.showToast('Account removed.', 'success');
+      });
+  };
+
+  // =====================================================================
+  // 2. MEMBERSHIP PLANS: edit / delete
+  // =====================================================================
+  const pf = $('pName').closest('form');
+  pf.insertAdjacentHTML('afterbegin', '<input type="hidden" id="pId">');
+  const planTitle = () => document.querySelector('#planModal h3');
+
+  A.openAddPlanModal = function () {
+    if (!isAdmin(this)) return;
+    $('pId').value = '';
+    $('pName').value = ''; $('pPrice').value = ''; $('pDays').value = '';
+    $('pCategory').value = 'Membership';
+    planTitle().textContent = 'Add Membership Plan';
+    this.openModal('planModal');
+  };
+
+  A.openEditPlanModal = function (planId) {
+    if (!isAdmin(this)) return;
+    const p = this.plans.find(x => x.id === planId);
+    if (!p) return;
+    $('pId').value = p.id;
+    $('pName').value = p.name;
+    $('pPrice').value = p.price;
+    $('pDays').value = p.durationDays;
+    $('pCategory').value = p.category || 'Membership';
+    planTitle().textContent = 'Edit Membership Plan';
+    this.openModal('planModal');
+  };
+
+  A.handleSavePlan = async function (e) {
+    e.preventDefault();
+    if (!isAdmin(this)) return;
+    const name = normalizeCleanText($('pName').value, 50);
+    const price = clamp($('pPrice').value, 1, 50000);
+    const days = Math.round(clamp($('pDays').value, 1, 365));
+    const category = $('pCategory').value;
+    const id = $('pId').value;
+
+    if (name.length < 3) { this.showToast('Plan name must be at least 3 characters.', 'error'); return; }
+    if (this.plans.some(p => p.id !== id && p.name.toLowerCase() === name.toLowerCase())) {
+      this.showToast('A plan with that name already exists.', 'error'); return;
+    }
+
+    let plan;
+    if (id) {
+      plan = this.plans.find(p => p.id === id);
+      if (!plan) return;
+      Object.assign(plan, { name, price, durationDays: days, category });
+    } else {
+      const nowMs = Date.now();
+      plan = { id: `plan_${nowMs}`, name, price, durationDays: days, category, createdAtMs: nowMs };
+      this.plans.push(plan);
+    }
+    this.saveData('plans');
+    await this.pushRecordToCloud('eg_plans', plan.id, plan);
+    this.populatePlanSelects();
+    this.renderPlansList();
+    this.closeModal('planModal');
+    this.showToast(id ? 'Plan updated & synced!' : 'New plan saved & synced!', 'success');
+  };
+
+  A.deletePlan = function (planId) {
+    if (!isAdmin(this)) return;
+    const p = this.plans.find(x => x.id === planId);
+    if (!p) return;
+    if (this.plans.length <= 1) { this.showToast('At least one plan must remain.', 'error'); return; }
+    const onPlan = this.members.filter(m => m.planId === p.id).length;
+    this.confirmAction(
+      'Delete this plan?',
+      `"${p.name}" will no longer be offered.` + (onPlan ? ` ${onPlan} member(s) are currently on it; their records and history stay unchanged.` : ''),
+      'Delete',
+      async () => {
+        this.plans = this.plans.filter(x => x.id !== p.id);
+        this.saveData('plans');
+        await this.deleteRecordFromCloud('eg_plans', p.id);
+        // drop the plan from any promo that targeted it
+        for (const pr of this.promos) {
+          if (!pr.allPlans && (pr.planIds || []).includes(p.id)) {
+            pr.planIds = pr.planIds.filter(i => i !== p.id);
+            await this.pushRecordToCloud('eg_promos', pr.id, pr);
+          }
+        }
+        this.saveData('promos');
+        this.populatePlanSelects();
+        this.renderPlansList();
+        this.showToast('Plan deleted.', 'success');
+      });
+  };
+
+  // =====================================================================
+  // 3. PROMOS
+  // =====================================================================
+  try { app.promos = JSON.parse(localStorage.getItem('eg_promos') || '[]'); } catch (_) { app.promos = []; }
+  if (!Array.isArray(app.promos)) app.promos = [];
+
+  const oSave = A.saveData;
+  A.saveData = function (key) {
+    if (key === 'promos') { localStorage.setItem('eg_promos', JSON.stringify(this.promos)); return; }
+    return oSave.call(this, key);
+  };
+
+  const todayISO = () => getLocalISODate(0);
+  A.promoStatus = function (p) {
+    if (p.active === false) return 'paused';
+    const t = todayISO();
+    if (p.startDate && t < p.startDate) return 'scheduled';
+    if (p.endDate && t > p.endDate) return 'expired';
+    return 'active';
+  };
+  A.promoApplies = (p, plan) => p.allPlans !== false ? true : (p.planIds || []).includes(plan.id);
+  A.promoLabel = p => p.type === 'percent' ? `${p.value}% OFF` : `${peso(p.value)} OFF`;
+  A.promoDiscounted = (p, base) => {
+    const v = p.type === 'percent' ? base * (1 - p.value / 100) : base - p.value;
+    return Math.max(1, Math.round(v * 100) / 100);
+  };
+  // best (lowest price) active promo for a plan, computed from base price
+  A.bestPromo = function (plan, base = plan.price) {
+    let best = null;
+    for (const p of this.promos) {
+      if (this.promoStatus(p) !== 'active' || !this.promoApplies(p, plan)) continue;
+      const price = this.promoDiscounted(p, base);
+      if (price < base && (!best || price < best.price)) best = { promo: p, price };
+    }
+    return best;
+  };
+
+  // Temporarily swap plan.price -> promo price while the original code runs, so every
+  // existing price read (selects, renew, POS, registration) automatically gets the discount.
+  let depth = 0;
+  const swap = self => {
+    const saved = [];
+    self.plans.forEach(pl => { const r = self.bestPromo(pl); if (r) { saved.push([pl, pl.price]); pl.price = r.price; } });
+    return saved;
+  };
+  const restore = saved => saved.forEach(([pl, pr]) => { pl.price = pr; });
+  const wrapSync = name => {
+    const o = A[name];
+    A[name] = function (...a) {
+      if (depth) return o.apply(this, a);
+      const s = swap(this); depth++;
+      try { return o.apply(this, a); } finally { depth--; restore(s); }
+    };
+  };
+  const wrapAsync = name => {
+    const o = A[name];
+    A[name] = async function (...a) {
+      if (depth) return o.apply(this, a);
+      const s = swap(this); depth++;
+      try { return await o.apply(this, a); } finally { depth--; restore(s); }
+    };
+  };
+  ['onRenewPlanChange', 'onPayPlanSelectChange'].forEach(wrapSync);
+  ['handleCustomerSelfRegister', 'handleMemberRenewalSubmit', 'handleManualPaymentSubmit', 'handleSaveMember', 'quickRenewMember'].forEach(wrapAsync);
+  wrapSync('populatePlanSelects');
+
+  // label promo plans in every dropdown (runs after prices are restored)
+  const oPop = A.populatePlanSelects;
+  A.populatePlanSelects = function () {
+    oPop.call(this);
+    ['regPlanSelect', 'mPlanSelect', 'payPlanSelect', 'renewPlanSelect'].forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      [...el.options].forEach(opt => {
+        const plan = this.plans.find(p => p.id === opt.value);
+        const r = plan && this.bestPromo(plan);
+        if (r) opt.textContent = `${plan.name} - ${peso(r.price)} (was ${peso(plan.price)} · ${r.promo.name}) (${plan.durationDays} Days)`;
+      });
+    });
+    this.renderPromoBanners();
+  };
+
+  // promo banners on the sign-up form and the member renewal modal
+  const bannerHost = (id, anchorSel) => {
+    if ($(id)) return;
+    const anchor = document.querySelector(anchorSel);
+    if (anchor) anchor.insertAdjacentHTML('beforebegin', `<div id="${id}" class="hidden space-y-1.5"></div>`);
+  };
+  bannerHost('regPromoBanner', '#regPlanSelect');
+  bannerHost('renewPromoBanner', '#renewPlanSelect');
+  A.renderPromoBanners = function () {
+    const live = (this.promos || []).filter(p => this.promoStatus(p) === 'active');
+    ['regPromoBanner', 'renewPromoBanner'].forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.innerHTML = live.map(p => `
+        <div class="flex items-start gap-2 bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2">
+          <i class="fa-solid fa-gift text-rose-400 mt-0.5"></i>
+          <div class="text-[11px] leading-snug">
+            <span class="font-extrabold text-rose-300">${esc(p.name)} · ${esc(this.promoLabel(p))}</span>
+            ${p.description ? `<div class="text-zinc-300">${esc(p.description)}</div>` : ''}
+            ${p.endDate ? `<div class="text-zinc-500">Until ${esc(p.endDate)}</div>` : ''}
+          </div>
+        </div>`).join('');
+      el.classList.toggle('hidden', !live.length);
+    });
+  };
+
+  // ---- plan + promo cards ----
+  A.renderPlansList = function () {
+    const container = $('plansContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    const btn = 'px-2.5 py-1 rounded-lg text-[11px] font-bold border border-zinc-700 bg-zinc-800 hover:bg-zinc-700';
+    this.plans.forEach(plan => {
+      const r = this.bestPromo(plan);
+      const card = document.createElement('div');
+      card.className = 'bg-darkcard border border-darkborder p-5 rounded-2xl flex flex-col justify-between space-y-3';
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="bg-brand-500/10 text-brand-400 border border-brand-500/20 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">${esc(plan.category)}</span>
+            ${r ? `<span class="bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[10px] font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-tag"></i> ${esc(this.promoLabel(r.promo))}</span>` : ''}
+          </div>
+          <h4 class="text-base font-extrabold text-white mt-2">${esc(plan.name)}</h4>
+          <div class="mt-1">
+            ${r ? `<span class="text-xs text-zinc-500 line-through mr-1.5">${peso(plan.price)}</span><span class="text-2xl font-black text-rose-300">${peso(r.price)}</span>`
+                 : `<span class="text-2xl font-black text-white">${peso(plan.price)}</span>`}
+            <span class="text-xs text-zinc-500 font-normal">/ ${plan.durationDays} Days</span>
+          </div>
+          ${r ? `<div class="text-[10px] text-rose-300/80 mt-0.5">${esc(r.promo.name)}</div>` : ''}
+        </div>
+        <div class="pt-3 border-t border-zinc-800 flex justify-between items-center gap-2">
+          <span class="text-emerald-400 text-[11px]"><i class="fa-solid fa-check"></i> Active</span>
+          <div class="flex gap-1.5">
+            <button onclick="app.openEditPlanModal('${plan.id}')" class="${btn} text-emerald-400"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button onclick="app.deletePlan('${plan.id}')" class="${btn} text-rose-400"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>`;
+      container.appendChild(card);
+    });
+    this.renderPromosList();
+  };
+
+  const STATUS_STYLE = {
+    active: ['Active', 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'],
+    scheduled: ['Scheduled', 'bg-blue-500/10 text-blue-300 border-blue-500/30'],
+    expired: ['Expired', 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30'],
+    paused: ['Paused', 'bg-amber-500/10 text-amber-300 border-amber-500/30']
+  };
+  A.renderPromosList = function () {
+    const c = $('promosContainer');
+    if (!c) return;
+    if (!this.promos.length) {
+      c.innerHTML = `<div class="md:col-span-2 lg:col-span-3 text-center text-xs text-zinc-500 border border-dashed border-zinc-800 rounded-2xl p-6">No promos yet. Click <b class="text-rose-300">Add Promo</b> to create one (e.g. Christmas Promo – 20% off).</div>`;
+      return;
+    }
+    const btn = 'px-2.5 py-1 rounded-lg text-[11px] font-bold border border-zinc-700 bg-zinc-800 hover:bg-zinc-700';
+    c.innerHTML = [...this.promos].sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0)).map(p => {
+      const st = this.promoStatus(p), [stLabel, stCls] = STATUS_STYLE[st];
+      const targets = p.allPlans !== false ? 'All plans'
+        : (p.planIds || []).map(id => (this.plans.find(x => x.id === id) || {}).name).filter(Boolean).join(', ') || 'No plans selected';
+      const dates = (p.startDate || p.endDate) ? `${p.startDate || 'Now'} → ${p.endDate || 'No end date'}` : 'No date limit';
+      return `
+        <div class="bg-darkcard border border-darkborder p-5 rounded-2xl space-y-3 ${st === 'expired' ? 'opacity-70' : ''}">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <h4 class="text-sm font-extrabold text-white">${esc(p.name)}</h4>
+              <div class="text-xl font-black text-rose-300 mt-0.5">${esc(this.promoLabel(p))}</div>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${stCls}">${stLabel}</span>
+          </div>
+          ${p.description ? `<p class="text-[11px] text-zinc-400 leading-snug">${esc(p.description)}</p>` : ''}
+          <div class="text-[11px] text-zinc-400 space-y-0.5">
+            <div><i class="fa-solid fa-dumbbell text-zinc-600 w-4"></i> ${esc(targets)}</div>
+            <div><i class="fa-solid fa-calendar text-zinc-600 w-4"></i> ${esc(dates)}</div>
+          </div>
+          <div class="pt-3 border-t border-zinc-800 flex justify-end gap-1.5">
+            <button onclick="app.togglePromo('${p.id}')" class="${btn} text-amber-300"><i class="fa-solid ${p.active === false ? 'fa-play' : 'fa-pause'}"></i> ${p.active === false ? 'Resume' : 'Pause'}</button>
+            <button onclick="app.openPromoModal('${p.id}')" class="${btn} text-emerald-400"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button onclick="app.deletePromo('${p.id}')" class="${btn} text-rose-400"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>`;
+    }).join('');
+  };
+
+  // ---- promo modal ----
+  A.togglePromoAllPlans = function () {
+    $('prPlansList').classList.toggle('hidden', $('prAllPlans').checked);
+    this.updatePromoPreview();
+  };
+  A.updatePromoPreview = function () {
+    const t = $('prType').value, v = parseFloat($('prValue').value);
+    $('prValue').max = t === 'percent' ? 99 : 50000;
+    const box = $('prPreview');
+    if (!v) { box.textContent = 'Enter a discount value to see a price preview.'; return; }
+    const ref = this.plans.find(p => p.category === 'Membership') || this.plans[0];
+    if (!ref) { box.textContent = ''; return; }
+    const shown = A.promoDiscounted({ type: t, value: v }, ref.price);
+    box.innerHTML = `Preview: <b class="text-white">${esc(ref.name)}</b> ${peso(ref.price)} → <b class="text-rose-300">${peso(shown)}</b>`;
+  };
+  A.openPromoModal = function (promoId) {
+    if (!isAdmin(this)) return;
+    const p = promoId ? this.promos.find(x => x.id === promoId) : null;
+    $('promoModalTitle').textContent = p ? 'Edit Promo' : 'Add Promo';
+    $('prId').value = p ? p.id : '';
+    $('prName').value = p ? p.name : '';
+    $('prDesc').value = p ? (p.description || '') : '';
+    $('prType').value = p ? p.type : 'percent';
+    $('prValue').value = p ? p.value : '';
+    $('prStart').value = p ? (p.startDate || '') : '';
+    $('prEnd').value = p ? (p.endDate || '') : '';
+    $('prActive').checked = p ? p.active !== false : true;
+    $('prAllPlans').checked = p ? p.allPlans !== false : true;
+    $('prPlansList').innerHTML = this.plans.map(pl => `
+      <label class="flex items-center gap-2 text-xs text-zinc-200">
+        <input type="checkbox" class="pr-plan accent-rose-500" value="${esc(pl.id)}" ${p && (p.planIds || []).includes(pl.id) ? 'checked' : ''}> ${esc(pl.name)} <span class="text-zinc-500">(${peso(pl.price)})</span>
+      </label>`).join('');
+    $('prPlansList').classList.toggle('hidden', $('prAllPlans').checked);
+    this.updatePromoPreview();
+    this.openModal('promoModal');
+  };
+  A.handleSavePromo = async function (e) {
+    e.preventDefault();
+    if (!isAdmin(this)) return;
+    const name = normalizeCleanText($('prName').value, 40);
+    const description = normalizeCleanText($('prDesc').value, 140);
+    const type = $('prType').value;
+    const value = Math.round(clamp($('prValue').value, 1, type === 'percent' ? 99 : 50000));
+    const startDate = $('prStart').value || '';
+    const endDate = $('prEnd').value || '';
+    const allPlans = $('prAllPlans').checked;
+    const planIds = allPlans ? [] : [...document.querySelectorAll('.pr-plan:checked')].map(x => x.value);
+
+    if (name.length < 3) { this.showToast('Promo name must be at least 3 characters.', 'error'); return; }
+    if (startDate && endDate && endDate < startDate) { this.showToast('End date cannot be before the start date.', 'error'); return; }
+    if (!allPlans && !planIds.length) { this.showToast('Pick at least one plan, or choose "All plans".', 'error'); return; }
+
+    const id = $('prId').value;
+    let promo = id ? this.promos.find(x => x.id === id) : null;
+    const data = { name, description, type, value, startDate, endDate, allPlans, planIds, active: $('prActive').checked };
+    if (promo) Object.assign(promo, data);
+    else { const nowMs = Date.now(); promo = { id: `promo_${nowMs}`, createdAtMs: nowMs, ...data }; this.promos.push(promo); }
+
+    this.saveData('promos');
+    await this.pushRecordToCloud('eg_promos', promo.id, promo);
+    this.populatePlanSelects();
+    this.renderPlansList();
+    this.closeModal('promoModal');
+    this.showToast(id ? 'Promo updated!' : 'Promo created!', 'success');
+  };
+  A.togglePromo = async function (id) {
+    if (!isAdmin(this)) return;
+    const p = this.promos.find(x => x.id === id);
+    if (!p) return;
+    p.active = p.active === false;
+    this.saveData('promos');
+    await this.pushRecordToCloud('eg_promos', p.id, p);
+    this.populatePlanSelects();
+    this.renderPlansList();
+    this.showToast(p.active ? 'Promo resumed.' : 'Promo paused.', 'success');
+  };
+  A.deletePromo = function (id) {
+    if (!isAdmin(this)) return;
+    const p = this.promos.find(x => x.id === id);
+    if (!p) return;
+    this.confirmAction('Delete this promo?', `"${p.name}" will stop applying to plan prices. Past payments are not affected.`, 'Delete', async () => {
+      this.promos = this.promos.filter(x => x.id !== id);
+      this.saveData('promos');
+      await this.deleteRecordFromCloud('eg_promos', id);
+      this.populatePlanSelects();
+      this.renderPlansList();
+      this.showToast('Promo deleted.', 'success');
+    });
+  };
+
+  // ---- cloud sync for promos (same Firestore project as the other collections) ----
+  if (typeof db !== 'undefined' && db) {
+    try {
+      db.collection('eg_promos').onSnapshot(snap => {
+        const docs = [];
+        snap.forEach(d => docs.push(d.data()));
+        const seeded = localStorage.getItem('eg_promos_seeded') === '1';
+        localStorage.setItem('eg_promos_seeded', '1');
+        if (!docs.length && app.promos.length && !seeded) { app.pushFullCollectionToCloud('eg_promos', app.promos); return; }
+        app.promos = docs;
+        app.saveData('promos');
+        app.populatePlanSelects();
+        if (app.currentUser && app.currentUser.role !== 'member') app.renderPlansList();
+      }, err => console.warn('Promo sync error:', err));
+    } catch (err) { console.warn('Promo sync unavailable:', err); }
+  }
+
+  // keep promos inside backup / restore files
+  const oExport = A.exportDatabaseBackup;
+  A.exportDatabaseBackup = function () {
+    const oBlob = window.Blob;
+    window.Blob = function (parts, opts) {
+      try { const j = JSON.parse(parts[0]); j.data.promos = app.promos; parts = [JSON.stringify(j, null, 2)]; } catch (_) {}
+      return new oBlob(parts, opts);
+    };
+    try { return oExport.call(this); } finally { window.Blob = oBlob; }
+  };
+  const oImport = A.importDatabaseBackup;
+  A.importDatabaseBackup = function (event) {
+    const f = event.target.files && event.target.files[0];
+    if (f) f.text().then(t => {
+      try {
+        const d = (JSON.parse(t).data) || {};
+        if (Array.isArray(d.promos)) {
+          app.promos = d.promos; app.saveData('promos');
+          app.pushFullCollectionToCloud('eg_promos', app.promos);
+          app.populatePlanSelects();
+        }
+      } catch (_) {}
+    });
+    return oImport.call(this, event);
+  };
+
+  // initial paint with the promos now loaded
+  app.populatePlanSelects();
+  if (app.currentUser && app.currentUser.role === 'admin') { app.renderPlansList(); app.renderAccountsTable(); }
 })();
 </script>
 </body>
