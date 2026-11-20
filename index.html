@@ -297,7 +297,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-zinc-300 mb-1">GCash / Payment Ref No.</label>
-                            <input type="text" id="regRefNo" maxlength="40" placeholder="e.g. GCash Ref No." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                            <input type="text" id="regRefNo" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="20" placeholder="e.g. 1234567890123" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
                         </div>
                     </div>
 
@@ -729,7 +729,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-zinc-300 mb-1">Reference No. (Optional)</label>
-                                <input type="text" id="payRefNo" maxlength="40" oninput="this.value = this.value.replace(/[^A-Za-z0-9-_]/g, '')" placeholder="e.g. GCash Ref #" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                                <input type="text" id="payRefNo" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="20" placeholder="e.g. 1234567890123" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                             </div>
                             <button type="submit" class="w-full bg-brand-400 hover:bg-brand-500 text-black font-extrabold py-2.5 rounded-xl text-xs shadow">
                                 Confirm & Record Payment
@@ -1509,7 +1509,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-zinc-300 mb-1">GCash / Payment Reference No. <span class="text-rose-400">*</span></label>
-                    <input type="text" id="renewRefNo" required maxlength="40" placeholder="e.g. GCash Ref No." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <input type="text" id="renewRefNo" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="20" required placeholder="e.g. 1234567890123" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
 
                 <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
@@ -1741,10 +1741,10 @@
         ];
 
         const INITIAL_USERS = [
-            { id: 'usr_1', username: 'admin', password: 'Admin123!', role: 'admin', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', firstName: 'Kian Edward', lastName: 'Puente', createdAt: '2026-01-01', createdAtMs: 1 },
-            { id: 'usr_2', username: 'staff1', password: 'Staff123!', role: 'staff', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', firstName: 'Staff', lastName: 'Member', createdAt: '2026-01-05', createdAtMs: 2 },
-            { id: 'usr_3', username: 'juan', password: 'Member123!', role: 'member', memberId: 'XG-2026-0001', firstName: 'Juan', lastName: 'Dela Cruz', createdAt: '2026-02-01', createdAtMs: 3 },
-            { id: 'usr_4', username: 'maria', password: 'Member123!', role: 'member', memberId: 'XG-2026-0002', firstName: 'Maria', lastName: 'Santos', createdAt: '2026-02-10', createdAtMs: 4 },
+            { id: 'usr_1', username: 'admin', password: 'Admin123!', role: 'admin', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', firstName: 'Kian Edward', lastName: 'Puente', createdAt: '2026-11-11', createdAtMs: 1 },
+            { id: 'usr_2', username: 'staff1', password: 'Staff123!', role: 'staff', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', firstName: 'Staff', lastName: 'Member', createdAt: '2026-11-11', createdAtMs: 2 },
+            { id: 'usr_3', username: 'juan', password: 'Member123!', role: 'member', memberId: 'XG-2026-0001', firstName: 'Juan', lastName: 'Dela Cruz', createdAt: '2026-11-12', createdAtMs: 3 },
+            { id: 'usr_4', username: 'maria', password: 'Member123!', role: 'member', memberId: 'XG-2026-0002', firstName: 'Maria', lastName: 'Santos', createdAt: '2026-11-13', createdAtMs: 4 },
         ];
 
         const INITIAL_MEMBERS = [
@@ -1761,11 +1761,11 @@
                 planName: 'Monthly Basic Membership',
                 planCategory: 'Membership',
                 status: 'Active',
-                startDate: '2026-11-15',
-                expiryDate: '2026-12-15',
-                expiryTimestamp: new Date('2026-12-15T23:59:59').getTime(),
+                startDate: '2026-11-12',
+                expiryDate: '2026-12-12',
+                expiryTimestamp: new Date('2026-12-12T23:59:59').getTime(),
                 totalPaid: 800,
-                paymentRef: 'GCash-870724',
+                paymentRef: 'GCash (8707241234567)',
                 createdAtMs: 1
             },
             {
@@ -1781,9 +1781,9 @@
                 planName: 'Daily Walk-in Pass',
                 planCategory: 'Walk-in',
                 status: 'Expired',
-                startDate: '2026-11-01',
-                expiryDate: '2026-11-01',
-                expiryTimestamp: new Date('2026-11-01T23:59:59').getTime(),
+                startDate: '2026-11-13',
+                expiryDate: '2026-11-13',
+                expiryTimestamp: new Date('2026-11-13T23:59:59').getTime(),
                 totalPaid: 60,
                 paymentRef: 'Cash-Walkin',
                 createdAtMs: 2
@@ -1801,9 +1801,9 @@
                 planName: 'Quarterly Pro Membership',
                 planCategory: 'Membership',
                 status: 'Active',
-                startDate: '2026-10-01',
-                expiryDate: '2027-12-30',
-                expiryTimestamp: new Date('2027-12-30T23:59:59').getTime(),
+                startDate: '2026-11-11',
+                expiryDate: '2027-02-09',
+                expiryTimestamp: new Date('2027-02-09T23:59:59').getTime(),
                 totalPaid: 2100,
                 paymentRef: 'Card-POS',
                 createdAtMs: 3
@@ -1811,12 +1811,12 @@
         ];
 
         const INITIAL_PAYMENTS = [
-            { id: 'TXN-1001', memberId: 'XG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash (GCash-870724)', date: '2026-11-15 10:30 AM', recordedBy: 'staff1', createdAtMs: 1763173800000 },
-            { id: 'TXN-1002', memberId: 'XG-2026-0002', memberName: 'Maria Santos', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-01 08:15 AM', recordedBy: 'admin', createdAtMs: 1761956100000 },
+            { id: 'TXN-1001', memberId: 'XG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', amount: 800, method: 'GCash (8707241234567)', date: '2026-11-12 10:30 AM', recordedBy: 'staff1', createdAtMs: 1794450600000 },
+            { id: 'TXN-1002', memberId: 'XG-2026-0002', memberName: 'Maria Santos', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Daily Walk-in Pass', amount: 60, method: 'Cash', date: '2026-11-13 08:15 AM', recordedBy: 'admin', createdAtMs: 1794528900000 },
         ];
 
         const INITIAL_ATTENDANCE = [
-            { id: 'ATT-901', memberId: 'XG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', dateISO: '2026-11-18', operator: 'desk_scanner', createdAtMs: 1763423100000 }
+            { id: 'ATT-901', memberId: 'XG-2026-0001', memberName: 'Juan Dela Cruz', branchId: 'branch_1', branchName: 'Xtreme Gym World - Sta. Maria', planName: 'Monthly Basic Membership', status: 'Verified Active', timestamp: '2026-11-18 07:45 AM', dateISO: '2026-11-18', operator: 'desk_scanner', createdAtMs: 1794959100000 }
         ];
 
         class GymApp {
@@ -2432,7 +2432,7 @@
                 const branchId = document.getElementById('regBranchSelect').value;
                 const planId = document.getElementById('regPlanSelect').value;
                 const payMethod = document.getElementById('regPayMethod').value;
-                const refNo = document.getElementById('regRefNo').value.trim().replace(/[^A-Za-z0-9-_]/g, '').slice(0, 40);
+                const refNo = document.getElementById('regRefNo').value.trim().replace(/\D/g, '').slice(0, 20);
                 const rawPassword = document.getElementById('regPassword').value;
 
                 if (!isValidHumanName(fn, 2, 40) || !isValidHumanName(ln, 2, 35)) {
@@ -2801,7 +2801,7 @@
 
                 const planId = document.getElementById('renewPlanSelect').value;
                 const method = document.getElementById('renewMethod').value;
-                const refNo = document.getElementById('renewRefNo').value.replace(/[^A-Za-z0-9-_]/g, '').slice(0, 40);
+                const refNo = document.getElementById('renewRefNo').value.replace(/\D/g, '').slice(0, 20);
 
                 const plan = this.plans.find(p => p.id === planId);
                 if (!plan) {
@@ -4053,7 +4053,7 @@
                 const planId = document.getElementById('payPlanSelect').value;
                 const rawAmount = document.getElementById('payAmount').value;
                 const method = document.getElementById('payMethod').value;
-                const refNo = document.getElementById('payRefNo').value.replace(/[^A-Za-z0-9-_]/g, '').slice(0, 40);
+                const refNo = document.getElementById('payRefNo').value.replace(/\D/g, '').slice(0, 20);
 
                 if (!memberId) {
                     this.showToast('Select a member.', 'error');
@@ -4756,6 +4756,23 @@
     this.members.forEach(m => { const x = String(m.id).match(/(?:XG|EG)-2026-(\d+)/); if (x) max = Math.max(max, +x[1]); });
     return `XG-2026-${String(max + 1).padStart(4, '0')}`;
   };
+  // one-time-safe: move the original demo records to Nov 11-21 (only if they still hold the old demo values)
+  A.migrateSeedDates = function () {
+    const set = (prop, col, id, check, changes) => {
+      const r = this[prop].find(x => x.id === id);
+      if (!r || !check(r)) return;
+      Object.assign(r, changes);
+      this.saveData(prop); this.pushRecordToCloud(col, r.id, r);
+    };
+    const U = [['usr_1', '2026-01-01', '2026-11-11'], ['usr_2', '2026-01-05', '2026-11-11'], ['usr_3', '2026-02-01', '2026-11-12'], ['usr_4', '2026-02-10', '2026-11-13']];
+    U.forEach(([id, from, to]) => set('users', 'eg_users', id, r => r.createdAt === from, { createdAt: to }));
+    const E = d => new Date(d + 'T23:59:59').getTime();
+    set('members', 'eg_members', 'XG-2026-0001', r => r.startDate === '2026-11-15', { startDate: '2026-11-12', expiryDate: '2026-12-12', expiryTimestamp: E('2026-12-12') });
+    set('members', 'eg_members', 'XG-2026-0002', r => r.startDate === '2026-11-01', { startDate: '2026-11-13', expiryDate: '2026-11-13', expiryTimestamp: E('2026-11-13') });
+    set('members', 'eg_members', 'XG-2026-0003', r => r.startDate === '2026-10-01', { startDate: '2026-11-11', expiryDate: '2027-02-09', expiryTimestamp: E('2027-02-09') });
+    set('payments', 'eg_payments', 'TXN-1001', r => /^2026-11-15/.test(r.date), { date: '2026-11-12 10:30 AM', createdAtMs: 1794450600000 });
+    set('payments', 'eg_payments', 'TXN-1002', r => /^2026-11-01/.test(r.date), { date: '2026-11-13 08:15 AM', createdAtMs: 1794528900000 });
+  };
   A.migrateLegacyIds = function () {
     const fix = v => (typeof v === 'string' && /^EG-/.test(v)) ? v.replace(/^EG-/, 'XG-') : v;
     const taken = new Set(this.members.map(m => m.id));
@@ -4777,7 +4794,7 @@
           this.saveData(prop); this.pushRecordToCloud(col, r.id, r);
         }
       });
-    });
+    });    this.migrateSeedDates();
   };
   const oCloud = A.onCloudDataUpdated;
   A.onCloudDataUpdated = function (prop) { if (['users', 'members', 'payments', 'attendance'].includes(prop)) this.migrateLegacyIds(); return oCloud.call(this, prop); };
