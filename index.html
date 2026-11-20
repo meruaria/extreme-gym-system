@@ -59,6 +59,36 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #3f3f46;
         }
+        /* ---------- Mobile layout fixes ---------- */
+        @media (max-width: 1023px) {
+            header > div { height: auto !important; flex-wrap: wrap; row-gap: .5rem; padding-top: .6rem; padding-bottom: .6rem; }
+            header > div > div:first-child { flex: 1 1 0; min-width: 0; }
+            header > div > div:last-child { display: contents; }
+            header > div > div:last-child > * { order: 3; }
+            #selfChangePassBtn, #logoutBtn { order: 1 !important; }
+            header > div::after { content: ''; order: 2; flex-basis: 100%; height: 0; }
+                        header h1 { font-size: 1rem; }
+            header > div > div:last-child > * { min-width: 0; }
+            #userNameDisplay { max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            #userInfoHeader { max-width: 100%; }
+        }
+        @media (max-width: 767px) {
+            main { padding-left: .75rem !important; padding-right: .75rem !important; }
+            .subtab-scroll { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-left: -.75rem; margin-right: -.75rem; padding-left: .75rem; padding-right: .75rem; }
+            .subtab-scroll::-webkit-scrollbar { display: none; }
+            .subtab-scroll > button { flex-shrink: 0; white-space: nowrap; }
+            .overflow-x-auto > table { min-width: 560px; }
+            .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+            .overflow-x-auto td, .overflow-x-auto th { white-space: nowrap; padding-right: .9rem; }
+            .modal-overlay { align-items: flex-start !important; overflow-y: auto; padding: .75rem !important; }
+            .modal-overlay > div { max-height: none; margin: auto; padding: 1rem !important; }
+            #toastContainer { left: .75rem; right: .75rem; bottom: .75rem; align-items: stretch; }
+            #memberStatsGrid > div { padding: .65rem !important; min-width: 0; }
+            #memberStatsGrid span { font-size: 10px; }
+            #memberStatsGrid > div > div { font-size: 1rem !important; word-break: break-word; }
+            canvas { max-width: 100%; }
+            .text-3xl { font-size: 1.5rem; line-height: 2rem; }
+        }
         @media print {
             body * {
                 visibility: hidden !important;
@@ -363,7 +393,7 @@
 
                 <!-- Member Stats & Attendance History -->
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="grid grid-cols-3 gap-4">
+                    <div id="memberStatsGrid" class="grid grid-cols-3 gap-2 sm:gap-4">
                         <div class="bg-darkcard border border-darkborder p-4 rounded-2xl">
                             <span class="text-xs text-zinc-400">Time / Days Left</span>
                             <div id="memberDaysLeft" class="text-xl font-black text-brand-400 mt-1">25 Days</div>
@@ -469,7 +499,7 @@
             </div>
 
             <!-- Sub-navigation Tabs -->
-            <div class="flex flex-wrap gap-2 border-b border-zinc-800 pb-3">
+            <div class="subtab-scroll flex flex-wrap gap-2 border-b border-zinc-800 pb-3">
                 <button id="subTabScanner" onclick="app.switchAdminSubTab('scanner')" class="admin-subtab bg-brand-400 text-black font-extrabold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow">
                     <i class="fa-solid fa-qrcode"></i>
                     <span>QR Desk Scanner</span>
@@ -792,7 +822,7 @@
 
             <!-- SUB-TAB 5: MEMBERSHIP PLANS (ADMIN ONLY) -->
             <div id="adminPlansSubTab" class="hidden space-y-4">
-                <div class="flex justify-between items-center">
+                <div class="flex flex-wrap justify-between items-center gap-2">
                     <h3 class="text-sm font-extrabold text-white">Gym Membership Packages & Pricing</h3>
                     <button onclick="app.openAddPlanModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-plus"></i>
