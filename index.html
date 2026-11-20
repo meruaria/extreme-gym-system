@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extreme Gym - QR Membership &amp; Revenue System</title>
+    <title>Xtreme Gym World - QR Membership &amp; Revenue System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -101,10 +101,14 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
             <div class="flex items-center gap-2 text-zinc-400">
                 <i class="fa-solid fa-location-dot text-brand-400"></i>
-                <span><strong>EXTREME GYM:</strong> 3rd Floor, A&amp;E Building, Fortunato F. Halili Avenue, Bagbaguin, Santa Maria, Bulacan</span>
+                <span><strong id="headerBranchTitle">XTREME GYM WORLD:</strong> <span id="headerBranchAddress">3rd Floor, A&amp;E Building, Fortunato F. Halili Avenue, Bagbaguin, Santa Maria, Bulacan</span></span>
             </div>
-            <div class="flex items-center gap-4 text-zinc-400">
-                <span><i class="fa-solid fa-clock text-zinc-500 mr-1"></i> Mon-Sat: 6:00 AM - 10:00 PM</span>
+            <div class="flex flex-wrap items-center gap-3 text-zinc-400">
+                <span><i class="fa-solid fa-clock text-zinc-500 mr-1"></i> <span id="headerBranchHours">Mon-Sat: 6:00 AM - 10:00 PM</span></span>
+                <div class="flex items-center gap-1.5">
+                    <label for="headerBranchSelect" class="text-[11px] text-zinc-500">Branch:</label>
+                    <select id="headerBranchSelect" onchange="app.onHeaderBranchChange()" class="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-0.5 text-[11px] text-brand-400 font-semibold focus:outline-none focus:border-brand-400"></select>
+                </div>
             </div>
         </div>
     </header>
@@ -118,7 +122,7 @@
                     </div>
                     <div>
                         <span class="font-extrabold text-lg tracking-wider text-white flex items-center gap-1.5">
-                            EXTREME <span class="text-brand-400">GYM</span>
+                            XTREME <span class="text-brand-400">GYM WORLD</span>
                         </span>
                         <p class="text-[10px] text-zinc-400 font-medium">QR Membership &amp; Revenue System</p>
                     </div>
@@ -159,7 +163,7 @@
                     <div class="inline-flex w-14 h-14 rounded-2xl bg-zinc-900 border border-brand-500/30 items-center justify-center text-brand-400 text-2xl mb-3 shadow-inner">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
-                    <h2 class="text-2xl font-extrabold text-white">Extreme Gym Portal</h2>
+                    <h2 class="text-2xl font-extrabold text-white">Xtreme Gym Portal</h2>
                     <p class="text-xs text-zinc-400 mt-1">Access member card, QR check-in &amp; management</p>
                 </div>
 
@@ -251,6 +255,11 @@
                     </div>
 
                     <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Home Branch</label>
+                        <select id="regBranchSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></select>
+                    </div>
+
+                    <div>
                         <label class="block text-xs font-semibold text-zinc-300 mb-1">Initial Membership Plan</label>
                         <select id="regPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></select>
                     </div>
@@ -309,7 +318,7 @@
                         <div class="flex justify-between items-start mb-4">
                             <div>
                                 <div class="text-brand-400 font-extrabold text-sm tracking-wider flex items-center gap-1.5">
-                                    <i class="fa-solid fa-dumbbell"></i> EXTREME GYM
+                                    <i class="fa-solid fa-dumbbell"></i> XTREME GYM WORLD
                                 </div>
                                 <div class="text-[10px] text-zinc-500">OFFICIAL MEMBER PASS</div>
                             </div>
@@ -334,9 +343,9 @@
                                 <span>Expiration Date:</span>
                                 <strong id="cardExpiryDate" class="text-brand-400 font-mono">2026-12-15</strong>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Gym Location:</span>
-                                <span class="text-zinc-400 text-right">Santa Maria, Bulacan</span>
+                            <div class="flex justify-between gap-2">
+                                <span>Home Branch:</span>
+                                <span id="cardBranchName" class="text-zinc-300 text-right font-medium">Xtreme Gym World - Sta. Maria</span>
                             </div>
                         </div>
 
@@ -411,6 +420,10 @@
                         <i class="fa-solid fa-tags"></i>
                         <span>Membership Plans</span>
                     </button>
+                    <button onclick="app.switchAdminSubTab('branches')" id="subTabBranches" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-building"></i>
+                        <span>Branches</span>
+                    </button>
                     <button onclick="app.switchAdminSubTab('accounts')" id="subTabAccounts" class="admin-subtab admin-only bg-zinc-800 text-zinc-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2">
                         <i class="fa-solid fa-user-shield"></i>
                         <span>Staff Accounts</span>
@@ -425,7 +438,7 @@
                         <i class="fa-solid fa-users text-brand-400"></i>
                     </div>
                     <div id="statTotalMembers" class="text-2xl font-black text-white">0</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Extreme Gym Database</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Xtreme Gym World Database</div>
                 </div>
                 <div class="bg-darkcard border border-darkborder p-4 rounded-xl">
                     <div class="flex justify-between items-center text-zinc-400 text-xs mb-1">
@@ -575,7 +588,7 @@
                             <thead class="bg-zinc-900 border-b border-darkborder text-zinc-400 font-bold">
                                 <tr>
                                     <th class="p-3.5">Member Name &amp; ID</th>
-                                    <th class="p-3.5">Contact &amp; Email</th>
+                                    <th class="p-3.5">Contact &amp; Branch</th>
                                     <th class="p-3.5">Plan Name</th>
                                     <th class="p-3.5">Expiration Date</th>
                                     <th class="p-3.5">Status</th>
@@ -613,7 +626,7 @@
                     <div class="lg:col-span-2 bg-darkcard border border-darkborder rounded-2xl p-5">
                         <h3 class="text-xs font-bold text-white mb-4 flex items-center justify-between">
                             <span>Revenue Trend Analytics</span>
-                            <span class="text-zinc-500 font-normal">Extreme Gym Financial Summary</span>
+                            <span class="text-zinc-500 font-normal">Xtreme Gym World Financial Summary</span>
                         </h3>
                         <div class="h-64 relative">
                             <canvas id="revenueChart"></canvas>
@@ -717,7 +730,7 @@
 
             <div id="adminPlansSubTab" class="hidden space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-white">Extreme Gym Membership Plans Configuration</h3>
+                    <h3 class="text-xs font-bold text-white">Xtreme Gym World Membership Plans Configuration</h3>
                     <button onclick="app.openAddPlanModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
                         <i class="fa-solid fa-plus"></i>
                         <span>Add New Plan</span>
@@ -725,6 +738,22 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="plansContainer"></div>
+            </div>
+
+            <!-- Branches Sub-Tab (Admin Only) -->
+            <div id="adminBranchesSubTab" class="hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-darkcard border border-darkborder p-4 rounded-2xl">
+                    <div>
+                        <h3 class="text-xs font-extrabold text-white">Xtreme Gym World Branches Management</h3>
+                        <p class="text-[10px] text-zinc-400">Add new Xtreme Gym World branches or edit existing branch locations &amp; operating hours</p>
+                    </div>
+                    <button onclick="app.openAddBranchModal()" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Xtreme Gym Branch</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="branchesContainer"></div>
             </div>
 
             <div id="adminAccountsSubTab" class="hidden space-y-4">
@@ -775,7 +804,7 @@
     <div id="printPassSheet" class="hidden">
         <div class="border-2 border-black rounded-2xl p-6 w-80 text-center bg-white text-black space-y-4">
             <div class="border-b-2 border-black pb-3">
-                <div class="font-black text-xl tracking-wider">EXTREME GYM</div>
+                <div class="font-black text-xl tracking-wider">XTREME GYM WORLD</div>
                 <div class="text-[11px] font-semibold tracking-widest uppercase">Official Attendance QR Pass</div>
             </div>
             <div id="printQrTarget" class="flex justify-center items-center py-2"></div>
@@ -786,9 +815,10 @@
             <div class="border-t border-black pt-3 text-xs space-y-1 text-left">
                 <div class="flex justify-between"><span>Plan:</span><strong id="printPlanName">Monthly Basic</strong></div>
                 <div class="flex justify-between"><span>Valid Until:</span><strong id="printExpiryDate" class="font-mono">2026-12-15</strong></div>
+                <div class="flex justify-between gap-2"><span>Branch:</span><strong id="printBranchName" class="text-right">Xtreme Gym World - Sta. Maria</strong></div>
             </div>
             <div class="text-[10px] pt-2 text-zinc-700">
-                Scan this QR code at the Extreme Gym front desk to log attendance.
+                Scan this QR code at the Xtreme Gym World front desk to log attendance.
             </div>
         </div>
     </div>
@@ -835,14 +865,131 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Home Branch</label>
+                        <select id="mBranchSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Select Plan</label>
+                        <select id="mPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-wrap justify-between items-center gap-2 border-t border-zinc-800">
+                    <button type="button" id="editMemberChangePassBtn" onclick="app.openMemberPasswordFromEditModal()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-brand-400 border border-zinc-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-key"></i>
+                        <span>Change Member Password</span>
+                    </button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" onclick="app.closeModal('memberModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
+                        <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Member Record</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin & Staff Change Member Password Modal -->
+    <div id="memberPasswordModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-key text-brand-400"></i>
+                    <span>Change Member Portal Password</span>
+                </h3>
+                <button onclick="app.closeModal('memberPasswordModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="app.handleSaveMemberPassword(event)" class="space-y-3">
+                <input type="hidden" id="mpMemberId">
+
+                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs space-y-1">
+                    <div class="text-zinc-400">Member Account:</div>
+                    <div id="mpMemberDisplay" class="font-bold text-white">Member Name (ID)</div>
+                    <div id="mpPortalStatusNote" class="text-[11px] text-brand-400"></div>
+                </div>
+
+                <div id="mpCreateUsernameSection" class="hidden">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-semibold text-zinc-300">Assign Portal Username <span class="text-rose-400">*</span></label>
+                        <span id="mpUsernameCounter" class="text-[10px] text-zinc-500 font-mono">0/24</span>
+                    </div>
+                    <input type="text" id="mpNewUsername" minlength="3" maxlength="24" placeholder="3–24 chars (letters, numbers, . or _)" oninput="app.validateUsernameInput(this, 'mpUserErr', 'mpUsernameCounter')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <span id="mpUserErr" class="text-[10px] text-rose-400 hidden block mt-0.5">3–24 chars: letters, numbers, . or _ only</span>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Select Plan</label>
-                    <select id="mPlanSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white"></select>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">New Password <span class="text-rose-400">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="mpNewPassword" required minlength="6" maxlength="64" placeholder="6–64 characters" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white focus:outline-none focus:border-brand-400">
+                        <button type="button" onclick="app.togglePasswordVisibility('mpNewPassword', 'mpNewPassIcon')" class="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-xs p-1">
+                            <i id="mpNewPassIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Confirm New Password <span class="text-rose-400">*</span></label>
+                    <div class="relative">
+                        <input type="password" id="mpConfirmPassword" required minlength="6" maxlength="64" placeholder="Re-enter new password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 pr-9 text-xs text-white focus:outline-none focus:border-brand-400">
+                        <button type="button" onclick="app.togglePasswordVisibility('mpConfirmPassword', 'mpConfirmPassIcon')" class="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-xs p-1">
+                            <i id="mpConfirmPassIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
-                    <button type="button" onclick="app.closeModal('memberModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
-                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Member Record</button>
+                    <button type="button" onclick="app.closeModal('memberPasswordModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Update Member Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add / Edit Xtreme Gym Branch Modal (Admin Only) -->
+    <div id="branchModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 id="branchModalTitle" class="text-sm font-extrabold text-white">Add Xtreme Gym World Branch</h3>
+                <button onclick="app.closeModal('branchModal')" class="text-zinc-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="app.handleSaveBranch(event)" class="space-y-3">
+                <input type="hidden" id="editBranchId">
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Branch Name (3–60 chars) <span class="text-rose-400">*</span></label>
+                    <input type="text" id="bName" required minlength="3" maxlength="60" placeholder="e.g. Xtreme Gym World - Bocaue" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Full Branch Address (5–140 chars) <span class="text-rose-400">*</span></label>
+                    <input type="text" id="bAddress" required minlength="5" maxlength="140" placeholder="Street, Barangay, City/Municipality, Province" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Operating Hours <span class="text-rose-400">*</span></label>
+                        <input type="text" id="bHours" required minlength="3" maxlength="50" placeholder="Mon-Sat: 6:00 AM - 10:00 PM" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 mb-1">Contact Number</label>
+                        <input type="tel" id="bContact" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" placeholder="0917XXXXXXX" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">Branch Status</label>
+                    <select id="bStatus" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="Active">Active (Open for Members)</option>
+                        <option value="Inactive">Inactive / Temporarily Closed</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-zinc-800">
+                    <button type="button" onclick="app.closeModal('branchModal')" class="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-brand-400 hover:bg-brand-500 text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow">Save Branch</button>
                 </div>
             </form>
         </div>
@@ -1147,6 +1294,7 @@
         const RESERVED_USERNAMES = new Set([
             'admin', 'administrator', 'root', 'staff', 'staff1', 'staff2',
             'moderator', 'mod', 'support', 'helpdesk', 'owner', 'manager',
+            'xtreme', 'xtremegym', 'xtreme_gym', 'xtremegymworld',
             'extremegym', 'extreme_gym', 'system', 'null', 'undefined', 'guest'
         ]);
 
@@ -1220,6 +1368,18 @@
             return storedPassword === inputPassword;
         }
 
+        const INITIAL_BRANCHES = [
+            {
+                id: 'branch_1',
+                name: 'Xtreme Gym World - Sta. Maria',
+                address: '3rd Floor, A&E Building, Fortunato F. Halili Avenue, Bagbaguin, Santa Maria, Bulacan',
+                hours: 'Mon-Sat: 6:00 AM - 10:00 PM',
+                contact: '',
+                status: 'Active',
+                createdAtMs: 1
+            }
+        ];
+
         const INITIAL_PLANS = [
             { id: 'plan_1', name: 'Daily Walk-in Pass', price: 60, durationDays: 1, category: 'Walk-in', createdAtMs: 1 },
             { id: 'plan_2', name: 'Monthly Basic Membership', price: 800, durationDays: 30, category: 'Membership', createdAtMs: 2 },
@@ -1242,6 +1402,8 @@
                 lastName: 'Dela Cruz',
                 email: 'juan@example.com',
                 phone: '09171234567',
+                branchId: 'branch_1',
+                branchName: 'Xtreme Gym World - Sta. Maria',
                 planId: 'plan_2',
                 planName: 'Monthly Basic Membership',
                 status: 'Active',
@@ -1257,6 +1419,8 @@
                 lastName: 'Santos',
                 email: 'maria@example.com',
                 phone: '09189876543',
+                branchId: 'branch_1',
+                branchName: 'Xtreme Gym World - Sta. Maria',
                 planId: 'plan_1',
                 planName: 'Daily Walk-in Pass',
                 status: 'Expired',
@@ -1270,8 +1434,10 @@
                 userId: '',
                 firstName: 'Kian',
                 lastName: 'Puente',
-                email: 'kian@extreme.gym',
+                email: 'kian@xtremegym.ph',
                 phone: '09191112222',
+                branchId: 'branch_1',
+                branchName: 'Xtreme Gym World - Sta. Maria',
                 planId: 'plan_3',
                 planName: 'Quarterly Pro Membership',
                 status: 'Active',
@@ -1285,8 +1451,10 @@
                 userId: '',
                 firstName: 'Jan Mark',
                 lastName: 'Nolasco',
-                email: 'janmark@extreme.gym',
+                email: 'janmark@xtremegym.ph',
                 phone: '09203334444',
+                branchId: 'branch_1',
+                branchName: 'Xtreme Gym World - Sta. Maria',
                 planId: 'plan_4',
                 planName: 'Annual VIP Membership',
                 status: 'Active',
@@ -1300,8 +1468,10 @@
                 userId: '',
                 firstName: 'Jan Moises',
                 lastName: 'Gaca',
-                email: 'janmoises@extreme.gym',
+                email: 'janmoises@xtremegym.ph',
                 phone: '09215556666',
+                branchId: 'branch_1',
+                branchName: 'Xtreme Gym World - Sta. Maria',
                 planId: 'plan_2',
                 planName: 'Monthly Basic Membership',
                 status: 'Active',
@@ -1328,6 +1498,7 @@
             constructor() {
                 this.currentUser = null;
                 this.currentSubTab = 'scanner';
+                this.selectedBranchId = localStorage.getItem('eg_selected_branch') || 'branch_1';
                 this.failedLoginState = this.loadSecurityState();
                 this.lockoutTimer = null;
                 this.lastLoginAttemptMs = 0;
@@ -1398,6 +1569,7 @@
 
                     if (!metaSnap.exists) {
                         const batch = db.batch();
+                        this.branches.forEach(item => batch.set(db.collection('eg_branches').doc(item.id), item));
                         this.plans.forEach(item => batch.set(db.collection('eg_plans').doc(item.id), item));
                         this.users.forEach(item => batch.set(db.collection('eg_users').doc(item.id), item));
                         this.members.forEach(item => batch.set(db.collection('eg_members').doc(item.id), item));
@@ -1405,9 +1577,15 @@
                         this.attendance.forEach(item => batch.set(db.collection('eg_attendance').doc(item.id), item));
                         batch.set(metaRef, { seeded: true, createdAt: new Date().toISOString() });
                         await batch.commit();
+                    } else {
+                        const branchSnap = await db.collection('eg_branches').limit(1).get();
+                        if (branchSnap.empty && this.branches.length > 0) {
+                            await this.pushFullCollectionToCloud('eg_branches', this.branches);
+                        }
                     }
 
                     const collections = [
+                        { name: 'eg_branches', prop: 'branches', localKey: 'eg_branches' },
                         { name: 'eg_plans', prop: 'plans', localKey: 'eg_plans' },
                         { name: 'eg_users', prop: 'users', localKey: 'eg_users' },
                         { name: 'eg_members', prop: 'members', localKey: 'eg_members' },
@@ -1441,6 +1619,11 @@
             }
 
             onCloudDataUpdated(prop) {
+                if (prop === 'branches') {
+                    this.populateBranchSelects();
+                    this.updateHeaderBranchInfo();
+                }
+
                 if (prop === 'plans') {
                     this.populatePlanSelects();
                 }
@@ -1467,14 +1650,19 @@
                     if (prop === 'members') {
                         this.populateScannerSelect();
                         this.renderMembersTable();
+                        this.renderBranchesList();
                     } else if (prop === 'payments') {
                         this.renderPaymentsModule();
                     } else if (prop === 'attendance') {
                         this.renderAttendanceLogTable();
                     } else if (prop === 'plans') {
                         this.renderPlansList();
+                    } else if (prop === 'branches') {
+                        this.renderBranchesList();
+                        this.renderMembersTable();
                     } else if (prop === 'users') {
                         this.renderAccountsTable();
+                        this.renderMembersTable();
                     }
                 }
             }
@@ -1507,6 +1695,9 @@
             }
 
             loadData() {
+                if (!localStorage.getItem('eg_branches')) {
+                    localStorage.setItem('eg_branches', JSON.stringify(INITIAL_BRANCHES));
+                }
                 if (!localStorage.getItem('eg_plans')) {
                     localStorage.setItem('eg_plans', JSON.stringify(INITIAL_PLANS));
                 }
@@ -1523,11 +1714,19 @@
                     localStorage.setItem('eg_attendance', JSON.stringify(INITIAL_ATTENDANCE));
                 }
 
+                this.branches = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_branches')));
                 this.plans = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_plans')));
                 this.users = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_users')));
                 this.members = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_members')));
                 this.payments = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_payments')));
                 this.attendance = this.sortCollectionChronologically(JSON.parse(localStorage.getItem('eg_attendance')));
+
+                // Migrate default branch name from Extreme to Xtreme if untouched
+                const defaultBranch = this.branches.find(b => b.id === 'branch_1');
+                if (defaultBranch && defaultBranch.name.startsWith('Extreme Gym')) {
+                    defaultBranch.name = 'Xtreme Gym World - Sta. Maria';
+                    this.saveData('branches');
+                }
 
                 const mainAdmin = this.users.find(u => u.id === 'usr_1' || u.username === 'admin');
                 if (mainAdmin && mainAdmin.firstName === 'Emmanuel') {
@@ -1538,6 +1737,7 @@
             }
 
             saveData(key) {
+                if (key === 'branches') localStorage.setItem('eg_branches', JSON.stringify(this.branches));
                 if (key === 'plans') localStorage.setItem('eg_plans', JSON.stringify(this.plans));
                 if (key === 'users') localStorage.setItem('eg_users', JSON.stringify(this.users));
                 if (key === 'members') localStorage.setItem('eg_members', JSON.stringify(this.members));
@@ -1546,11 +1746,75 @@
             }
 
             initUI() {
+                this.populateBranchSelects();
+                this.updateHeaderBranchInfo();
                 this.populatePlanSelects();
                 this.checkSession();
                 if (this.failedLoginState.lockoutUntil > Date.now()) {
                     this.resumeLockoutCountdown();
                 }
+            }
+
+            getBranchById(branchId) {
+                return this.branches.find(b => b.id === branchId) || this.branches[0] || INITIAL_BRANCHES[0];
+            }
+
+            populateBranchSelects() {
+                const activeBranches = this.branches.filter(b => b.status !== 'Inactive');
+                const listForForms = activeBranches.length > 0 ? activeBranches : this.branches;
+
+                ['regBranchSelect', 'mBranchSelect'].forEach(selectId => {
+                    const el = document.getElementById(selectId);
+                    if (!el) return;
+                    const prevVal = el.value;
+                    el.innerHTML = '';
+                    listForForms.forEach(branch => {
+                        const opt = document.createElement('option');
+                        opt.value = branch.id;
+                        opt.textContent = branch.name;
+                        el.appendChild(opt);
+                    });
+                    if (prevVal && listForForms.some(b => b.id === prevVal)) {
+                        el.value = prevVal;
+                    }
+                });
+
+                const headerSel = document.getElementById('headerBranchSelect');
+                if (headerSel) {
+                    headerSel.innerHTML = '';
+                    this.branches.forEach(branch => {
+                        const opt = document.createElement('option');
+                        opt.value = branch.id;
+                        opt.textContent = branch.name + (branch.status === 'Inactive' ? ' (Closed)' : '');
+                        headerSel.appendChild(opt);
+                    });
+                    if (this.branches.some(b => b.id === this.selectedBranchId)) {
+                        headerSel.value = this.selectedBranchId;
+                    } else if (this.branches[0]) {
+                        this.selectedBranchId = this.branches[0].id;
+                        headerSel.value = this.selectedBranchId;
+                    }
+                }
+            }
+
+            onHeaderBranchChange() {
+                const headerSel = document.getElementById('headerBranchSelect');
+                if (!headerSel) return;
+                this.selectedBranchId = headerSel.value;
+                localStorage.setItem('eg_selected_branch', this.selectedBranchId);
+                this.updateHeaderBranchInfo();
+            }
+
+            updateHeaderBranchInfo() {
+                const branch = this.getBranchById(this.selectedBranchId);
+                if (!branch) return;
+                const titleEl = document.getElementById('headerBranchTitle');
+                const addrEl = document.getElementById('headerBranchAddress');
+                const hoursEl = document.getElementById('headerBranchHours');
+
+                if (titleEl) titleEl.textContent = `${branch.name.toUpperCase()}:`;
+                if (addrEl) addrEl.textContent = branch.address;
+                if (hoursEl) hoursEl.textContent = branch.hours || 'Mon-Sat: 6:00 AM - 10:00 PM';
             }
 
             validateNameInput(inputElem, errorSpanId, maxLen = 40) {
@@ -1667,7 +1931,6 @@
                     return;
                 }
 
-                // Throttle rapid-fire script submissions (minimum 700ms between attempts)
                 if (now - this.lastLoginAttemptMs < 700) {
                     return;
                 }
@@ -1761,19 +2024,18 @@
             generateNextMemberId() {
                 let maxNum = this.members.length;
                 this.members.forEach(m => {
-                    const match = String(m.id).match(/EG-2026-(\d+)/);
+                    const match = String(m.id).match(/(?:XG|EG)-2026-(\d+)/);
                     if (match) {
                         const n = parseInt(match[1], 10);
                         if (n > maxNum) maxNum = n;
                     }
                 });
-                return `EG-2026-${String(maxNum + 1).padStart(4, '0')}`;
+                return `XG-2026-${String(maxNum + 1).padStart(4, '0')}`;
             }
 
             async handleCustomerSelfRegister(e) {
                 e.preventDefault();
 
-                // Anti-spam rate limit: max 3 self-registrations per 10 minutes per browser
                 const nowMs = Date.now();
                 const windowMs = 10 * 60 * 1000;
                 this.failedLoginState.regTimestamps = (this.failedLoginState.regTimestamps || []).filter(ts => nowMs - ts < windowMs);
@@ -1788,6 +2050,7 @@
                 const username = document.getElementById('regUsername').value.trim();
                 const email = document.getElementById('regEmail').value.trim().toLowerCase();
                 const phone = document.getElementById('regPhone').value.trim();
+                const branchId = document.getElementById('regBranchSelect').value;
                 const planId = document.getElementById('regPlanSelect').value;
                 const rawPassword = document.getElementById('regPassword').value;
 
@@ -1837,6 +2100,7 @@
                     return;
                 }
 
+                const selectedBranch = this.getBranchById(branchId);
                 const memberId = this.generateNextMemberId();
                 const userId = `usr_${nowMs}`;
                 const hashedPassword = await hashPasswordSHA256(rawPassword);
@@ -1864,6 +2128,8 @@
                     lastName: ln,
                     email,
                     phone,
+                    branchId: selectedBranch.id,
+                    branchName: selectedBranch.name,
                     planId: selectedPlan.id,
                     planName: selectedPlan.name,
                     status: 'Active',
@@ -1926,7 +2192,6 @@
                 if (sess) {
                     try {
                         const parsed = JSON.parse(sess);
-                        // Anti-bypass: always resolve user & role from verified users store, never trust raw sessionStorage
                         const freshUser = this.users.find(u => u.id === parsed.id && u.username === parsed.username);
                         if (freshUser) {
                             this.currentUser = freshUser;
@@ -2074,6 +2339,8 @@
                 const member = this.getCurrentMemberRecord();
                 if (!member) return;
 
+                const memberBranch = this.getBranchById(member.branchId);
+
                 document.getElementById('memberNameTitle').textContent = `${member.firstName} ${member.lastName}`;
                 document.getElementById('memberIdSub').textContent = `Member ID: ${member.id}`;
                 document.getElementById('memberPlanSub').textContent = `Plan: ${member.planName}`;
@@ -2099,6 +2366,7 @@
                 document.getElementById('cardMemberId').textContent = member.id;
                 document.getElementById('cardPlanName').textContent = member.planName;
                 document.getElementById('cardExpiryDate').textContent = member.expiryDate;
+                document.getElementById('cardBranchName').textContent = memberBranch ? memberBranch.name : (member.branchName || 'Xtreme Gym World - Sta. Maria');
 
                 this.generateQRCode('memberQrContainer', member.id, 160);
 
@@ -2270,10 +2538,13 @@
                     return;
                 }
 
+                const branch = this.getBranchById(member.branchId);
+
                 document.getElementById('printMemberName').textContent = `${member.firstName} ${member.lastName}`;
                 document.getElementById('printMemberId').textContent = member.id;
                 document.getElementById('printPlanName').textContent = member.planName;
                 document.getElementById('printExpiryDate').textContent = member.expiryDate;
+                document.getElementById('printBranchName').textContent = branch ? branch.name : (member.branchName || 'Xtreme Gym World - Sta. Maria');
 
                 this.generateQRCode('printQrTarget', member.id, 200);
 
@@ -2454,6 +2725,7 @@
                 this.renderPaymentsModule();
                 this.renderAttendanceLogTable();
                 this.renderPlansList();
+                this.renderBranchesList();
                 this.renderAccountsTable();
             }
 
@@ -2479,7 +2751,7 @@
                 if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
                     return;
                 }
-                if (this.currentUser.role === 'staff' && (subTab === 'plans' || subTab === 'accounts')) {
+                if (this.currentUser.role === 'staff' && (subTab === 'plans' || subTab === 'branches' || subTab === 'accounts')) {
                     this.showToast('Access restricted to Administrator accounts only.', 'error');
                     return;
                 }
@@ -2489,7 +2761,7 @@
                 }
 
                 this.currentSubTab = subTab;
-                const subTabs = ['scanner', 'members', 'payments', 'attendance', 'plans', 'accounts'];
+                const subTabs = ['scanner', 'members', 'payments', 'attendance', 'plans', 'branches', 'accounts'];
 
                 subTabs.forEach(tab => {
                     const el = document.getElementById(`admin${tab.charAt(0).toUpperCase() + tab.slice(1)}SubTab`);
@@ -2714,6 +2986,8 @@
                     const expired = isMemberExpired(m);
                     const statusText = expired ? 'Expired' : 'Active';
                     const statusBadgeClass = expired ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+                    const memberBranch = this.getBranchById(m.branchId);
+                    const branchLabel = memberBranch ? memberBranch.name : (m.branchName || 'Xtreme Gym World - Sta. Maria');
 
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-zinc-900/50 transition';
@@ -2723,8 +2997,8 @@
                             <div class="text-[10px] text-brand-400 font-mono">${m.id}</div>
                         </td>
                         <td class="p-3.5 text-zinc-400">
-                            <div>${escapeHTML(m.email || 'N/A')}</div>
-                            <div class="text-[10px] text-zinc-500">${escapeHTML(m.phone || 'No phone')}</div>
+                            <div>${escapeHTML(m.email || 'N/A')} <span class="text-zinc-600">•</span> <span class="text-zinc-400">${escapeHTML(m.phone || 'No phone')}</span></div>
+                            <div class="text-[10px] text-zinc-500"><i class="fa-solid fa-location-dot text-brand-400/70 mr-1"></i>${escapeHTML(branchLabel)}</div>
                         </td>
                         <td class="p-3.5 font-medium text-zinc-300">${escapeHTML(m.planName)}</td>
                         <td class="p-3.5 font-mono text-zinc-300">${m.expiryDate}</td>
@@ -2733,12 +3007,15 @@
                                 ${statusText}
                             </span>
                         </td>
-                        <td class="p-3.5 text-right space-x-1">
+                        <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
                             <button onclick="app.showMemberPassModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="View & Print QR Pass">
                                 <i class="fa-solid fa-qrcode"></i>
                             </button>
                             <button onclick="app.openEditMemberModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="Edit Member">
                                 <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="app.openMemberPasswordModal('${m.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-zinc-700" title="Change Member Password">
+                                <i class="fa-solid fa-key"></i>
                             </button>
                             <button onclick="app.quickRenewMember('${m.id}')" class="bg-brand-400/20 hover:bg-brand-400/30 text-brand-300 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-brand-500/30" title="Renew Plan">
                                 <i class="fa-solid fa-arrows-rotate"></i>
@@ -2757,6 +3034,8 @@
                 document.getElementById('mLastName').value = '';
                 document.getElementById('mEmail').value = '';
                 document.getElementById('mPhone').value = '';
+                const changePassBtn = document.getElementById('editMemberChangePassBtn');
+                if (changePassBtn) changePassBtn.classList.add('hidden');
                 this.openModal('memberModal');
             }
 
@@ -2771,9 +3050,159 @@
                 document.getElementById('mLastName').value = member.lastName;
                 document.getElementById('mEmail').value = member.email || '';
                 document.getElementById('mPhone').value = member.phone || '';
+                if (member.branchId) {
+                    document.getElementById('mBranchSelect').value = member.branchId;
+                }
                 document.getElementById('mPlanSelect').value = member.planId;
 
+                const changePassBtn = document.getElementById('editMemberChangePassBtn');
+                if (changePassBtn) changePassBtn.classList.remove('hidden');
+
                 this.openModal('memberModal');
+            }
+
+            openMemberPasswordFromEditModal() {
+                const memberId = document.getElementById('editMemberId').value;
+                if (!memberId) return;
+                this.closeModal('memberModal');
+                this.openMemberPasswordModal(memberId);
+            }
+
+            openMemberPasswordModal(memberId) {
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Only Admin and Staff can change member passwords.', 'error');
+                    return;
+                }
+
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) return;
+
+                const linkedUser = this.users.find(u =>
+                    u.role === 'member' && (u.id === member.userId || u.memberId === member.id)
+                );
+
+                document.getElementById('mpMemberId').value = member.id;
+                document.getElementById('mpMemberDisplay').textContent = `${member.firstName} ${member.lastName} (${member.id})`;
+
+                const noteEl = document.getElementById('mpPortalStatusNote');
+                const createUserSection = document.getElementById('mpCreateUsernameSection');
+                const usernameInput = document.getElementById('mpNewUsername');
+                const counterSpan = document.getElementById('mpUsernameCounter');
+
+                if (linkedUser) {
+                    noteEl.textContent = `Portal Username: ${linkedUser.username}`;
+                    createUserSection.classList.add('hidden');
+                    usernameInput.required = false;
+                    usernameInput.value = '';
+                } else {
+                    noteEl.textContent = 'No portal login account yet — saving a password will activate member portal login.';
+                    createUserSection.classList.remove('hidden');
+                    usernameInput.required = true;
+                    const suggestedBase = `${member.firstName}${member.lastName}`
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]/g, '')
+                        .slice(0, 16) || 'member';
+                    const idSuffix = String(member.id).slice(-4);
+                    const suggested = `${suggestedBase}${idSuffix}`.slice(0, 24);
+                    usernameInput.value = suggested;
+                    if (counterSpan) counterSpan.textContent = `${suggested.length}/24`;
+                }
+
+                document.getElementById('mpNewPassword').value = '';
+                document.getElementById('mpConfirmPassword').value = '';
+                this.resetPasswordFieldState('mpNewPassword', 'mpNewPassIcon');
+                this.resetPasswordFieldState('mpConfirmPassword', 'mpConfirmPassIcon');
+
+                this.openModal('memberPasswordModal');
+            }
+
+            async handleSaveMemberPassword(e) {
+                e.preventDefault();
+                if (!this.currentUser || (this.currentUser.role !== 'admin' && this.currentUser.role !== 'staff')) {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+
+                const memberId = document.getElementById('mpMemberId').value;
+                const newPass = document.getElementById('mpNewPassword').value;
+                const confirmPass = document.getElementById('mpConfirmPassword').value;
+
+                if (newPass.length < 6 || newPass.length > 64) {
+                    this.showToast('Password must be between 6 and 64 characters.', 'error');
+                    return;
+                }
+
+                if (newPass !== confirmPass) {
+                    this.showToast('Passwords do not match. Please try again.', 'error');
+                    return;
+                }
+
+                const member = this.members.find(m => m.id === memberId);
+                if (!member) {
+                    this.showToast('Member record not found.', 'error');
+                    return;
+                }
+
+                // Prevent modifying non-member accounts via this modal
+                const nonMemberConflict = this.users.find(u =>
+                    (u.id === member.userId || u.memberId === member.id) && u.role !== 'member'
+                );
+                if (nonMemberConflict) {
+                    this.showToast('Cannot modify Staff or Admin credentials from Member Password reset.', 'error');
+                    return;
+                }
+
+                let linkedUser = this.users.find(u =>
+                    u.role === 'member' && (u.id === member.userId || u.memberId === member.id)
+                );
+
+                const hashedPassword = await hashPasswordSHA256(newPass);
+
+                if (linkedUser) {
+                    linkedUser.password = hashedPassword;
+                    this.saveData('users');
+                    await this.pushRecordToCloud('eg_users', linkedUser.id, linkedUser);
+                    this.closeModal('memberPasswordModal');
+                    this.showToast(`Password updated for ${member.firstName} ${member.lastName} (${linkedUser.username})!`, 'success');
+                } else {
+                    const chosenUsername = document.getElementById('mpNewUsername').value.trim();
+                    if (!isValidAccountUsername(chosenUsername)) {
+                        this.showToast('Username must be 3–24 characters using letters, numbers, dots, or underscores.', 'error');
+                        return;
+                    }
+                    if (this.users.some(u => u.username.toLowerCase() === chosenUsername.toLowerCase())) {
+                        this.showToast('That username is already taken. Choose another.', 'error');
+                        return;
+                    }
+
+                    const nowMs = Date.now();
+                    const newUser = {
+                        id: `usr_${nowMs}`,
+                        username: chosenUsername,
+                        password: hashedPassword,
+                        role: 'member',
+                        memberId: member.id,
+                        firstName: member.firstName,
+                        lastName: member.lastName,
+                        email: member.email || '',
+                        createdAt: getLocalISODate(0),
+                        createdAtMs: nowMs
+                    };
+
+                    member.userId = newUser.id;
+                    this.users.push(newUser);
+
+                    this.saveData('users');
+                    this.saveData('members');
+
+                    await Promise.all([
+                        this.pushRecordToCloud('eg_users', newUser.id, newUser),
+                        this.pushRecordToCloud('eg_members', member.id, member)
+                    ]);
+
+                    this.closeModal('memberPasswordModal');
+                    this.showToast(`Portal login activated & password set for ${member.firstName} (${chosenUsername})!`, 'success');
+                }
             }
 
             async handleSaveMember(e) {
@@ -2788,6 +3217,7 @@
                 const ln = normalizeCleanText(document.getElementById('mLastName').value, 35);
                 const email = document.getElementById('mEmail').value.trim().toLowerCase();
                 const phone = document.getElementById('mPhone').value.trim();
+                const branchId = document.getElementById('mBranchSelect').value;
                 const planId = document.getElementById('mPlanSelect').value;
 
                 if (!isValidHumanName(fn, 2, 40) || !isValidHumanName(ln, 2, 35)) {
@@ -2811,6 +3241,8 @@
                     return;
                 }
 
+                const selectedBranch = this.getBranchById(branchId);
+
                 if (editId) {
                     const m = this.members.find(m => m.id === editId);
                     if (m) {
@@ -2818,6 +3250,8 @@
                         m.lastName = ln;
                         m.email = email;
                         m.phone = phone;
+                        m.branchId = selectedBranch.id;
+                        m.branchName = selectedBranch.name;
                         if (m.planId !== planId) {
                             m.planId = planId;
                             m.planName = selectedPlan.name;
@@ -2841,6 +3275,8 @@
                         lastName: ln,
                         email,
                         phone,
+                        branchId: selectedBranch.id,
+                        branchName: selectedBranch.name,
                         planId: selectedPlan.id,
                         planName: selectedPlan.name,
                         status: 'Active',
@@ -3116,7 +3552,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.setAttribute('href', url);
-                a.setAttribute('download', `Extreme_Gym_Revenue_${getLocalISODate(0)}.csv`);
+                a.setAttribute('download', `Xtreme_Gym_Revenue_${getLocalISODate(0)}.csv`);
                 a.click();
                 window.URL.revokeObjectURL(url);
                 this.showToast('Revenue CSV exported successfully.', 'success');
@@ -3162,7 +3598,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.setAttribute('href', url);
-                a.setAttribute('download', `Extreme_Gym_Attendance_${getLocalISODate(0)}.csv`);
+                a.setAttribute('download', `Xtreme_Gym_Attendance_${getLocalISODate(0)}.csv`);
                 a.click();
                 window.URL.revokeObjectURL(url);
                 this.showToast('Attendance CSV exported successfully.', 'success');
@@ -3242,6 +3678,182 @@
                 this.renderPlansList();
                 this.closeModal('planModal');
                 this.showToast('New membership plan saved & synced to cloud.', 'success');
+            }
+
+            // Branches Management (Add & Edit Xtreme Gym World Branches)
+            renderBranchesList() {
+                const container = document.getElementById('branchesContainer');
+                if (!container) return;
+                container.innerHTML = '';
+
+                this.branches.forEach(branch => {
+                    const isActive = branch.status !== 'Inactive';
+                    const memberCount = this.members.filter(m =>
+                        m.branchId === branch.id || (!m.branchId && branch.id === 'branch_1')
+                    ).length;
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-darkcard border border-darkborder p-5 rounded-2xl flex flex-col justify-between space-y-4';
+                    card.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-start gap-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/30 text-brand-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-dumbbell"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-extrabold text-white">${escapeHTML(branch.name)}</h4>
+                                        <span class="text-[10px] text-zinc-500 font-mono">${escapeHTML(branch.id)}</span>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'}">
+                                    ${isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+
+                            <p class="text-xs text-zinc-300 flex items-start gap-2 pt-1">
+                                <i class="fa-solid fa-location-dot text-brand-400 mt-0.5"></i>
+                                <span>${escapeHTML(branch.address)}</span>
+                            </p>
+
+                            <div class="flex flex-wrap gap-4 text-[11px] text-zinc-400 pt-1">
+                                <span><i class="fa-solid fa-clock text-zinc-500 mr-1"></i>${escapeHTML(branch.hours || 'Mon-Sat: 6:00 AM - 10:00 PM')}</span>
+                                ${branch.contact ? `<span><i class="fa-solid fa-phone text-zinc-500 mr-1"></i>${escapeHTML(branch.contact)}</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-zinc-800 flex justify-between items-center text-xs">
+                            <span class="text-zinc-400"><strong class="text-white">${memberCount}</strong> assigned member(s)</span>
+                            <button onclick="app.openEditBranchModal('${branch.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-brand-400 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-zinc-700 inline-flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-pen"></i>
+                                <span>Edit Branch</span>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            openAddBranchModal() {
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Only an Administrator can add branches.', 'error');
+                    return;
+                }
+                document.getElementById('branchModalTitle').textContent = 'Add Xtreme Gym World Branch';
+                document.getElementById('editBranchId').value = '';
+                document.getElementById('bName').value = 'Xtreme Gym World - ';
+                document.getElementById('bAddress').value = '';
+                document.getElementById('bHours').value = 'Mon-Sat: 6:00 AM - 10:00 PM';
+                document.getElementById('bContact').value = '';
+                document.getElementById('bStatus').value = 'Active';
+                this.openModal('branchModal');
+            }
+
+            openEditBranchModal(branchId) {
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Only an Administrator can edit branches.', 'error');
+                    return;
+                }
+                const branch = this.branches.find(b => b.id === branchId);
+                if (!branch) return;
+
+                document.getElementById('branchModalTitle').textContent = 'Edit Xtreme Gym World Branch';
+                document.getElementById('editBranchId').value = branch.id;
+                document.getElementById('bName').value = branch.name;
+                document.getElementById('bAddress').value = branch.address;
+                document.getElementById('bHours').value = branch.hours || 'Mon-Sat: 6:00 AM - 10:00 PM';
+                document.getElementById('bContact').value = branch.contact || '';
+                document.getElementById('bStatus').value = branch.status || 'Active';
+                this.openModal('branchModal');
+            }
+
+            async handleSaveBranch(e) {
+                e.preventDefault();
+                if (this.currentUser?.role !== 'admin') {
+                    this.showToast('Unauthorized action.', 'error');
+                    return;
+                }
+
+                const editId = document.getElementById('editBranchId').value;
+                const name = normalizeCleanText(document.getElementById('bName').value, 60);
+                const address = normalizeCleanText(document.getElementById('bAddress').value, 140);
+                const hours = normalizeCleanText(document.getElementById('bHours').value, 50);
+                const contact = document.getElementById('bContact').value.replace(/[^0-9]/g, '').slice(0, 11);
+                const status = document.getElementById('bStatus').value === 'Inactive' ? 'Inactive' : 'Active';
+
+                if (name.length < 3 || name.length > 60) {
+                    this.showToast('Branch name must be between 3 and 60 characters.', 'error');
+                    return;
+                }
+
+                if (address.length < 5 || address.length > 140) {
+                    this.showToast('Branch address must be between 5 and 140 characters.', 'error');
+                    return;
+                }
+
+                if (!isValidOptionalPhone(contact)) {
+                    this.showToast('Contact number must be 11 digits starting with 09 (or left blank).', 'error');
+                    return;
+                }
+
+                if (editId) {
+                    const branch = this.branches.find(b => b.id === editId);
+                    if (!branch) return;
+
+                    if (status === 'Inactive') {
+                        const otherActive = this.branches.some(b => b.id !== editId && b.status !== 'Inactive');
+                        if (!otherActive) {
+                            this.showToast('At least one Xtreme Gym World branch must remain Active.', 'error');
+                            return;
+                        }
+                    }
+
+                    branch.name = name;
+                    branch.address = address;
+                    branch.hours = hours || 'Mon-Sat: 6:00 AM - 10:00 PM';
+                    branch.contact = contact;
+                    branch.status = status;
+
+                    // Update cached branchName on assigned members
+                    this.members.forEach(m => {
+                        if (m.branchId === branch.id) {
+                            m.branchName = branch.name;
+                        }
+                    });
+
+                    this.saveData('branches');
+                    this.saveData('members');
+                    await Promise.all([
+                        this.pushRecordToCloud('eg_branches', branch.id, branch),
+                        this.pushFullCollectionToCloud('eg_members', this.members)
+                    ]);
+                    this.showToast(`Branch "${branch.name}" updated & synced to cloud!`, 'success');
+                } else {
+                    const nowMs = Date.now();
+                    const newBranch = {
+                        id: `branch_${nowMs}`,
+                        name,
+                        address,
+                        hours: hours || 'Mon-Sat: 6:00 AM - 10:00 PM',
+                        contact,
+                        status,
+                        createdAtMs: nowMs
+                    };
+
+                    this.branches.push(newBranch);
+                    this.selectedBranchId = newBranch.id;
+                    localStorage.setItem('eg_selected_branch', this.selectedBranchId);
+
+                    this.saveData('branches');
+                    await this.pushRecordToCloud('eg_branches', newBranch.id, newBranch);
+                    this.showToast(`New branch "${newBranch.name}" added & synced to cloud!`, 'success');
+                }
+
+                this.populateBranchSelects();
+                this.updateHeaderBranchInfo();
+                this.renderBranchesList();
+                this.renderMembersTable();
+                this.closeModal('branchModal');
             }
 
             renderAccountsTable() {
@@ -3406,6 +4018,7 @@
                 if (this.currentUser?.role !== 'admin') return;
                 const payload = {
                     exportedAt: new Date().toISOString(),
+                    branches: this.branches,
                     plans: this.plans,
                     users: this.users,
                     members: this.members,
@@ -3416,7 +4029,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Extreme_Gym_Backup_${getLocalISODate(0)}.json`;
+                a.download = `Xtreme_Gym_Backup_${getLocalISODate(0)}.json`;
                 a.click();
                 window.URL.revokeObjectURL(url);
                 this.showToast('Full system backup downloaded.', 'success');
@@ -3440,12 +4053,16 @@
                             this.showToast('Backup rejected: missing valid administrator account.', 'error');
                             return;
                         }
+                        if (Array.isArray(data.branches) && data.branches.length > 0) {
+                            this.branches = this.sortCollectionChronologically(data.branches);
+                        }
                         this.plans = this.sortCollectionChronologically(data.plans);
                         this.users = this.sortCollectionChronologically(data.users);
                         this.members = this.sortCollectionChronologically(data.members);
                         this.payments = this.sortCollectionChronologically(data.payments || []);
                         this.attendance = this.sortCollectionChronologically(data.attendance || []);
 
+                        this.saveData('branches');
                         this.saveData('plans');
                         this.saveData('users');
                         this.saveData('members');
@@ -3453,6 +4070,7 @@
                         this.saveData('attendance');
 
                         await Promise.all([
+                            this.pushFullCollectionToCloud('eg_branches', this.branches),
                             this.pushFullCollectionToCloud('eg_plans', this.plans),
                             this.pushFullCollectionToCloud('eg_users', this.users),
                             this.pushFullCollectionToCloud('eg_members', this.members),
@@ -3460,6 +4078,8 @@
                             this.pushFullCollectionToCloud('eg_attendance', this.attendance)
                         ]);
 
+                        this.populateBranchSelects();
+                        this.updateHeaderBranchInfo();
                         this.populatePlanSelects();
                         this.renderAdminDashboard();
                         this.showToast('System backup restored & synced to cloud.', 'success');
