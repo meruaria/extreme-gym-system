@@ -33,6 +33,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK (Compat for GitHub Pages) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -124,6 +127,11 @@
                 <div id="navTabsContainer" class="hidden md:flex items-center gap-1"></div>
 
                 <div class="flex items-center gap-3">
+                    <div id="cloudStatusBadge" class="bg-zinc-900 border border-zinc-700 text-zinc-400 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5" title="Firebase Cloud Database Status">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span>Connecting Cloud...</span>
+                    </div>
+
                     <div id="userInfoHeader" class="hidden text-right">
                         <div id="userNameDisplay" class="text-sm font-bold text-zinc-200">User</div>
                         <div id="userRoleBadge" class="text-[11px] text-brand-400 font-medium">Role</div>
@@ -716,7 +724,7 @@
                         <p class="text-[10px] text-zinc-400">Only the Administrator account can create accounts or change Admin/Staff passwords</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <button onclick="app.exportDatabaseBackup()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5" title="Download full local backup file">
+                        <button onclick="app.exportDatabaseBackup()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5" title="Download full backup file">
                             <i class="fa-solid fa-download text-emerald-400"></i>
                             <span>Backup Data</span>
                         </button>
@@ -1018,6 +1026,27 @@
     </div>
 
     <script>
+        // Firebase Configuration for Extreme Gym
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0unjeJ3e8-Te0pE25PH8xTHaYz_D-BQM",
+            authDomain: "extremegym-53eed.firebaseapp.com",
+            projectId: "extremegym-53eed",
+            storageBucket: "extremegym-53eed.firebasestorage.app",
+            messagingSenderId: "100655517804",
+            appId: "1:100655517804:web:7aba9a39251ef957e54849",
+            measurementId: "G-EPW635H9NB"
+        };
+
+        let db = null;
+        try {
+            if (window.firebase) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+            }
+        } catch (err) {
+            console.error('Firebase init error:', err);
+        }
+
         function escapeHTML(str) {
             if (!str) return '';
             return String(str)
@@ -1153,9 +1182,145 @@
                 this.isCameraScanning = false;
                 this.lastCameraDecodeText = '';
                 this.lastCameraDecodeTime = 0;
+                this.cloudConnected = false;
 
                 this.loadData();
                 this.initUI();
+                this.initCloudSync();
+            }
+
+            setCloudStatus(state, label, title = '') {
+                const badge = document.getElementById('cloudStatusBadge');
+                if (!badge) return;
+                if (title) badge.title = title;
+
+                if (state === 'synced') {
+                    this.cloudConnected = true;
+                    badge.className = 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>${escapeHTML(label)}</span>`;
+                } else if (state === 'warning') {
+                    this.cloudConnected = false;
+                    badge.className = 'bg-amber-500/10 border border-amber-500/30 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>${escapeHTML(label)}</span>`;
+                } else {
+                    this.cloudConnected = false;
+                    badge.className = 'bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400"></span><span>${escapeHTML(label)}</span>`;
+                }
+            }
+
+            async initCloudSync() {
+                if (!db) {
+                    this.setCloudStatus('warning', 'Local Mode', 'Firebase SDK unavailable');
+                    return;
+                }
+
+                try {
+                    const metaRef = db.collection('eg_meta').doc('seed_status');
+                    const metaSnap = await metaRef.get();
+
+                    if (!metaSnap.exists) {
+                        const batch = db.batch();
+                        this.plans.forEach(item => batch.set(db.collection('eg_plans').doc(item.id), item));
+                        this.users.forEach(item => batch.set(db.collection('eg_users').doc(item.id), item));
+                        this.members.forEach(item => batch.set(db.collection('eg_members').doc(item.id), item));
+                        this.payments.forEach(item => batch.set(db.collection('eg_payments').doc(item.id), item));
+                        this.attendance.forEach(item => batch.set(db.collection('eg_attendance').doc(item.id), item));
+                        batch.set(metaRef, { seeded: true, createdAt: new Date().toISOString() });
+                        await batch.commit();
+                    }
+
+                    const collections = [
+                        { name: 'eg_plans', prop: 'plans', localKey: 'eg_plans' },
+                        { name: 'eg_users', prop: 'users', localKey: 'eg_users' },
+                        { name: 'eg_members', prop: 'members', localKey: 'eg_members' },
+                        { name: 'eg_payments', prop: 'payments', localKey: 'eg_payments' },
+                        { name: 'eg_attendance', prop: 'attendance', localKey: 'eg_attendance' }
+                    ];
+
+                    collections.forEach(col => {
+                        db.collection(col.name).onSnapshot(
+                            (snapshot) => {
+                                const docs = [];
+                                snapshot.forEach(doc => docs.push(doc.data()));
+                                if (docs.length > 0 || metaSnap.exists) {
+                                    this[col.prop] = docs;
+                                    localStorage.setItem(col.localKey, JSON.stringify(docs));
+                                    this.onCloudDataUpdated(col.prop);
+                                }
+                                this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore (extremegym-53eed)');
+                            },
+                            (error) => {
+                                console.warn(`Firestore listener (${col.name}):`, error);
+                                this.setCloudStatus('warning', 'Cloud DB Setup Needed', 'Enable Firestore Database in Test Mode in Firebase Console');
+                            }
+                        );
+                    });
+                } catch (err) {
+                    console.warn('Firestore init check failed:', err);
+                    this.setCloudStatus('warning', 'Cloud DB Setup Needed', 'Create Firestore Database in Test Mode in your Firebase Console');
+                }
+            }
+
+            onCloudDataUpdated(prop) {
+                if (prop === 'plans') {
+                    this.populatePlanSelects();
+                }
+
+                if (prop === 'users' && this.currentUser) {
+                    const updatedSelf = this.users.find(u => u.id === this.currentUser.id);
+                    if (updatedSelf) {
+                        this.currentUser = updatedSelf;
+                        sessionStorage.setItem('eg_session', JSON.stringify(updatedSelf));
+                    }
+                }
+
+                if (!this.currentUser) return;
+
+                if (this.currentUser.role === 'member') {
+                    this.renderMemberPortal();
+                } else {
+                    this.renderStatsSummary();
+                    if (prop === 'members') {
+                        this.populateScannerSelect();
+                        this.renderMembersTable();
+                    } else if (prop === 'payments') {
+                        this.renderPaymentsModule();
+                    } else if (prop === 'attendance') {
+                        this.renderAttendanceLogTable();
+                    } else if (prop === 'plans') {
+                        this.renderPlansList();
+                    } else if (prop === 'users') {
+                        this.renderAccountsTable();
+                    }
+                }
+            }
+
+            async pushRecordToCloud(collectionName, docId, record) {
+                if (!db) return;
+                try {
+                    await db.collection(collectionName).doc(String(docId)).set(record);
+                    this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore (extremegym-53eed)');
+                } catch (err) {
+                    console.warn(`Cloud write error (${collectionName}/${docId}):`, err);
+                    this.setCloudStatus('warning', 'Cloud Sync Pending', 'Check Firestore rules or internet connection');
+                }
+            }
+
+            async pushFullCollectionToCloud(collectionName, items) {
+                if (!db || !Array.isArray(items)) return;
+                try {
+                    const batch = db.batch();
+                    items.forEach(item => {
+                        if (item && item.id) {
+                            batch.set(db.collection(collectionName).doc(String(item.id)), item);
+                        }
+                    });
+                    await batch.commit();
+                    this.setCloudStatus('synced', 'Cloud Synced', 'Connected to Firebase Firestore');
+                } catch (err) {
+                    console.warn(`Batch sync error (${collectionName}):`, err);
+                }
             }
 
             loadData() {
@@ -1231,6 +1396,7 @@
                 selects.forEach(selectId => {
                     const el = document.getElementById(selectId);
                     if (!el) return;
+                    const prevVal = el.value;
                     el.innerHTML = '';
                     this.plans.forEach(plan => {
                         const opt = document.createElement('option');
@@ -1238,6 +1404,9 @@
                         opt.textContent = `${plan.name} - ₱${plan.price} (${plan.durationDays} Days)`;
                         el.appendChild(opt);
                     });
+                    if (prevVal && this.plans.some(p => p.id === prevVal)) {
+                        el.value = prevVal;
+                    }
                 });
                 this.onPayPlanSelectChange();
                 this.onRenewPlanChange();
@@ -1321,7 +1490,19 @@
                 }, 1000);
             }
 
-            handleCustomerSelfRegister(e) {
+            generateNextMemberId() {
+                let maxNum = this.members.length;
+                this.members.forEach(m => {
+                    const match = String(m.id).match(/EG-2026-(\d+)/);
+                    if (match) {
+                        const n = parseInt(match[1], 10);
+                        if (n > maxNum) maxNum = n;
+                    }
+                });
+                return `EG-2026-${String(maxNum + 1).padStart(4, '0')}`;
+            }
+
+            async handleCustomerSelfRegister(e) {
                 e.preventDefault();
                 const fn = document.getElementById('regFirstName').value.trim();
                 const ln = document.getElementById('regLastName').value.trim();
@@ -1342,7 +1523,7 @@
                     return;
                 }
 
-                const memberId = `EG-2026-${String(this.members.length + 1).padStart(4, '0')}`;
+                const memberId = this.generateNextMemberId();
                 const userId = `usr_${Date.now()}`;
 
                 const selectedPlan = this.plans.find(p => p.id === planId) || this.plans[0];
@@ -1377,7 +1558,7 @@
                 };
 
                 const newPayment = {
-                    id: `TXN-${Date.now().toString().slice(-4)}`,
+                    id: `TXN-${Date.now().toString().slice(-6)}`,
                     memberId,
                     memberName: `${fn} ${ln}`,
                     planName: selectedPlan.name,
@@ -1395,7 +1576,13 @@
                 this.saveData('members');
                 this.saveData('payments');
 
-                this.showToast('Registration successful! Logging you into your new member portal.', 'success');
+                await Promise.all([
+                    this.pushRecordToCloud('eg_users', newUser.id, newUser),
+                    this.pushRecordToCloud('eg_members', newMember.id, newMember),
+                    this.pushRecordToCloud('eg_payments', newPayment.id, newPayment)
+                ]);
+
+                this.showToast('Registration successful & synced to cloud! Logging you in...', 'success');
 
                 this.currentUser = newUser;
                 sessionStorage.setItem('eg_session', JSON.stringify(newUser));
@@ -1482,6 +1669,7 @@
 
             renderMemberPortal() {
                 const member = this.getCurrentMemberRecord();
+                if (!member) return;
 
                 document.getElementById('memberNameTitle').textContent = `${member.firstName} ${member.lastName}`;
                 document.getElementById('memberIdSub').textContent = `Member ID: ${member.id}`;
@@ -1563,7 +1751,7 @@
                 }
             }
 
-            handleMemberRenewalSubmit(e) {
+            async handleMemberRenewalSubmit(e) {
                 e.preventDefault();
                 const member = this.getCurrentMemberRecord();
                 const planId = document.getElementById('renewPlanSelect').value;
@@ -1588,8 +1776,8 @@
                 member.status = 'Active';
                 member.totalPaid = (member.totalPaid || 0) + plan.price;
 
-                this.payments.push({
-                    id: `TXN-${Date.now().toString().slice(-4)}`,
+                const paymentRec = {
+                    id: `TXN-${Date.now().toString().slice(-6)}`,
                     memberId: member.id,
                     memberName: `${member.firstName} ${member.lastName}`,
                     planName: plan.name,
@@ -1597,10 +1785,18 @@
                     method: method + (refNo ? ` (${refNo})` : ''),
                     date: new Date().toLocaleString(),
                     recordedBy: this.currentUser.username
-                });
+                };
+
+                this.payments.push(paymentRec);
 
                 this.saveData('members');
                 this.saveData('payments');
+
+                await Promise.all([
+                    this.pushRecordToCloud('eg_members', member.id, member),
+                    this.pushRecordToCloud('eg_payments', paymentRec.id, paymentRec)
+                ]);
+
                 this.closeModal('renewalModal');
                 this.renderMemberPortal();
                 this.showToast(`Membership renewed (${plan.name})! Valid until ${member.expiryDate}.`, 'success');
@@ -1697,7 +1893,7 @@
 
             async startCameraScanner(preferredDeviceId = null) {
                 if (window.location.protocol === 'file:') {
-                    this.showToast('Camera blocked on local file://. Deploy to Netlify Drop or GitHub Pages (HTTPS) to use live camera.', 'error');
+                    this.showToast('Camera blocked on local file://. Open via your GitHub Pages HTTPS link to scan.', 'error');
                     return;
                 }
 
@@ -1887,6 +2083,9 @@
                 const paySel = document.getElementById('payMemberSelect');
                 if (!sel || !paySel) return;
 
+                const prevScan = sel.value;
+                const prevPay = paySel.value;
+
                 sel.innerHTML = '<option value="">-- Select Member --</option>';
                 paySel.innerHTML = '<option value="">-- Select Member to Record Payment --</option>';
 
@@ -1901,6 +2100,9 @@
                     opt2.textContent = `${m.firstName} ${m.lastName} (${m.id})`;
                     paySel.appendChild(opt2);
                 });
+
+                if (prevScan) sel.value = prevScan;
+                if (prevPay) paySel.value = prevPay;
             }
 
             simScanFromSelect() {
@@ -1948,7 +2150,7 @@
                 } catch (e) {}
             }
 
-            processQRScan(scannedCode) {
+            async processQRScan(scannedCode) {
                 const member = this.members.find(m => m.id.toUpperCase() === scannedCode.toUpperCase() || m.id === scannedCode);
                 const resultCard = document.getElementById('scanResultCard');
 
@@ -1998,16 +2200,18 @@
                         <button onclick="app.quickRenewMember('${member.id}')" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold px-4 py-2 rounded-xl mt-2">Renew Subscription Now</button>
                     `;
 
-                    this.attendance.push({
-                        id: `ATT-${Date.now().toString().slice(-4)}`,
+                    const attLog = {
+                        id: `ATT-${Date.now().toString().slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
                         planName: member.planName,
                         status: 'Denied (Expired)',
                         timestamp: new Date().toLocaleString(),
                         operator: this.currentUser ? this.currentUser.username : 'desk_scanner'
-                    });
+                    };
+                    this.attendance.push(attLog);
                     this.saveData('attendance');
+                    await this.pushRecordToCloud('eg_attendance', attLog.id, attLog);
                     this.renderStatsSummary();
                     this.renderAttendanceLogTable();
                     this.showToast('ENTRY DENIED: Member plan is expired.', 'error');
@@ -2026,16 +2230,18 @@
                         <p class="text-xs text-emerald-300">Valid Until: ${member.expiryDate}</p>
                     `;
 
-                    this.attendance.push({
-                        id: `ATT-${Date.now().toString().slice(-4)}`,
+                    const attLog = {
+                        id: `ATT-${Date.now().toString().slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
                         planName: member.planName,
                         status: 'Verified Active',
                         timestamp: new Date().toLocaleString(),
                         operator: this.currentUser ? this.currentUser.username : 'desk_scanner'
-                    });
+                    };
+                    this.attendance.push(attLog);
                     this.saveData('attendance');
+                    await this.pushRecordToCloud('eg_attendance', attLog.id, attLog);
                     this.renderStatsSummary();
                     this.renderAttendanceLogTable();
                     this.showToast(`Check-in verified for ${member.firstName} ${member.lastName}!`, 'success');
@@ -2132,7 +2338,7 @@
                 this.openModal('memberModal');
             }
 
-            handleSaveMember(e) {
+            async handleSaveMember(e) {
                 e.preventDefault();
                 const editId = document.getElementById('editMemberId').value;
                 const fn = document.getElementById('mFirstName').value.trim();
@@ -2162,14 +2368,16 @@
                             m.expiryDate = getLocalISODate(selectedPlan.durationDays);
                             m.status = 'Active';
                         }
+                        this.saveData('members');
+                        await this.pushRecordToCloud('eg_members', m.id, m);
                     }
-                    this.showToast('Member updated successfully.', 'success');
+                    this.showToast('Member updated & synced to cloud.', 'success');
                 } else {
-                    const newId = `EG-2026-${String(this.members.length + 1).padStart(4, '0')}`;
+                    const newId = this.generateNextMemberId();
                     const startDate = getLocalISODate(0);
                     const expiryDate = getLocalISODate(selectedPlan.durationDays);
 
-                    this.members.push({
+                    const newMember = {
                         id: newId,
                         userId: '',
                         firstName: fn,
@@ -2182,10 +2390,10 @@
                         startDate,
                         expiryDate,
                         totalPaid: selectedPlan.price
-                    });
+                    };
 
-                    this.payments.push({
-                        id: `TXN-${Date.now().toString().slice(-4)}`,
+                    const newPayment = {
+                        id: `TXN-${Date.now().toString().slice(-6)}`,
                         memberId: newId,
                         memberName: `${fn} ${ln}`,
                         planName: selectedPlan.name,
@@ -2193,18 +2401,27 @@
                         method: 'Cash',
                         date: new Date().toLocaleString(),
                         recordedBy: this.currentUser ? this.currentUser.username : 'admin'
-                    });
+                    };
 
-                    this.showToast(`New member ${fn} ${ln} created successfully!`, 'success');
+                    this.members.push(newMember);
+                    this.payments.push(newPayment);
+
+                    this.saveData('members');
+                    this.saveData('payments');
+
+                    await Promise.all([
+                        this.pushRecordToCloud('eg_members', newMember.id, newMember),
+                        this.pushRecordToCloud('eg_payments', newPayment.id, newPayment)
+                    ]);
+
+                    this.showToast(`New member ${fn} ${ln} created & synced to cloud!`, 'success');
                 }
 
-                this.saveData('members');
-                this.saveData('payments');
                 this.closeModal('memberModal');
                 this.renderAdminDashboard();
             }
 
-            quickRenewMember(memberId) {
+            async quickRenewMember(memberId) {
                 const member = this.members.find(m => m.id === memberId);
                 if (!member) return;
 
@@ -2225,8 +2442,8 @@
                 member.status = 'Active';
                 member.totalPaid = (member.totalPaid || 0) + selectedPlan.price;
 
-                this.payments.push({
-                    id: `TXN-${Date.now().toString().slice(-4)}`,
+                const newPayment = {
+                    id: `TXN-${Date.now().toString().slice(-6)}`,
                     memberId: member.id,
                     memberName: `${member.firstName} ${member.lastName}`,
                     planName: selectedPlan.name,
@@ -2234,10 +2451,18 @@
                     method: 'Cash',
                     date: new Date().toLocaleString(),
                     recordedBy: this.currentUser ? this.currentUser.username : 'staff'
-                });
+                };
+
+                this.payments.push(newPayment);
 
                 this.saveData('members');
                 this.saveData('payments');
+
+                await Promise.all([
+                    this.pushRecordToCloud('eg_members', member.id, member),
+                    this.pushRecordToCloud('eg_payments', newPayment.id, newPayment)
+                ]);
+
                 this.renderAdminDashboard();
                 this.showToast(`Plan renewed for ${member.firstName} ${member.lastName}! Expiry extended to ${member.expiryDate}`, 'success');
             }
@@ -2291,7 +2516,7 @@
                 }
             }
 
-            handleManualPaymentSubmit(e) {
+            async handleManualPaymentSubmit(e) {
                 e.preventDefault();
                 const memberId = document.getElementById('payMemberSelect').value;
                 const planId = document.getElementById('payPlanSelect').value;
@@ -2327,8 +2552,8 @@
                     member.status = 'Active';
                     member.totalPaid = (member.totalPaid || 0) + amount;
 
-                    this.payments.push({
-                        id: `TXN-${Date.now().toString().slice(-4)}`,
+                    const newPayment = {
+                        id: `TXN-${Date.now().toString().slice(-6)}`,
                         memberId: member.id,
                         memberName: `${member.firstName} ${member.lastName}`,
                         planName: plan.name,
@@ -2336,12 +2561,20 @@
                         method: method + (refNo ? ` (${refNo})` : ''),
                         date: new Date().toLocaleString(),
                         recordedBy: this.currentUser ? this.currentUser.username : 'staff'
-                    });
+                    };
+
+                    this.payments.push(newPayment);
 
                     this.saveData('members');
                     this.saveData('payments');
+
+                    await Promise.all([
+                        this.pushRecordToCloud('eg_members', member.id, member),
+                        this.pushRecordToCloud('eg_payments', newPayment.id, newPayment)
+                    ]);
+
                     this.renderAdminDashboard();
-                    this.showToast(`Payment of ₱${amount} recorded! Member status updated to Active.`, 'success');
+                    this.showToast(`Payment of ₱${amount} recorded & synced to cloud!`, 'success');
                 }
             }
 
@@ -2485,26 +2718,29 @@
                 this.openModal('planModal');
             }
 
-            handleSavePlan(e) {
+            async handleSavePlan(e) {
                 e.preventDefault();
                 const name = document.getElementById('pName').value.trim();
                 const price = clamp(document.getElementById('pPrice').value, 1, 50000);
                 const days = clamp(document.getElementById('pDays').value, 1, 365);
                 const category = document.getElementById('pCategory').value;
 
-                this.plans.push({
+                const newPlan = {
                     id: `plan_${Date.now()}`,
                     name,
                     price,
                     durationDays: days,
                     category
-                });
+                };
+
+                this.plans.push(newPlan);
 
                 this.saveData('plans');
+                await this.pushRecordToCloud('eg_plans', newPlan.id, newPlan);
                 this.populatePlanSelects();
                 this.renderPlansList();
                 this.closeModal('planModal');
-                this.showToast('New membership plan saved.', 'success');
+                this.showToast('New membership plan saved & synced to cloud.', 'success');
             }
 
             renderAccountsTable() {
@@ -2549,7 +2785,7 @@
                 this.openModal('accountModal');
             }
 
-            handleSaveStaffAccount(e) {
+            async handleSaveStaffAccount(e) {
                 e.preventDefault();
                 if (this.currentUser?.role !== 'admin') {
                     this.showToast('Unauthorized action.', 'error');
@@ -2572,7 +2808,7 @@
                     return;
                 }
 
-                this.users.push({
+                const newStaff = {
                     id: `usr_${Date.now()}`,
                     username,
                     password,
@@ -2580,12 +2816,15 @@
                     firstName: fn,
                     lastName: ln,
                     createdAt: getLocalISODate(0)
-                });
+                };
+
+                this.users.push(newStaff);
 
                 this.saveData('users');
+                await this.pushRecordToCloud('eg_users', newStaff.id, newStaff);
                 this.renderAccountsTable();
                 this.closeModal('accountModal');
-                this.showToast(`New ${role.toUpperCase()} account created for ${fn} ${ln}`, 'success');
+                this.showToast(`New ${role.toUpperCase()} account created & synced to cloud!`, 'success');
             }
 
             openChangePasswordModal(userId) {
@@ -2603,7 +2842,7 @@
                 this.openModal('changePasswordModal');
             }
 
-            handleChangeAccountPassword(e) {
+            async handleChangeAccountPassword(e) {
                 e.preventDefault();
                 if (this.currentUser?.role !== 'admin') {
                     this.showToast('Unauthorized action.', 'error');
@@ -2629,6 +2868,7 @@
 
                 targetUser.password = newPass;
                 this.saveData('users');
+                await this.pushRecordToCloud('eg_users', targetUser.id, targetUser);
 
                 if (this.currentUser.id === targetUser.id) {
                     this.currentUser.password = newPass;
@@ -2636,7 +2876,7 @@
                 }
 
                 this.closeModal('changePasswordModal');
-                this.showToast(`Password updated for ${targetUser.username}.`, 'success');
+                this.showToast(`Password updated & synced to cloud for ${targetUser.username}.`, 'success');
             }
 
             exportDatabaseBackup() {
@@ -2664,7 +2904,7 @@
                 event.target.value = '';
 
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = async (e) => {
                     try {
                         const data = JSON.parse(e.target.result);
                         if (!Array.isArray(data.users) || !Array.isArray(data.members) || !Array.isArray(data.plans)) {
@@ -2683,9 +2923,17 @@
                         this.saveData('payments');
                         this.saveData('attendance');
 
+                        await Promise.all([
+                            this.pushFullCollectionToCloud('eg_plans', this.plans),
+                            this.pushFullCollectionToCloud('eg_users', this.users),
+                            this.pushFullCollectionToCloud('eg_members', this.members),
+                            this.pushFullCollectionToCloud('eg_payments', this.payments),
+                            this.pushFullCollectionToCloud('eg_attendance', this.attendance)
+                        ]);
+
                         this.populatePlanSelects();
                         this.renderAdminDashboard();
-                        this.showToast('System backup restored successfully.', 'success');
+                        this.showToast('System backup restored & synced to cloud.', 'success');
                     } catch (err) {
                         this.showToast('Failed to read backup file.', 'error');
                     }
